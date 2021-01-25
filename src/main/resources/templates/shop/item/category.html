@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>모든 동대생들이 동네이웃처럼</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/index.css">
+    <link rel="stylesheet" href="/css/account/member_modify.css">
+    <link rel="stylesheet" href="/css/account/change_smartPhone_number.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/main/nav.css">
+    <link rel="stylesheet" href="/css/main/chat.css">
+    <link rel="stylesheet" href="/css/item/onePick.css">
+    <link rel="stylesheet" href="/css/item/form_picture_text.css">
+    <link rel="stylesheet" href="/css/item/ListbyCondition.css">
+    <link rel="stylesheet" href="/css/item/myItem.css">
+    <link rel="stylesheet" href="/css/item/upLoad.css">
+    <link rel="stylesheet" href="/css/item/category.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/account/select_userInfo.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/css/item/image_slider.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+<!-- 로그인 및 회원가입, 물품 검색 UI -->
+<nav class="navbar fixed-top navbar-expand-md" id="navbar_height"></nav>
+<!-- ajax로 다른 컨텐츠 불러오기 -->
+<main id="main_tag">
+    <div class="container-md">
+        <div id="nav_category_reference" class="">
+            카테고리 조회
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-book">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">도서</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-compact-disc">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">음반/DVD</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-tshirt">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">의류/잡화</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-broom">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">뷰티</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-plug">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">가전/디지털</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-running">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">스포츠/레저</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-robot">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">완구/취미</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-pencil-ruler">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">문구/오피스</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-gift">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">기프티콘</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-burn">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">주방용품</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-user-tag">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">생활용품</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-home">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">홈 인테리어</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-paw">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">반려동물용품</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-utensils">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">식품</span>
+        </div>
+        <hr>
+        <div class="move_ListbyCondition nav_category_title" href="/shop/item/ListbyCondition">
+            <i class="fas fa-search-dollar">&nbsp;</i>
+            <span class="move_ListbyCondition" href="/shop/item/ListbyCondition">기타</span>
+        </div>
+    </div>
+</main>
+<!-- 채팅UI -->
+<figure></figure>
+<hr>
+<footer></footer>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
+<script src="/js/bootstrap/bootstrap.min.js"></script>
+<script type="module" src="/js/main/pageLoad.js"></script>
+<script src="/js/main/index.js"></script>
+<script type="module" src="/js/item/onePick.js"></script>
+<script src="/js/item/myItem.js"></script>
+<script src="/js/item/ListbyCondition.js"></script>
+<script type="module" src="/js/item/upLoad.js"></script>
+<script type="module" src="/js/account/member_modify.js"></script>
+<script type="module" src="/js/account/change_Pwd.js"></script>
+<script type="module" src="/js/account/change_smartPhone_number.js"></script>
+</body>
+</html>

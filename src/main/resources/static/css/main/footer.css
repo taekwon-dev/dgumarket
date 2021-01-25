@@ -1,0 +1,21 @@
+/*디바이스의 크기에 따라 작은 디바이스용 footer와 큰 디바이스용 footer로 나뉨.*/
+@media ( min-width: 280px ) and (max-width: 767px){
+    #footer_div2{
+        display: block;
+    }
+    #footer_div1{
+        display: none;
+    }
+}
+@media (min-width: 768px){
+    #footer_div1{
+        display: block;
+    }
+    #footer_div2{
+        display: none;
+    }
+}
+
+/*web footer*/
+
+/*모바일 footer*/

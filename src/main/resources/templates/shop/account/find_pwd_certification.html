@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>이메일 인증</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/account/account.css">
+    <link rel="stylesheet" href="/css/account/find_pwd_certification.css">
+    
+    <!-- 폰트어썸 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" 
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <style>
+    </style>    
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <h3><p class="text-center p-5"><a href="/shop/main/index" id="site_brand"><i class="fas fa-republican"></i>&nbsp;동대방네</a></p></h3>
+        <h3><p class="text-center p-5">비밀번호<br>찾기</p></h3>
+        
+        <div class="row d-flex justify-content-center">
+          
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+          
+          <div id="send_authenticationMail_form" class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 ">
+            <p class="text-center email-icon"><i class="fas fa-envelope-open-text"></i></p>
+            <p class="text-center">동국대 웹메일로 인증 완료후<br>비밀번호를 재발급 받으세요!</p>
+            <p class="text-center">입력하신 웹메일로 인증번호가 발송되며<br>인증 후 비밀번호가 재발급됩니다.</p>
+            <hr>
+            <div class="form-group d-flex justify-content-center">
+                <button type="button" id="send_authenticationMail" class="btn btn-primary form-control">인증번호 받기</button>
+            </div>
+          </div>
+
+          <div id="input_authorizationCode_form" class="hidden col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+            <div class= "d-flex justify-content-start">
+              인증번호
+            </div>
+            <div class="form-group">
+              <label for="authorizationCode"></label>
+              <input type="number" class="form-control" placeholder="인증번호 입력" id="authorizationCode">
+            </div>
+            <br>
+            <div class="text-center">인증메일을 못 받았다면?<span id="requestRepeat"> 재전송 > </span></div>
+            <br>
+            <div class="form-group d-flex justify-content-center">
+              <button type="button" id="input_authorizationCode" class="btn btn-primary form-control">인증번호 확인</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="/js/account/find_pwd_certification.js"></script>
+  </body>
+</html>

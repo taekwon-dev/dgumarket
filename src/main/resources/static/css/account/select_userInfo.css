@@ -1,0 +1,43 @@
+.select_button{
+    margin: 15px;
+    border-radius: 25%;
+}
+@media (max-width:699px) {
+    .select_button{
+        width: 30vw;
+        height: 30vw;
+    }
+    .select_icon{
+        font-size: 18vw;
+    }
+    .select_icon_text{
+        font-size: 3vw;
+    }
+}
+@media (min-width:700px) {
+    .select_button{
+        width: 20vw;
+        height: 20vw;
+    }
+    .select_icon{
+        font-size: 10vw;
+    }
+    .select_icon_text{
+        font-size: 2vw;
+    }
+}
+@media (min-width:1025px) {
+    .select_button{
+        width: 10vw;
+        height: 10vw;
+    }
+    .select_icon{
+        font-size: 5vw;
+    }
+    .select_icon_text{
+        font-size: 1vw;
+    }
+}
+.select_icon_text{
+    text-align: center;
+}

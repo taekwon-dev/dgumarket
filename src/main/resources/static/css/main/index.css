@@ -1,0 +1,50 @@
+.hidden{
+    display: none;
+}
+.slide-picture{
+    width: 100%;
+}
+
+#category_word{
+    font-size:30px;
+}
+
+#item_list_index{
+    background-color: #ffffff;
+}
+.container-sm .thumbnail_info{
+    background-color: #ffffff;
+    border: 1px solid #ffffff;
+}
+.item_form{
+    cursor: pointer;
+}
+
+.item_info_good_view{
+    font-size: 12px;
+    color: #868e96;
+}
+
+.index_bg{
+    cursor: pointer;
+    margin-left: 7.5px;
+    margin-right: 7.5px;
+    margin-bottom: 15px;
+}
+@media (min-width: 280px) and (max-width: 350px) {
+    .index_bg{
+        font-size: 10px;
+    }
+}
+
+/*스크롤 버튼UI*/
+#scroll_btn{
+    padding: 15px;
+    background-color: white;
+    box-shadow: rgba(0, 0, 0, 0.40) 0 2px 4px;
+    font-size: 30px;
+    cursor: pointer;
+}
+#scroll_btn_form{
+    margin-bottom: 3vmin;
+}

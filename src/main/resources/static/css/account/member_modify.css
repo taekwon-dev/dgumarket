@@ -1,0 +1,86 @@
+html,body{
+    width: 100%;
+}
+/* 작은 디바이스의 경우 테이블 왼쪽 항목 숨김  */
+@media ( min-width: 280px ) and (max-width: 767px){
+    .th_web_title{
+        display: none;
+    }
+    .th_mobile_title{
+        margin-bottom: 5px;
+    }
+}
+
+/* 다소 큰 디바이스부터 테이블 왼쪽 항목 생성 */
+@media (min-width: 768px){
+    .th_mobile_title{
+        display: none;
+    }
+}
+
+/* 작은 디바이스에서 해당 텍스트 크기 조절 */
+@media (min-width: 280px) and (max-width: 300px){
+    .category-text{
+        font-size: 15px;
+    }
+    .pwd-text{
+        font-size: 14px;
+    }
+}
+
+/* 테이블 셀 너비를 디바이스 크기에 맞게 조절 */
+.th_web_title{
+    width: 30%;
+}
+.td_input{
+    width: 70%;
+}
+#category_title{
+    padding: 0px 0px;
+}
+.profile_picture{
+    width: 100px;
+    height: 100px;
+    margin-top: 10px;
+}
+.select_profile_picture{
+    cursor: pointer;
+}
+
+#InputFile{
+    cursor: pointer;
+}
+
+/* 회원 정보 수정 실시간 유효검사 주의 알림 문구 색상 */
+.wrong_input,.correct_input{
+    font-size: 14px;
+}
+.wrong_input{
+    color: #e0481a;
+}
+.correct_input{
+    color: #007aff;
+}
+
+.row_padding{
+    padding: .75rem;
+}
+
+.member_modify_bg{
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 10px;
+}
+#existing_interested_category{
+    padding: .75rem;
+}
+
+#check_all_margin-bottom{
+    margin-bottom: 5px;
+}
+.category_select_space{
+    margin: 5px;
+}
+#cancel_member_modify,#leave_member{
+    margin-left: 10px;
+}

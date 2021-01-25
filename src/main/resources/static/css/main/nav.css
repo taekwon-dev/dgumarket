@@ -1,0 +1,157 @@
+/*pageLoad.js를 통해 브라우저의 body의 길이를 본래 길이에서 navbar의 높이만큼 뺌*/
+
+/*디바이스의 크기에 따라 작은 디바이스용 navbar와 큰 디바이스용 navbar로 나뉨.*/
+@media ( min-width: 280px ) and (max-width: 767px){
+    #nav_div1{
+        display: none;
+    }
+}
+@media (min-width: 768px){
+    #nav_div2{
+        display: none;
+    }
+    #nav_div1{
+        display: block;
+    }
+}
+
+/*큰 디바이스 용 navbarUI*/
+.navbar-expand-md{
+    background-color: #ffffff;
+    box-shadow: rgba(0, 0, 0, 0.18) 0 2px 4px;
+}
+
+.site_brand{
+    text-decoration: none ;
+}
+
+#icon_clock{
+    font-weight: 900;
+}
+
+#web_items_search{
+    width: 290px;
+}
+
+.find_category_update,#upload_page{
+    font-size: 14px;
+}
+#web_nav_user_picture_form{
+    margin-left: 4px;
+}
+#web_nav_user_picture{
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    position: relative;
+}
+#web_nav_user_info{
+    position: absolute;
+    font-size: 14px;
+    min-width: 140px;
+    max-width: 310px;
+    padding: 6px 12px;
+    background-color: white;
+    color: rgb(29, 161, 242);
+    box-shadow: rgba(0, 0, 0, 0.18) 0 2px 4px;
+}
+
+/*작은 디바이스 용 navbarUI*/
+#nav_more_view_btn,#nav_few_view_btn{
+    padding: 4px 10px;
+}
+#nav_more_view_icon{
+    color: rgb(29, 161, 242);
+    font-size: 23px;
+}
+#nav_few_view_btn{
+    color: rgb(29, 161, 242);
+    font-size: 28px;
+}
+.nav_text{
+    color: rgb(29, 161, 242);
+    cursor: pointer;
+}
+.nav_item_bottom{
+    border-bottom: 1px solid rgb(29, 161, 242);
+}
+.nav-item:active{
+    background-color: #cccccc;
+}
+#site_brand{
+    margin-left: 10px;
+    font-size: 20px;
+    color: rgb(29, 161, 242);
+    cursor: pointer;
+}
+#nav_search{
+    margin-right: 20px;
+    color: rgb(29, 161, 242);
+    font-size: 20px;
+    cursor: pointer;
+}
+.nav_align{
+    display: flex;
+    align-items: center;
+}
+/*모바일 검색 UI*/
+#nav_search_close{
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 27px;
+    color: rgb(29, 161, 242);
+}
+#mobile_items_search{
+    margin-left: 20px;
+}
+.btn-primary{
+    background-color: rgb(29, 161, 242);
+}
+
+#nav_user_picture{
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    position: relative;
+}
+#nav_user_info{
+    position: absolute;
+    right: 2%;
+    font-size: 14px;
+    min-width: 140px;
+    max-width: 310px;
+    padding: 6px 12px;
+    background-color: white;
+    color: rgb(29, 161, 242);
+    box-shadow: rgba(0, 0, 0, 0.18) 0 2px 4px;
+}
+.nav_user_nickname{
+    color: black;
+}
+.info_text{
+    cursor: pointer;
+}
+/*검색 키워드 자동완성 UI*/
+/*자동완성 창*/
+#ui-id-1,#ui-id-2{
+    z-index: 99999;
+    font-size: 0.8em;
+}
+#web_items_search{
+    background-clip: padding-box, border-box;
+    border: 5px solid transparent;
+}
+#ui-id-1{
+    background-clip: content-box, border-box;
+    border: 1px solid transparent;
+}
+#web_items_search,#ui-id-1{
+    border-radius: 6px 6px 6px 6px;
+    background-image: linear-gradient(white, white), linear-gradient(to right, #3faeeb, #89a0e5, #3846d0);
+    background-origin: border-box;
+    padding: 4px;
+}
+.search_icon{
+    margin-right: 10px;
+}

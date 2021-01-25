@@ -1,0 +1,9 @@
+.email-icon .fa-envelope-open-text{
+    font-size: 60px;
+    color: #007bff;
+}
+
+#requestRepeat{
+    color: #007bff;
+    cursor: pointer;
+}

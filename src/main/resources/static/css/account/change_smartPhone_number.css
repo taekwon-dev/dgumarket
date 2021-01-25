@@ -1,0 +1,29 @@
+#user_phone_number{
+    margin-bottom: 5px;
+}
+#certification_phone_number{
+    width: 128px;
+    height: 38px;
+}
+
+@media (max-width:1199px) {
+    #user_phone_number{
+        width: 100%;
+    }
+    .certification_display{
+        display: block;
+    }
+}
+@media (min-width:1200px) {
+    #user_phone_number{
+        width: 83%;
+        margin-right: 5px;
+    }
+    .certification_display{
+        display: flex;
+    }
+}
+#notification_text{
+    margin-top: 5px;
+    color: #007bff;
+}

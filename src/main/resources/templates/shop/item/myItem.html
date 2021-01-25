@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>상세정보</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/index.css">
+    <link rel="stylesheet" href="/css/account/member_modify.css">
+    <link rel="stylesheet" href="/css/account/change_smartPhone_number.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/main/nav.css">
+    <link rel="stylesheet" href="/css/main/chat.css">
+    <link rel="stylesheet" href="/css/item/onePick.css">
+    <link rel="stylesheet" href="/css/item/form_picture_text.css">
+    <link rel="stylesheet" href="/css/item/ListbyCondition.css">
+    <link rel="stylesheet" href="/css/item/myItem.css">
+    <link rel="stylesheet" href="/css/item/upLoad.css">
+    <link rel="stylesheet" href="/css/item/category.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/account/select_userInfo.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/css/item/image_slider.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+<!-- 로그인 및 회원가입, 물품 검색 UI -->
+<nav class="navbar fixed-top navbar-expand-md" id="navbar_height"></nav>
+<!-- ajax로 다른 컨텐츠 불러오기 -->
+<br>
+<main id="main_tag">
+    <div id="myItem_container" class="container">
+        <div class="my_item_header">
+            <div id="my_picture_form1">
+                <div id="my_picture_form2">
+                    <img id="my_picture" class="rounded-circle" src="/imgs/avatar.png" alt="">
+                </div>
+            </div>
+            <div id="my_profile_form" class="d-flex flex-wrap align-content-around">
+                <div id="my_info1">
+                    <span id="my_nickname">jypman</span>
+                </div>
+                <div id="my_info2">
+                    <span id="my_category">관심 카테고리 :</span>
+                    <span class="my_category_text">#도서</span>
+                    <span class="my_category_text">#기프티콘</span>
+                    <span class="my_category_text">#식품</span>
+                </div>
+                <div id="my_info3">
+                    <span id="my_reputation_text">평가: </span>
+                    <span id="my_reputation_img">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="my_menu_form">
+            <span id="my_items" class="my_menu" style="color: #007bff;border-bottom: 3px solid #007bff;">판매물품</span>
+            <span id="trade_comment" class="my_menu">거래후기</span>
+            <span id="my_purchased_items" class="my_menu">구매물품</span>
+        </div>
+        <hr id="my_menu_line">
+        <!-- my bar에서 다른 항목 클릭 시 hidden 처리(페이지 기본 설정으로 active 처리)-->
+        <div id="my_items_form" class="">
+            <!--본인이 업로드한 중고물품의 갯수-->
+            <div class="clearfix">
+                <span class="float-left">
+                    <span>총</span>
+                    <span id="my_item_count">4</span>
+                    <span>개</span>
+                </span>
+                <span class="float-right">
+                    <select id="my_items_select" class="custom-select-sm">
+                        <option selected id="total" value="total">전체</option>
+                        <option id="sale" value="sale">판매 중</option>
+                        <option id="sold_out" value="sold_out">판매 완료</option>
+                    </select>
+                </span>
+            </div>
+            <hr>
+            <!--내가 판매하는 중고물품 form-->
+            <div class="row">
+                <!-- 내가 판매하는 중고물품 1-->
+                <div class="item_form col-6 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+                    <div class="item_picture_form">
+                        <img src="/imgs/food1.jpg" href="/shop/item/onePick" type="image/png" class="move_onePick item_picture" alt="">
+                    </div>
+                    <div class="item_text">
+                        <div><a class="move_onePick item_title" href="/shop/item/onePick">컴퓨터와 운영체제</a></div>
+                        <div><a class="move_onePick item_price" href="/shop/item/onePick">2,000원</a></div>
+                    </div>
+                    <div class="item_info_good_view">
+                        <!-- 중고물품 좋아요 수 -->
+                        <span class="good_button">좋아요</span>
+                        <span>5</span>
+                        <span>∙</span>
+                        <!-- 중고물품 채팅횟수 -->
+                        <span>채팅횟수</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <!-- 내가 판매하는 중고물품 2-->
+                <div class="item_form col-6 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+                    <div class="item_picture_form">
+                        <img src="/imgs/home_goods1.jpeg" href="/shop/item/onePick" type="image/png" class="move_onePick item_picture" alt="">
+                    </div>
+                    <div class="item_text">
+                        <div><a class="move_onePick item_title" href="/shop/item/onePick">컴퓨터와 운영체제</a></div>
+                        <div><a class="move_onePick item_price" href="/shop/item/onePick">2,000원</a></div>
+                    </div>
+                    <div class="item_info_good_view">
+                        <!-- 중고물품 좋아요 수 -->
+                        <span class="good_button">좋아요</span>
+                        <span>5</span>
+                        <span>∙</span>
+                        <!-- 중고물품 채팅횟수 -->
+                        <span>채팅횟수</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <!-- 내가 판매하는 중고물품 3-->
+                <div class="item_form col-6 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+                    <div class="item_picture_form">
+                        <img src="/imgs/food1.jpg" href="/shop/item/onePick" type="image/png" class="move_onePick item_picture" alt="">
+                    </div>
+                    <div class="item_text">
+                        <div><a class="move_onePick item_title" href="/shop/item/onePick">컴퓨터와 운영체제</a></div>
+                        <div><a class="move_onePick item_price" href="/shop/item/onePick">2,000원</a></div>
+                    </div>
+                    <div class="item_info_good_view">
+                        <!-- 중고물품 좋아요 수 -->
+                        <span class="good_button">좋아요</span>
+                        <span>5</span>
+                        <span>∙</span>
+                        <!-- 중고물품 채팅횟수 -->
+                        <span>채팅횟수</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <!-- 내가 판매하는 중고물품 4-->
+                <div class="item_form col-6 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+                    <div class="item_picture_form">
+                        <img src="/imgs/slideshow_sample.jpg" href="/shop/item/onePick" type="image/png" class="move_onePick item_picture" alt="">
+                    </div>
+                    <div class="item_text">
+                        <div><a class="move_onePick item_title" href="/shop/item/onePick">컴퓨터와 운영체제</a></div>
+                        <div><a class="move_onePick item_price" href="/shop/item/onePick">2,000원</a></div>
+                    </div>
+                    <div class="item_info_good_view">
+                        <!-- 중고물품 좋아요 수 -->
+                        <span class="good_button">좋아요</span>
+                        <span>5</span>
+                        <span>∙</span>
+                        <!-- 중고물품 채팅횟수 -->
+                        <span>채팅횟수</span>
+                        <span>100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 후기 한마디 전체UI이며 클릭할 때까지 hidden처리(최신순으로 정렬)-->
+        <div id="trade_comment_form" class="hidden">
+            <!--후기 총 갯수-->
+            <div>
+                <span>총</span>
+                <span id="trade_comment_count">10</span>
+                <span>개</span>
+            </div>
+            <hr>
+            <div id="comment_list_form">
+                <!--후기 리스트 1-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 2-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+
+                <!--후기 리스트 3-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 4-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 5-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 6-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 7-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 8-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 9-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!--후기 리스트 10-->
+                <div class="d-flex">
+                    <!--후기 올린 사용자의 프로필 사진-->
+                    <div class="other_user_picture_form1">
+                        <div class="other_user_picture_form2">
+                            <img src="/imgs/avatar.png" href="/shop/item/myItem" class="rounded-circle other_user_picture move_myItem" alt="">
+                        </div>
+                    </div>
+                    <div class="d-block other_user_info">
+                        <!-- 후기 올린 사용자의 닉네임-->
+                        <div href="/shop/item/myItem" class="other_user_nickname move_myItem">
+                            jypman
+                        </div>
+                        <!-- 후기 글-->
+                        <div class="other_user_comment">
+                            너무나 친절하십니당^^
+                        </div>
+                        <!-- 후기를 업로드한 시간-->
+                        <div class="other_user_comment_uploadTime">
+                            2시간 전
+                        </div>
+                    </div>
+                </div>
+                <hr>
+            </div>
+        </div>
+        <!-- my bar에서 다른 항목 클릭 시 hidden 처리(페이지 기본 설정으로 active 처리)-->
+        <div id="my_purchased_items_form" class="hidden">
+            <!--본인이 구메힌 중고물품의 갯수-->
+            <div>
+                <span>총</span>
+                <span id="my_purchased_items_count">1</span>
+                <span>개</span>
+            </div>
+            <hr>
+            <!-- 내가 구매한 중고물품 UI-->
+            <div id="my_purchased_item_list_form">
+                <!--구매한 중고물품 리스트 1-->
+                <div class="d-flex">
+                    <!--중고물품 사진-->
+                    <div class="my_purchased_item_picture_form1">
+                        <div class="my_purchased_item_picture_form2">
+                            <img src="/imgs/food1.jpg" href="/shop/item/onePick" class="rounded-circle my_purchased_item_picture move_onePick" alt="">
+                        </div>
+                    </div>
+                    <div class="my_purchased_item_info">
+                        <div class="clearfix">
+                            <!-- 구매한 물품의 타이틀-->
+                            <span href="/shop/item/onePick" class="my_purchased_item_title move_onePick float-left">
+                                매직트랙패드2매직트랙패드2매직트랙패드
+                            </span>
+                            <!--큰 디바이스에서 보이도록 설정-->
+                            <span class="big_divice_right_info chat_good_font float-right">
+                                <!-- 중고물품 좋아요 수 -->
+                                <span class="good_button">좋아요</span>
+                                <span class="">5</span>
+                                <span>∙</span>
+                                <!-- 중고물품 채팅횟수 -->
+                                <span>채팅횟수</span>
+                                <span class="">100</span>
+                            </span>
+                        </div>
+                        <!-- 구매한 물품의 가격-->
+                        <div class="my_purchased_item_price">
+                            149,000원
+                        </div>
+                        <div class="clearfix">
+                            <!-- 중고물품 거래후기 작성 여부-->
+                            <span class="my_purchased_item_comment_status float-left">거래후기:&nbsp;</span>
+                            <!-- 미작성 or 작성완료-->
+                            <span class="my_purchased_item_comment_status float-left my_purchased_item_comment_status badge badge-pill badge-primary">미작성</span>
+                            <!--거래후기 작성UI(미작성이 아닐 경우 생성되지 않음)-->
+                            <span class="float-right">
+                                <button type="button" class="align-top write_trade_comment btn btn-outline-primary" data-toggle="modal" data-target="#write_purchased_item_comment">
+                                    <!--거래후기 작성 or 거래후기 보기-->
+                                    <span>거래후기 작성</span>
+                                    <i class="far fa-comment-dots"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <!-- 작은 디바이스의 경우 보이도록 설정-->
+                        <span class="small_divice_right_info">
+                            <!-- 중고물품 좋아요 수 -->
+                            <span class="chat_good_font good_button">좋아요</span>
+                            <span class="chat_good_font">5</span>
+                            <span class="chat_good_font">∙</span>
+                            <!-- 중고물품 채팅횟수 -->
+                            <span class="chat_good_font">채팅횟수</span>
+                            <span class="chat_good_font">100</span>
+                        </span>
+                    </div>
+                </div>
+                <hr>
+            </div>
+            <!-- 거래 후기 작성 버튼 클릭 시 팝업창 생성 -->
+            <div class="modal fade" id="write_purchased_item_comment">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="modal-title text-center">fghman님과 직접 거래한 소감은 어떠신가요?</h6>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <div class="form-group">
+                                <label for="after_trade_comment"></label>
+                                <textarea class="form-control" rows="4" id="after_trade_comment" placeholder="jypman님의 진심이 담긴 한마디가 fghman님에게 큰 도움이 될 수 있습니다."></textarea>
+                            </div>
+                            <button type="button" class="btn btn-outline-success" data-dismiss="modal" id="comment_submit">전송</button>
+                            <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 거래 후기 보기 버튼 클릭 시 팝업창 생성 -->
+            <div class="modal fade" id="view_purchased_item_comment">
+                <div class="modal-dialog modal-sm modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="modal-title text-center">fghman님을 위한 나의 거래후기</h6>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <div id="purchased_item_comment_article" class="form-group">
+                                너무너무너무 만족합니다.
+                            </div>
+                            <button type="button" class="btn btn-outline-warning" data-dismiss="modal">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- 채팅UI -->
+<figure></figure>
+<hr>
+<footer></footer>
+<script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="/js/bootstrap/bootstrap.min.js"></script>
+<script type="module" src="/js/main/pageLoad.js"></script>
+<script src="/js/main/index.js"></script>
+<script type="module" src="/js/item/onePick.js"></script>
+<script src="/js/item/myItem.js"></script>
+<script src="/js/item/ListbyCondition.js"></script>
+<script type="module" src="/js/item/upLoad.js"></script>
+<script type="module" src="/js/account/member_modify.js"></script>
+<script type="module" src="/js/account/change_Pwd.js"></script>
+<script type="module" src="/js/account/change_smartPhone_number.js"></script>
+</body>
+</html>

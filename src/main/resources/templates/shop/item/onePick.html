@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>상세정보</title>  
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/index.css">
+    <link rel="stylesheet" href="/css/account/member_modify.css">
+    <link rel="stylesheet" href="/css/account/change_smartPhone_number.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/main/nav.css">
+    <link rel="stylesheet" href="/css/main/chat.css">
+    <link rel="stylesheet" href="/css/item/onePick.css">
+    <link rel="stylesheet" href="/css/item/form_picture_text.css">
+    <link rel="stylesheet" href="/css/item/ListbyCondition.css">
+    <link rel="stylesheet" href="/css/item/myItem.css">
+    <link rel="stylesheet" href="/css/item/upLoad.css">
+    <link rel="stylesheet" href="/css/item/category.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/account/select_userInfo.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/css/item/image_slider.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </head>
+  <body>
+    <!-- 로그인 및 회원가입, 물품 검색 UI -->
+    <nav class="navbar fixed-top navbar-expand-md" id="navbar_height"></nav>
+    <!-- ajax로 다른 컨텐츠 불러오기 -->
+    <br>
+    <main id="main_tag">
+        <div id="onePickContainer" class="container">
+            <!-- 슬라이드판-->
+            <div id="slide_picture_button" class="carousel slide" data-ride="carousel">
+                <!-- 슬라이드의 아래에 있는 점을 의미 -->
+                <ul class="carousel-indicators">
+                    <li data-target="#slide_picture_button" data-slide-to="0" class="active"></li>
+                    <li data-target="#slide_picture_button" data-slide-to="1"></li>
+                </ul>
+                <!-- 슬라이드를 추가하는 곳 -->
+                <div class="carousel-inner" id="item_slide_form">
+                    <!-- 슬라이드에 추가할 파일 내용 -->
+                        <div class="item_slide_picture_form carousel-item active">
+                            <img class="item_slide_picture slide-picture" src="/imgs/dog.jpeg" alt="">
+                        </div>
+                        <div class="item_slide_picture_form carousel-item">
+                            <img class="item_slide_picture slide-picture" src="/imgs/food1.jpg" alt="">
+                        </div>
+                </div>
+                <!-- 슬라이드의 이전 이미지로 가기 버튼 생성-->
+                <a class="carousel-control-prev" href="#slide_picture_button" data-slide="prev">
+                    <!-- 슬라이드의 이전 이미지로 가기 버튼의 아이콘-->
+                    <span class="carousel-control-prev-icon"></span>
+                </a>
+                <!-- 슬라이드의 다음 이미지로 가기 버튼 생성-->
+                <a class="carousel-control-next" href="#slide_picture_button" data-slide="next">
+                    <!-- 슬라이드의 다음 이미지로 가기 버튼의 아이콘-->
+                    <span class="carousel-control-next-icon"></span>
+                </a>
+            </div>
+            <br>
+            <div class="d-flex">
+                <!-- 중고물품 업로드한 유저의 프로필 사진 -->
+                <div id="avartar_form" class="d-flex flex-wrap align-content-center">
+                    <div id="avatar_picture_form">
+                        <!-- 프로필 사진 누르면 해당 유저의 거래중인 물품 목록 UI로 넘어가기 -->
+                        <img href="/shop/item/myItem" src="/imgs/dog.jpeg" class="move_myItem rounded-circle avatar_picture" alt="">
+                    </div>
+                </div>
+                <!-- 중고물품 업로드한 사용자의 닉네임 -->
+                <div id="user_nickname_form" class="d-flex flex-wrap align-content-center">
+                    <div>
+                        <span id="user_nickname" href="/shop/item/myItem" class="move_myItem">jypman</span>
+                        <!-- 중고물품 업로드한 사용자의 거래평가 -->
+                        <span>평가:</span>
+                        <span id="">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                    </div>
+                </div>
+                <!-- 채팅 거래 및 채팅 목록 버튼 -->
+                <div id="item_trade_button" class="d-flex flex-wrap align-content-center justify-content-end">
+                    <button type="button" id="chat_trade_button" class="btn btn-outline-primary">채팅으로 거래하기</button>
+                    <button type="button" href="/shop/item/upLoad" id="item_modified_button" class="btn btn-outline-primary move_upload">중고물품 수정하기</button>
+                </div>
+            </div>
+            <hr>
+            <!-- 중고물품 상세 정보 -->
+            <div id="item_info">
+                <br>
+                <!-- 중고물품명 -->
+                <div>
+                    <h5>미니선풍기</h5>
+                </div>
+                <div id="item_info_category_time">
+                    <!-- 중고물품 카테고리 -->
+                    <span>생활용품 </span>
+                    <span>∙</span>
+                    <!-- 중고물품 등록 및 수정시간 -->
+                    <span>1시간 전</span>
+                </div>
+                <!-- 중고물품 가격 -->
+                <div id="item_price">
+                    30,000원
+                </div>
+                <br>
+                <!-- 상품 상태 -->
+                <div>
+                    <span>상품 상태: </span>
+                    <span>S급(사용x,흠집x,결함x)</span>
+                </div>
+                <!-- 가격 네고가능 여부 -->
+                <div>
+                    <span>가격조정 가능 여부: </span>
+                    <span>불가능</span>
+                </div>
+                <!-- 거래방식 -->
+                <div>
+                    <span>거래 방식: </span>
+                    <span>캠퍼스 내 직거래</span>
+                </div>
+                <br>
+                <!-- 중고물품 설명 -->
+                <div id="item_explanation">
+                    불필요하게 많이 사서 남는 거 팝니다.<br>
+                    상품 상태 보시면 아시겠지만 한 번도 안 썼습니당^^
+                </div>
+                <br>
+                <div class="item_info_good_view">
+                    <!-- 중고물품 좋아요 수 -->
+                    <span class="good_button">좋아요</span>
+                    <span>5</span>
+                    <span>∙</span>
+                    <!-- 채팅 횟수 -->
+                    <span>채팅 횟수</span>
+                    <span>11</span>
+                </div>
+            </div>
+            <hr>
+            <br>
+            <!-- 업로드한 유저의 다른 중고물품 -->
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 clearfix">
+                    <h5 class="float-left">이 회원님의 또 다른 중고물품</h5>
+                    <h5 class="more_view float-right"><a href="/shop/item/myItem" class="move_myItem">더 보기</a></h5>
+                </div>
+                <!-- 다른 중고물품1 -->
+                <div class="item_form col-6 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+                    <div class="item_picture_form">
+                        <img src="/imgs/home_goods1.jpeg" href="/shop/item/onePick" class="move_onePick item_picture" alt="">
+                    </div>
+                    <div class="item_text">
+                        <div><a class="move_onePick item_title" href="/shop/item/onePick">컴퓨터와 운영체제</a></div>
+                        <div><a class="move_onePick item_price" href="/shop/item/onePick">2,000원</a></div>
+                        <div class="item_info_good_view">
+                            <!-- 중고물품 좋아요 수 -->
+                            <span class="good_button">좋아요</span>
+                            <span>5</span>
+                            <span>∙</span>
+                            <!-- 중고물품 채팅횟수 -->
+                            <span>채팅횟수</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>    
+            <hr>
+            <br>
+            <!-- 동대방네 인기 중고품 -->
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 clearfix">
+                    <h5 class="float-left">동대방네 인기 중고물품</h5>
+                    <h5 class="more_view float-right"><a href="/shop/item/ListbyCondition" class="move_ListbyCondition">더 보기</a></h5>
+                </div>
+                <!--인기물품1-->
+                <div class="item_form col-6 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+                    <div class="item_picture_form">
+                        <img src="/imgs/food1.jpg" href="/shop/item/onePick" class="move_onePick item_picture" alt="">
+                    </div>
+                    <div class="item_text">
+                        <div><a class="move_onePick item_title" href="/shop/item/onePick">컴퓨터와 운영체제</a></div>
+                        <div><a class="move_onePick item_price" href="/shop/item/onePick">2,000원</a></div>
+                    </div>
+                    <div class="item_info_good_view">
+                        <!-- 중고물품 좋아요 수 -->
+                        <span class="good_button">좋아요</span>
+                        <span>5</span>
+                        <span>∙</span>
+                        <!-- 중고물품 채팅횟수 -->
+                        <span>채팅횟수</span>
+                        <span>100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- 채팅UI -->
+    <figure></figure>
+    <hr>
+    <footer></footer>
+    <script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <script type="module" src="/js/main/pageLoad.js"></script>
+    <script src="/js/main/index.js"></script>
+    <script type="module" src="/js/item/onePick.js"></script>
+    <script src="/js/item/myItem.js"></script>
+    <script src="/js/item/ListbyCondition.js"></script>
+    <script type="module" src="/js/item/upLoad.js"></script>
+    <script type="module" src="/js/account/member_modify.js"></script>
+    <script type="module" src="/js/account/change_Pwd.js"></script>
+    <script type="module" src="/js/account/change_smartPhone_number.js"></script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>회원정보 입력</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/account/account.css">
+    
+    <!-- 폰트어썸 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" 
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <style>
+    </style>    
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <h3><p class="text-center p-5"><a href="/shop/main/index" id="site_brand"><i class="fas fa-republican"></i>&nbsp;동대방네</a></p></h3>
+        <h3><p class="text-center p-5">비밀번호<br>재설정</p></h3>
+        <div class="row d-flex justify-content-center">
+          <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
+              <hr>
+          </div>
+        </div>
+        <div class="row d-flex justify-content-center">
+          <div class="col-12 col-sm-12 d-flex justify-content-center">
+            <div class="input_title col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              비밀번호 입력
+            </div>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+            <label for="Password"></label>
+            <input type="password" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" placeholder="8~20자,공백불가,대소문자 포함" id="Password">
+          </div>
+          <div class="wrong_input justify-content-center" id="wrong_password"></div>
+          <div class="correct_input justify-content-center" id="correct_password"></div>
+          <br>
+          
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="input_title col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              비밀번호 확인
+            </div>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+              <label for="RepeatPassword"></label>
+              <input type="password" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" id="RepeatPassword">
+          </div>
+          <div class="wrong_input justify-content-center" id="wrong_repeat_password"></div>
+          <div class="correct_input justify-content-center" id="correct_repeat_password"></div>
+
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+            <button type="button" id="success_newPWD" class="btn btn-primary form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">재설정 완료</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/js/account/find_pwd_newPwd.js"></script>
+  </body>
+</html>

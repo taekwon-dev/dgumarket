@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>회원정보 수정</title>  
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/index.css">
+    <link rel="stylesheet" href="/css/account/member_modify.css">
+    <link rel="stylesheet" href="/css/account/change_smartPhone_number.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/main/nav.css">
+    <link rel="stylesheet" href="/css/main/chat.css">
+    <link rel="stylesheet" href="/css/item/onePick.css">
+    <link rel="stylesheet" href="/css/item/form_picture_text.css">
+    <link rel="stylesheet" href="/css/item/ListbyCondition.css">
+    <link rel="stylesheet" href="/css/item/myItem.css">
+    <link rel="stylesheet" href="/css/item/upLoad.css">
+    <link rel="stylesheet" href="/css/item/category.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+      integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/account/select_userInfo.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/css/item/image_slider.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </head>
+  <body>
+    <!-- 로그인 및 회원가입, 물품 검색 UI -->
+    <nav class="navbar fixed-top navbar-expand-md" id="navbar_height"></nav>
+    <!-- ajax로 다른 컨텐츠 불러오기 -->
+    <main id="main_tag">
+        <div class="container">
+            <div class="p-3 h4 modify_title">회원정보 및 수정</div>
+            <hr>
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <th class="th_web_title">프로필 사진</th>
+                        <td class="td_input">
+                            <div class="th_mobile_title">프로필 사진</div>
+                            <input type="file" class="hidden" id="InputFile" name="image"
+                                   accept="image/gif, image/jpeg, image/png, image/jpg"/>
+                            <!-- 프로필 사진 수정하기 전까지 hidden 처리-->
+                            <label id="label_InputFile" class="hidden" for="InputFile">
+                                <!-- 프로필 사진 미리보기 -->
+                                <div id="profile_picture_form">
+                                    <img id="my_upload_profile_picture" class="rounded-circle profile_picture select_profile_picture" src="/imgs/avatar.png" alt="">
+                                </div>
+                            </label>
+                            <!-- 프로필 사진 수정하기 전 사용자가 설정한 프로필 사진(수정 시 hidden 처리)-->
+                            <div id="profile_picture_form2" class="">
+                                <img id="my_upload_profile_picture2" class="rounded-circle profile_picture" src="/imgs/avatar.png" alt="">
+                            </div>
+                            <!--프로필 사진 수정하기 전까지 hidden 처리(기본 프로필 이미지 적용 버튼) -->
+                            <div>
+                                <button type="button" id="basic_profile_picture_btn" class="hidden btn btn-outline-primary">기본 이미지</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="th_web_title">닉네임</th>
+                        <td class="td_input">
+                            <div class="th_mobile_title">닉네임</div>
+                            <!--수정하기 전까지 input과 label은 hidden처리-->
+                            <input type="text" id="UserNickname" class="hidden form-control" placeholder="3~20자, 공백불가">
+                            <label id="label_UserNickname" for="UserNickname" class="hidden"></label>
+                            <!--닉네임 수정하기 전 사용자가 설정한 닉네임(수정 시 hidden 처리) -->
+                            <div id="existing_UserNickname" class=""></div>
+                            <!-- 닉네임이 유효하지 않을 경우 주의 알림 -->
+                            <div class="wrong_input" id="wrong_nickname"></div>
+                            <!-- 닉네임이 유효할 경우 사용가능하다고 알림-->
+                            <div class="correct_input" id="correct_nickname"></div>
+                            <!-- 닉네임 중복검사 알림 -->
+                            <!-- <div class="hidden">
+                                <div class="wrong_input" id="overlap_nickname">*이미 사용중인 닉네임입니다.</div>
+                                <div class="" id="available_nickname">*사용가능한 닉네임입니다.</div>
+                            </div> -->
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="th_web_title">관심 카테고리</th>
+                        <td class="td_input">
+                            <div class="th_mobile_title">관심 카테고리</div>
+                            <!--관심카테고리를 수정할 경우 hidden처리-->
+                            <div id="existing_interested_category" class="row">
+                            <!--기존 업로드한 관심카테고리 태그를 동적 생성하는 곳-->
+                            </div>
+                            <!--관심카테고리를 수정할 때까지 hidden 및 d-flex삭제 처리 -->
+                            <div id="check_interested_category" class="hidden row row_padding">
+                                <div id="check_all_margin-bottom" class="col-12 col-sm-12 custom-control custom-switch">
+                                    <input type="checkbox" name="check_All" id="check_all" class="custom-control-input" value="전체선택">
+                                    <label for="check_all" class="custom-control-label">전체선택</label><br>
+                                </div>
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_books" class="custom-control-input 1" value="도서">
+                                    <label for="check_books" class="custom-control-label category-text">도서</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_CD/DVD" class="custom-control-input 2" value="음반/DVD">
+                                    <label for="check_CD/DVD" class="custom-control-label category-text">음반/DVD</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_clothing/stuff" class="custom-control-input 14" value="의류/잡화">
+                                    <label for="check_clothing/stuff" class="custom-control-label category-text">의류/잡화</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_beauty" class="custom-control-input 3" value="뷰티">
+                                    <label for="check_beauty" class="custom-control-label category-text">뷰티</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_homeAppliance/digital" class="custom-control-input 5" value="가전/디지털">
+                                    <label for="check_homeAppliance/digital" class="custom-control-label category-text">가전/디지털</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_sports/leisure" class="custom-control-input 11" value="스포츠/레저">
+                                    <label for="check_sports/leisure" class="custom-control-label category-text">스포츠/레저</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_toy/hobby" class="custom-control-input 7" value="완구/취미">
+                                    <label for="check_toy/hobby" class="custom-control-label category-text">완구/취미</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_officeSupplies" class="custom-control-input 13" value="문구/오피스">
+                                    <label for="check_officeSupplies" class="custom-control-label category-text">문구/오피스</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_gifticon" class="custom-control-input 4" value="기프티콘">
+                                    <label for="check_gifticon" class="custom-control-label category-text">기프티콘</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_kitchenUtensils" class="custom-control-input 8" value="주방용품">
+                                    <label for="check_kitchenUtensils" class="custom-control-label category-text">주방용품</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_householdGoods" class="custom-control-input 9" value="생활용품">
+                                    <label for="check_householdGoods" class="custom-control-label category-text">생활용품</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_homeInterior" class="custom-control-input 10" value="홈 인테리어">
+                                    <label for="check_homeInterior" class="custom-control-label category-text">홈 인테리어</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_petSupplies" class="custom-control-input 12" value="반려동물용품">
+                                    <label for="check_petSupplies" class="custom-control-label category-text">반려동물용품</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_food" class="custom-control-input 6" value="식품">
+                                    <label for="check_food" class="custom-control-label category-text">식품</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="col-5 col-sm-3 col-lg-2 custom-control custom-checkbox">
+                                    <input type="checkbox" name="check_list" id="check_etc" class="custom-control-input 15" value="기타 등등">
+                                    <label for="check_etc" class="custom-control-label category-text">기타 등등</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                            </div>
+                            <div class="wrong_input mx-auto" id="wrong_check"></div>
+                            <div class="correct_input mx-auto" id="correct_check"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <hr>
+            <div class="d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-primary" id="start_member_modify">수정하기</button>
+                <button type="button" class="btn btn-outline-primary" id="leave_member">탈퇴하기</button>
+                <button type="button" class="hidden btn btn-outline-primary" id="success_member_modify">수정 완료</button>
+                <button type="button" class="hidden btn btn-outline-primary" id="cancel_member_modify">수정 취소</button>
+            </div>
+        </div>
+    </main>
+    <!-- 채팅UI -->
+    <figure></figure>
+    <hr>
+    <footer></footer>
+    <script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <script type="module" src="/js/account/member_modify.js"></script>
+    <script type="module" src="/js/account/change_smartPhone_number.js"></script>
+    <script type="module" src="/js/account/change_Pwd.js"></script>
+    <script type="module" src="/js/main/pageLoad.js"></script>
+    <script src="/js/main/index.js"></script>
+    <script type="module" src="/js/item/onePick.js"></script>
+    <script src="/js/item/myItem.js"></script>
+    <script src="/js/item/ListbyCondition.js"></script>
+    <script type="module" src="/js/item/upLoad.js"></script>
+  </body>
+</html>

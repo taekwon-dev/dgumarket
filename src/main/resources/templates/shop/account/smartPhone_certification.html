@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>휴대폰 인증</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/account/account.css">
+    
+    <!-- 폰트어썸 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" 
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <style>
+    </style>    
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <h3><p class="text-center p-5"><a href="/shop/main/index" id="site_brand"><i class="fas fa-republican"></i>&nbsp;동대방네</a></p></h3>
+        <h3><p class="text-center p-5">회원가입</p></h3>
+        <!-- 회원가입 진행과정-->
+        <div class="row d-flex justify-content-center">
+          <div class="col-12 col-sm-12 col-md-8 col-lg-6 col-xl-4 d-flex justify-content-center">
+            <i class="signUp_progress signUp_in_progress fas fa-envelope-open-text">
+              <div class="signUp_progress_text">메일입력</div>
+            </i>
+            <i class="signUp_progress signUp_in_progress fas fa-arrow-right"></i>
+            <i class="signUp_progress signUp_in_progress fas fa-mobile-alt">
+              <div class="signUp_progress_text">본인확인</div>
+            </i>
+            <i class="signUp_progress fas fa-arrow-right"></i>
+            <i class="signUp_progress fas fa-user-plus">
+              <div class="signUp_progress_text">회원정보</div>
+            </i>
+          </div>          
+
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+        </div>
+        <!-- 인증번호를 받을 핸드폰 번호 입력 hidden가능 -->
+        <div class="row">
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+              <label for="user_phone_number"></label>
+              <input type="number" class="form-control col-10 col-sm-7 col-md-6 col-lg-4 col-xl-3" placeholder="휴대폰번호('-' 제외)" id="user_phone_number">&nbsp;
+              <button type="button" class="btn btn-outline-primary col-2 col-sm-3 col-md-2 col-lg-2 col-xl-1" id="certification_phone_number">인증번호 전송</button>
+          </div>
+        </div>  
+        <!-- 인증번호 입력란 hidden가능 -->
+        <div class="row hidden" id="input_certification_number_form">
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 text-center" id="mobile_certification_alm">
+              인증번호가 전송되었습니다.
+            </div>  
+          </div> 
+          <div id="mobile_certification_form" class=" form-group col-12 col-sm-12 d-flex justify-content-center">
+            <label for="input_certification_number"></label>
+            <input type="number" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" placeholder="인증번호 입력" id="input_certification_number">
+          </div>
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+          <!-- 인증 확인 버튼 -->
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+              <button type="button" class="btn btn-primary form-check form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">인증확인</button>
+          </div>
+        </div>  
+
+      </div>
+    </main>
+    <script type="module" src="/js/account/smartPhone_certification.js"></script>
+  </body>
+</html>

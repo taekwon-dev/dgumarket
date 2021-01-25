@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>회원정보 입력</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/account/account.css">
+    
+    <!-- 폰트어썸 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" 
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <style>
+    </style>    
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <h3><p class="text-center p-5"><a href="/shop/main/index" id="site_brand"><i class="fas fa-republican"></i>&nbsp;동대방네</a></p></h3>
+        <h3><p class="text-center p-5">회원가입</p></h3>
+        <!-- 회원가입 진행과정 -->
+        <div class="row d-flex justify-content-center">
+          <div class="col-12 col-sm-12 col-md-8 col-lg-6 col-xl-4 d-flex justify-content-center">
+            <i class="signUp_progress signUp_in_progress fas fa-envelope-open-text">
+              <div class="signUp_progress_text">메일입력</div>
+            </i>
+            <i class="signUp_progress signUp_in_progress fas fa-arrow-right"></i>
+            <i class="signUp_progress signUp_in_progress fas fa-mobile-alt">
+              <div class="signUp_progress_text">본인확인</div>
+            </i>
+            <i class="signUp_progress signUp_in_progress fas fa-arrow-right"></i>
+            <i class="signUp_progress signUp_in_progress fas fa-user-plus">
+              <div class="signUp_progress_text">회원정보</div>
+            </i>
+          </div>     
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+        </div>
+        <div class="row d-flex justify-content-center">
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="input_title col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              닉네임
+            </div>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+              <label for="UserNickname"></label>
+              <input type="text" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" placeholder="3자~20자 입력, 공백불가" id="UserNickname">
+          </div>
+          <div class="wrong_input justify-content-center" id="wrong_nickname"></div>
+          <div class="correct_input justify-content-center" id="correct_nickname"></div>
+          <!-- 닉네임 중복검사 알림 -->
+          <!-- <div class="hidden">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 wrong_input" id="overlap_nickname">*이미 사용중인 닉네임입니다.</div>
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" id="available_nickname">*사용가능한 닉네임입니다.</div>
+          </div>   -->
+          
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="input_title col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              비밀번호
+            </div>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+            <label for="Password"></label>
+            <input type="password" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" placeholder="8~20자,공백불가,대소문자 포함" id="Password">
+          </div>
+          <div class="wrong_input justify-content-center" id="wrong_password"></div>
+          <div class="correct_input justify-content-center" id="correct_password"></div>
+
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="input_title col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              비밀번호 확인
+            </div>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+              <label for="RepeatPassword"></label>
+              <input type="password" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" id="RepeatPassword">
+          </div>
+          <div class="wrong_input justify-content-center" id="wrong_repeat_password"></div>
+          <div class="correct_input justify-content-center" id="correct_repeat_password"></div>
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="input_title col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              관심 카테고리(최소 3개 이상)
+              <div id="signup3_check_all" class="custom-control custom-switch category_select_space">
+                <input type="checkbox" name="check_All" id="check_all" class="custom-control-input" value="check_all">
+                <label for="check_all" class="custom-control-label">전체선택</label><br>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-12 d-flex justify-content-center category_select_space">
+            <div class="input_title row d-flex col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_books" class="custom-control-input" value="check_books">
+                <label for="check_books" class="custom-control-label category-text">도서</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_CD/DVD" class="custom-control-input" value="check_CD/DVD">
+                <label for="check_CD/DVD" class="custom-control-label category-text">음반<br>/DVD</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_clothing/stuff" class="custom-control-input" value="check_clothing/stuff">
+                <label for="check_clothing/stuff" class="custom-control-label category-text">의류/잡화</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_beauty" class="custom-control-input" value="check_beauty">
+                <label for="check_beauty" class="custom-control-label category-text">뷰티(샘플x)</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_homeAppliance/digital" class="custom-control-input" value="check_homeAppliance/digital">
+                <label for="check_homeAppliance/digital" class="custom-control-label category-text">가전/디지털</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_sports/leisure" class="custom-control-input" value="check_sports/leisure">
+                <label for="check_sports/leisure" class="custom-control-label category-text">스포츠/레저</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_toy/hobby" class="custom-control-input" value="check_toy/hobby">
+                <label for="check_toy/hobby" class="custom-control-label category-text">완구/취미</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_officeSupplies" class="custom-control-input" value="check_officeSupplies">
+                <label for="check_officeSupplies" class="custom-control-label category-text">문구/오피스</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_gifticon" class="custom-control-input" value="check_gifticon">
+                <label for="check_gifticon" class="custom-control-label category-text">기프티콘</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_kitchenUtensils" class="custom-control-input" value="check_kitchenUtensils">
+                <label for="check_kitchenUtensils" class="custom-control-label category-text">주방용품</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_householdGoods" class="custom-control-input" value="check_householdGoods">
+                <label for="check_householdGoods" class="custom-control-label category-text">생활용품</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_homeInterior" class="custom-control-input" value="check_homeInterior">
+                <label for="check_homeInterior" class="custom-control-label category-text">홈 인테리어</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_petSupplies" class="custom-control-input" value="check_petSupplies">
+                <label for="check_petSupplies" class="custom-control-label category-text">반려동물용품</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_food" class="custom-control-input" value="check_food">
+                <label for="check_food" class="custom-control-label category-text">식품</label>
+              </div>
+              <div class="col-4 custom-control custom-checkbox">
+                <input type="checkbox" name="check_list" id="check_etc" class="custom-control-input" value="check_etc">
+                <label for="check_etc" class="custom-control-label category-text">기타 등등</label>
+              </div>
+            </div>
+          </div>
+          <div class="wrong_input justify-content-center" id="wrong_check"></div>
+          <div class="correct_input justify-content-center" id="correct_check"></div>
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+          <!-- 가입하기 -->
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center">
+            <button type="button" id="success_member_produce" class="btn btn-primary form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">가입하기</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/js/account/userInfo_input.js"></script>
+  </body>
+</html>

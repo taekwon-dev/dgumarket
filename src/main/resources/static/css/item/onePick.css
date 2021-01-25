@@ -1,0 +1,94 @@
+@media (min-width:768px) and (max-width:1024px){
+    #onePickContainer{
+        width: 60%;
+    }
+}
+
+@media (min-width:1024px){
+    #onePickContainer{
+        width: 50%;
+    }
+}
+
+#item_slide_form{
+    width: 100%;
+}
+.item_slide_picture_form{
+    position: relative;
+    width: 100%;
+    padding-bottom: 75%;
+}
+.item_slide_picture{
+    border-radius: 5%;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+#avartar_form{
+    width: 10%;
+}
+
+#avatar_picture_form{
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+}
+.avatar_picture{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+@media (max-width:319px) {
+    .avatar_picture{
+        margin-top: 11px;
+    }
+}
+
+#user_nickname_form{
+    width: 42%;
+    word-break: break-all;
+    margin-left: 3%;    
+}
+#user_nickname{
+    color: black;
+    cursor: pointer;
+    max-width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    word-wrap: break-word;
+}
+
+#item_trade_button{
+    width: 48%;
+}
+
+#item_info{
+    word-break: break-all;    
+}
+
+#item_price{
+    margin-top: 10px;
+}
+.more_view{
+    font-size: 16px;
+}
+#item_modified_button{
+    margin-left: 5px;
+}
+@media (min-width: 280px) and (max-width: 350px){
+    #chat_trade_button,#item_modified_button{
+        font-size: 12px;
+        padding: 3px 6px;
+    }
+}
+@media (min-width: 280px) and (max-width: 1355px){
+    #chat_trade_button{
+        margin-bottom: 5px;
+    }
+}

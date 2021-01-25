@@ -1,0 +1,56 @@
+/* 중고물품 리스트 중 좋아요 UI */
+.good_button{
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+.good_button:hover{
+    transition: all 0.3s ease-in-out;
+    font-size: 16px;
+    color: #007bff;
+}
+
+/* 중고물품 리스트 중 카테고리, 좋아요, 조회수 폰트 사이즈 및 색상 UI */
+#item_info_category_time,.item_info_good_view{
+    font-size: 12px;
+    color: #868e96;
+}
+
+/* 유저의 또다른 중고물품 리스트, 인기 중고물품 리스트, 조건별 중고물품 리스트 UI */
+.item_form{
+    cursor: pointer;
+    width: 100%;
+}
+
+.item_picture_form{
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+}
+
+.item_picture{
+    border-radius: 5%;
+    box-shadow: rgba(0, 0, 0, 0.36) 0 2px 4px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: all 0.3s ease-in-out 0s;
+}
+.item_picture:hover{
+    transform: scale(1.1);
+    transition: all 0.3s ease-in-out 0s;
+}
+.item_text{
+    margin-top: 10px;
+}
+.item_title{
+    color: black;
+}
+.item_price{
+    color: #007bff;
+}
+.item_form{
+    margin-bottom: 15px;
+}
+a:hover{
+    text-decoration: none;
+}

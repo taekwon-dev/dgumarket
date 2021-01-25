@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>동국대 웹메일 인증</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/account/account.css">
+    <!-- 폰트어썸 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" 
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <style>
+    </style>    
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <h3><p class="text-center p-5"><a href="/shop/main/index" id="site_brand"><i class="fas fa-republican"></i>&nbsp;동대방네</a></p></h3>
+        <h3><p class="text-center p-5">회원가입</p></h3>
+        <!-- 회원가입 진행과정-->
+        <div class="row d-flex justify-content-center">
+          <div class="col-12 col-sm-12 col-md-8 col-lg-6 col-xl-4 d-flex justify-content-center">
+              <i class="signUp_progress signUp_in_progress fas fa-envelope-open-text">
+                <div class="signUp_progress_text">메일입력</div>
+              </i>
+              <i class="signUp_progress fas fa-arrow-right"></i>
+              <i class="signUp_progress fas fa-mobile-alt">
+                <div class="signUp_progress_text">본인확인</div>
+              </i>
+              <i class="signUp_progress fas fa-arrow-right"></i>
+              <i class="signUp_progress fas fa-user-plus">
+                <div class="signUp_progress_text">회원정보</div>
+              </i>
+          </div>
+
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+              <hr>
+            </div>
+          </div>
+        
+        </div>
+        <div class="row d-flex justify-content-center">
+          <!-- 웹메일 입력란 -->
+          <label for="Resister_WebMail"></label>
+          <div class="input-group col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 d-flex justify-content-center form_size">
+            <input type="text" class="form-control" placeholder="동국대 웹메일" id="Resister_WebMail">
+            <div class="input-group-append">
+              <span class="input-group-text">@dongguk.edu</span>
+            </div>
+          </div>
+          <!-- 이용약관 동의 체크란 -->
+          <div class="container d-flex justify-content-center">
+              <table class="table table-borderless col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+                  <tbody>
+                    <tr>
+                      <td>이용약관</td> 
+                      <td>
+                        <div class="form-check">
+                          <label class="form-check-label" for="check_all">
+                            <input type="checkbox" class="form-check-input" id="check_all" name="check_All" value="check_all">전체동의
+                          </label>
+                        </div>
+                      </td>
+                    </tr>  
+                    <tr>
+                      <td></td>
+                      <td>
+                        <div class="form-check">
+                          <label class="form-check-label" for="termsOfUse">
+                            <input type="checkbox" class="form-check-input" id="termsOfUse" name="check_list" value="termsOfUse_agree">이용약관(필수)
+                          </label>
+                        </div>
+                      </td>
+                      <td>
+                        <a href="#">열람></a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td>
+                        <div class="form-check">
+                          <label class="form-check-label" for="privacyPolicy">
+                            <input type="checkbox" class="form-check-input" id="privacyPolicy" name="check_list" value="privacyPolicy_agree">개인정보 처리방침(필수)
+                          </label>
+                        </div>
+                      </td>
+                      <td>
+                        <a href="#">열람></a>
+                      </td>
+                    </tr>
+<!--                    <tr>-->
+<!--                      <td></td>-->
+<!--                      <td>-->
+<!--                        <div class="form-check">-->
+<!--                          <label class="form-check-label" for="privacyPolicy2">-->
+<!--                            <input type="checkbox" class="form-check-input" id="privacyPolicy2" name="check_list" value="privacyPolicy2_agree">개인정보 처리방침(선택)-->
+<!--                          </label>-->
+<!--                        </div>-->
+<!--                      </td>-->
+<!--                      <td>-->
+<!--                        <a href="#">열람></a>-->
+<!--                      </td>-->
+<!--                    </tr>-->
+                  </tbody>
+              </table>
+          </div>
+          <div class= "col-12 col-sm-12 d-flex justify-content-center">
+              <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+                <hr>
+              </div>
+          </div>
+          <!-- 다음 단계로 -->
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center form_size">
+            <button type="button" id="next_sign_up" class="btn btn-primary form-check form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">다음 단계로</button>
+          </div>
+          <!-- 로그인 페이지로 -->
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center form_size">
+            <button type="button" id="go_login" class="btn btn-primary form-check form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">로그인 페이지로</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/js/account/webMail_certification.js"></script>
+  </body>
+</html>

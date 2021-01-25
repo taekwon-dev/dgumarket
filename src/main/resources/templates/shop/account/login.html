@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>로그인</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/account/account.css">
+    
+    <!-- 폰트어썸 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" 
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <style>
+    </style>    
+  </head>
+  <body>
+    <main id="main_tag">
+      <div class="container">
+        <h3><p class="text-center p-5"><a href="/shop/main/index" id="site_brand" ><i class="fas fa-republican"></i>&nbsp;동대방네</a></p></h3>
+        <h3><p class="text-center p-5">로그인</p></h3>
+        <div class="row d-flex justify-content-center">
+          <label for="Resister_WebMail"></label>
+          <div class="input-group webMail_login_form col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4 d-flex justify-content-center form_size">
+            <input type="text" class="form-control" placeholder="동국대 웹메일" id="Resister_WebMail">
+            <div class="input-group-append">
+              <span class="input-group-text">@dongguk.edu</span>
+            </div>
+          </div>
+
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center form_size">
+            <label for="password"></label>
+            <input type="password" class="form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" placeholder="비밀번호" id="password">
+          </div>
+          <div class="form-group form-check col-6 col-sm-6 d-flex justify-content-end">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox">로그인 유지
+            </label>
+          </div>
+          <div class="form-group form-check col-6 col-sm-6 d-flex justify-content-start">
+            <a href="/shop/account/find_pwd_userInfo.html">비밀번호 찾기</a>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center form_size">
+            <button type="button" class="btn btn-primary form-check form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" id="go_login">로그인</button>
+          </div>
+          <div class="form-group col-12 col-sm-12 d-flex justify-content-center form_size">
+            <button type="button" class="btn btn-primary form-check form-control col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4" id="go_register">회원가입</button>
+          </div>  
+        </div>
+      </div>
+    </main>
+    <script src="/js/account/login.js"></script>
+  </body>
+</html>

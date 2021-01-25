@@ -1,0 +1,95 @@
+html{
+    font-size: 14px;
+}
+
+/* 홈으로 버튼 */
+#site_brand{
+    text-decoration: none ;
+}
+
+/* 로그인 시 웹메일 입력 폼 마진 사이즈 */
+.webMail_login_form{
+    margin-bottom: 15px;
+}
+
+/* 회원가입 진행과정*/
+.signUp_progress{
+    width: 100%;
+    text-align: center;
+    font-size: 40px;
+    color: silver;
+}
+.signUp_in_progress{
+    color: #007bff;
+}
+.signUp_progress_text{
+    margin-top: 6px;
+    font-size: 12px;
+}
+
+/*회원가입 1단계, 로그인, 비밀번호 찾기 폼 사이즈를 버튼 사이즈랑 통일 시키기*/
+@media (max-width:575px) {
+    .form_size{
+        padding: 10px;
+    }
+}
+@media (min-width:576px) {
+    .form_size{
+        padding: 0;
+    }
+}
+/* 회원가입 2단계 휴대폰 인증번호 입력란 생성*/
+.hidden{
+    display: none;
+}
+/* 회원가입 2단계 휴대폰 인증번호 전송 알림 폰트 색상 */
+#mobile_certification_alm{
+    color: rgb(73, 73, 224);
+}
+/* 회원가입 2단계 인증번호 전송 버튼 폰트 사이즈 */
+#certification_phone_number{
+    padding: 3px;
+}
+@media (min-width:504px) {
+    #certification_phone_number {
+        font-size: 10px;
+    }
+}
+@media (min-width:505px) {
+    #certification_phone_number {
+        font-size: 12px;
+    }
+}
+/*회원가입 3단계, 비밀번호 찾기 3단계 입력란 제목*/
+.input_title{
+    padding: 0 0;
+}
+/* 회원가입 3단계 닉네임 중복검사 알림 폰트 색상 */
+#available_nickname{
+    color: rgb(73, 73, 224);
+}
+/* 회원가입 3단계 실시간 유효검사 주의 알림 문구 색상 */
+.wrong_input,.correct_input{
+    font-size: 14px;
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+.wrong_input{
+    color: #e0481a;
+}
+.correct_input{
+    color: #007aff;
+}
+
+/*회원가입 3단계 관심카테고리 체크박스 간격*/
+.category_select_space{
+    margin: 5px;
+}
+/*회원가입 3단계 관심카테고리 전체선택 체크박스 왼쪽 간격*/
+#signup3_check_all{
+    margin-left: 0;
+}
+
+/*.category-text{*/
+/*    font-size: 10px;*/
+/*}*/

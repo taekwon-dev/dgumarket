@@ -1,0 +1,17 @@
+@font-face {
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 700;
+    src: local(※),
+    url('noto-sans-kr-v13-latin_korean-700.woff') format('woff')
+}
+body,h3,.btn,.form-control{
+    font-family: 'Noto Sans KR','Nanum Gothic',sans-serif;
+    font-weight: 700;
+}
+#trade_item_title,#trade_item_price,.opponent_speech_bubble,.my_speech_bubble,
+.notification_item_status,.footer_text,#trade_comment_content,
+.more_view_form{
+    font-family: initial;
+    font-weight: 600;
+}

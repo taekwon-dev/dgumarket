@@ -1,0 +1,8 @@
+#nav_category_reference{
+    margin-top: 16px;
+    font-size: 20px;
+}
+.nav_category_title{
+    cursor: pointer;
+    color: rgb(29, 161, 242);
+}

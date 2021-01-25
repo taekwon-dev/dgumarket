@@ -1,0 +1,469 @@
+#chat_start_button,.chat_open,#chat_opponent_search,.more_view_form,#chat_scroll_btn_form{
+    box-shadow: rgba(0, 0, 0, 0.40) 0 2px 4px;
+}
+.chat1,.chat2{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 99999;
+}
+#chat_start_button{
+    margin-right: 3vmin;
+    margin-bottom: 3vmin;
+    width: 60px;
+    height: 60px;
+    background-color: #ffffff;
+}
+
+#total_alm{
+    background-color: red;
+    color: #ffffff;
+    user-select: none;
+    font-size: 12px;
+    padding: 5px;
+    height: 30px;
+    width: 30px;
+    text-align: center;
+}
+
+#chat_icon{
+    color: rgb(82, 145, 228);
+    font-size: 30px;
+}
+.chat_open,.chat_input_form{
+    animation-duration: 0.5s;
+    animation-name: slidein_open;
+}
+.chat_close,.chat_input_form_close{
+    animation-duration: 0.5s;
+    animation-name: slidein_close;
+}
+@media (min-width:280px) and (max-width:374px){
+    .chat_open{
+        width: 100vw;
+    }
+    #chat_room_empty_icon{
+        font-size: 35vw;
+    }
+    @keyframes slidein_open {
+        from {right: -100%;}
+        to {right: 0;}
+    }
+    @keyframes slidein_close {
+        from {right: 0;}
+        to {right: -100%;}
+    }
+    .chat_conversation,.send_time{
+        font-size: 10px;
+    }
+    .chat_opponent_nickname{
+        font-size: 11px;
+    }
+    .chat_list_right{
+        padding-left: 7.5px;
+        padding-right: 0;
+    }
+}
+@media (min-width:375px){
+    .chat_open {
+        width: 375px;
+    }
+    #chat_room_empty_icon {
+        font-size: 120px;
+    }
+    .chat_list_right{
+        padding-right: 0;
+    }
+    .chat_list_right_bottom{
+        margin-right: 7.5px;
+    }
+    .chat_list_more_view{
+        padding-right: 7.5px;
+    }
+    @keyframes slidein_open {
+        from {right: -432px;}
+        to {right: 0;}
+    }
+    @keyframes slidein_close {
+        from {right: 0;}
+        to {right: -432px;}
+    }
+    .chat_conversation,.send_time{
+        font-size: 13px;
+    }
+    .chat_opponent_nickname{
+        font-size: 14px;
+    }
+}
+#close_btn:hover,#back_btn:hover{
+    background-color: #007bff;
+}
+.back_icon,.close_icon{
+    color: white;
+}
+#chat_search_form{
+    position: relative;
+}
+#chat_search_icon{
+    position: absolute;
+    top: 50%;
+    color: rgb(29, 161, 242);
+    right: .75rem;
+    z-index: 1;
+    cursor: pointer;
+}
+#chat_opponent_search{
+    border-radius: 20px;
+    padding: .375rem 1.7rem .375rem .75rem;
+    margin-bottom: 15px;
+}
+.chat_list_right_top{
+}
+.chat_list_right_bottom{
+}
+.chat_opponent_nickname{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    word-wrap: break-word;
+    /*width는 chat_static.js에서 자동조절*/
+}
+.chat_list_more_view{
+    padding-left: 7px;
+    color: #8b8b8b;
+}
+.chat_list_more_view:hover{
+    color: rgb(29, 161, 242);
+}
+.chat_open{
+    height: 100%;
+    background-color: #ffffff;
+    margin-right: 0;
+    z-index: 99999;
+    overflow-x: hidden;
+}
+.head_btn{
+    border-radius: 50%;
+    color: white;
+    background-color: rgb(29, 161, 242);
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+}
+#empty_btn{
+    cursor: unset;
+}
+#empty_btn:active{
+    border: 1px solid transparent;
+}
+.empty_icon{
+    color: transparent;
+}
+.chat_title{
+    margin-top: 10px;
+}
+
+/*채팅방 비어 있을 경우의 view */
+#chat_room_empty{
+    width: 100%;
+    color: #8b8b8b;
+    margin-top: 50%;
+}
+
+#chat_room_empty_icon{
+    margin-bottom: 10px;
+}
+#loading_chat_list_room{
+    margin-top: 50%;
+    background-color: rgb(29, 161, 242);
+}
+/* 채팅방 리스트 크기 자동조절 */
+#chat_list_form{
+    width: 100%;
+}
+.chat_list{
+    position: relative;
+    width: 100%;
+    padding-bottom: 20%;
+}
+.more_view_form{
+    width: 200px;
+    border-radius: 4px;
+    position: absolute;
+    background-color: rgb(255, 255, 255);
+    right: 15px;
+    top: 30px;
+    z-index: 99999;
+    font-size: 14px;
+    padding: .375rem 0;
+    cursor: pointer;
+}
+.chat_alarm,.opponent_block,.opponent_report,.chat_room_leave,.more_view_cancel{
+    margin-left: .75rem;
+    margin-right: .75rem;
+}
+.chat_alarm:hover,.opponent_block:hover,.opponent_report:hover,.chat_room_leave:hover,
+.more_view_cancel:hover{
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.card{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.card:hover{
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.item_image_form1{
+    padding: 0;
+}
+@media (min-width:280px) and (max-width: 320px){
+    .item_image{
+        width: 42px;
+        height: 42px;
+    }
+}
+@media (min-width:321px){
+    .item_image{
+        width: 52px;
+        height: 52px;
+    }
+}
+/*채팅방 리스트UI*/
+.chat_conversation,.send_time{
+    color: #8b8b8b;
+}
+@media (min-width:280px) and (max-width: 300px) {
+    .send_count {
+        font-size: 10px;
+    }
+}
+@media (min-width:301px){
+    .send_count {
+        font-size: 12px;
+    }
+}
+/* 수신 채팅수 폼 크기 조정 */
+.send_count{
+    background-color: rgb(228, 62, 40);
+    color: #ffffff;
+    padding: 7px;
+    min-width: 12px;
+    max-width: 25px;
+}
+#chat_header{
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 3px;
+    padding-bottom: 3px;
+    position: relative;
+}
+#notification_trade_state{
+    width: 100%;
+    margin-top: 6px;
+    border-radius: 8px;
+    background-color: #edefef;
+    color: #868e96;
+    font-size: 14px;
+    text-align: center;
+    padding: 10px 5px;
+}
+#trade_item_info{
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#trade_item_picture{
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+}
+#trade_item_text{
+    margin-left: 5px;
+    margin-top: 5px;
+    font-size: 12px;
+    max-width: 273px;
+}
+#trade_item_title{
+    max-width: 273px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    word-wrap: break-word;
+}
+#chat_write_trade_comment,#chat_view_trade_comment{
+    cursor: pointer;
+}
+#chat_write_trade_comment:hover,#chat_view_trade_comment:hover{
+    text-decoration: underline;
+}
+.latest_date{
+    background-color: silver;
+    color: white;
+}
+.chat_room_open{
+    background-color: #ffffff;
+    margin-top: 5px;
+    /*chat_static.js에서 높이 자동조절*/
+}
+#chat_screen{
+    overflow: auto;
+    position: relative;
+    /*chat_static.js에서 높이 자동조절*/
+}
+.chat_conversation{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-wrap: break-word;
+    /*chat_static.js에서 width 자동조절*/
+}
+
+/* 상대방 프로필 사진 */
+.opponent_profile_picture{
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+.opponent_nickname{
+    margin-left: 7px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 14px;
+}
+.receiving_time,.outgoing_time{
+    color: #8b8b8b;
+}
+.opponent_speech_bubble,.my_speech_bubble{
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 5px;
+    margin-bottom: 5px;
+    margin-top: 3px;
+    word-break: break-word;
+    max-width: 80%;
+}
+.opponent_speech_bubble{
+    background-color: #e6e6e9;
+}
+.my_speech_bubble{
+    color: #ffffff;
+    background-color: rgb(29, 161, 242);
+}
+.my_chat{
+    margin-top: 15px;
+}
+.conversation_form{
+    width: 100%;
+}
+.time_send_alm{
+    font-size: 10px;
+    margin-left: 3px;
+    margin-right: 3px;
+    padding-bottom: 5px;
+}
+.chat_input_form{
+    position: fixed;
+    bottom: 0;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    background-color: white;
+    /*chat_static.js를 통해 너비를 자동으로 설정하도록 함. */
+}
+.chat_input_form2{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+/* 채팅방 안의 버튼들 사이즈 자동조절 */
+.chat_button_form1{
+    width: 11%;
+}
+.chat_button_form2{
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+}
+#send_file_btn,#close_chat_room,#trade_success_btn{
+    border-radius: 50%;
+    cursor: pointer;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: rgb(29, 161, 242);
+}
+.send-file-icon-label{
+    margin: 0 0 0;
+}
+
+.chat_button_icon{
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    font-size: 100%;
+    color: #ffffff;
+}
+
+/* 체팅내용 입력란과 전송버튼 크기 자동조절 */
+#chat_input{
+    width: 85%;
+    border: none;
+    outline: none;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    resize: none;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+#input_trade_comment{
+    resize: none;
+}
+#input_trade_comment::placeholder{
+    font-size: 12px;
+}
+#chat_submit_btn{
+    width: 15%;
+    margin-bottom: 10px;
+    padding: 0;
+    background-color: rgb(29, 161, 242);
+    color: white;
+}
+.modal-content{
+    z-index: 99999;
+}
+.trade_comment_date_form{
+    font-size: 12px;
+    color: #868e96;
+}
+#trade_comment_content{
+    font-size: 14px;
+}
+.modal_write_trade_comment,.modal_view_trade_comment{
+    height: 500px;
+    word-wrap: break-word;
+}
+#chat_scroll_btn_form{
+    background-color: rgb(246, 246, 247);
+    position: fixed;
+    bottom: 140px;
+    z-index: 99999;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+#chat_scroll_btn_icon{
+    font-size: 16px;
+}

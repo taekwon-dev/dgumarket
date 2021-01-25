@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>휴대폰 번호 변경</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/index.css">
+    <link rel="stylesheet" href="/css/account/member_modify.css">
+    <link rel="stylesheet" href="/css/account/change_smartPhone_number.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/main/nav.css">
+    <link rel="stylesheet" href="/css/main/chat.css">
+    <link rel="stylesheet" href="/css/item/onePick.css">
+    <link rel="stylesheet" href="/css/item/form_picture_text.css">
+    <link rel="stylesheet" href="/css/item/ListbyCondition.css">
+    <link rel="stylesheet" href="/css/item/myItem.css">
+    <link rel="stylesheet" href="/css/item/upLoad.css">
+    <link rel="stylesheet" href="/css/item/category.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/account/select_userInfo.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/css/item/image_slider.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+<!-- 로그인 및 회원가입, 물품 검색 UI -->
+<nav class="navbar fixed-top navbar-expand-md" id="navbar_height"></nav>
+<!-- ajax로 다른 컨텐츠 불러오기 -->
+<main id="main_tag">
+    <div class="container">
+        <div class="p-3 h4 modify_title">휴대폰 번호 변경</div>
+        <hr>
+        <table class="table table-borderless">
+            <tbody>
+            <tr>
+                <th class="th_web_title">현재 휴대폰 번호 입력</th>
+                <td>
+                    <div class="th_mobile_title">현재 휴대폰 번호 입력</div>
+                    <input type="number" id="existing_phone_number" class="form-control" placeholder="'-'제외">
+                    <label for="existing_phone_number"></label>
+                    <!-- <div class="wrong_input" id="wrong_exicting_phone_number"></div> -->
+                </td>
+            </tr>
+            <tr>
+                <th class="th_web_title">변경할 휴대폰 번호</th>
+                <td>
+                    <div class="th_mobile_title">변경할 휴대폰 번호</div>
+                    <div class="certification_display">
+                        <label for="user_phone_number"></label>
+                        <input type="number" id="user_phone_number" class="form-control pwd-text" placeholder="'-'제외">
+                        <button id="certification_phone_number" type="button" class="btn btn-primary">인증번호 전송</button>
+                    </div>
+                    <div id="notification_text" class="hidden">인증번호가 전송되었습니다.</div>
+                </td>
+            </tr>
+            <tr id="input_certification_number_form" class="hidden">
+                <th class="th_web_title">인증번호 입력</th>
+                <td>
+                    <div class="th_mobile_title">인증번호 입력</div>
+                    <input type="number" id="input_certification_number" class="form-control" placeholder="입력">
+                    <label for="input_certification_number"></label>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <hr>
+        <div class="d-flex justify-content-center">
+            <button type="button" class="btn btn-outline-primary" id="success_chage_Pwd">변경 완료</button>
+        </div>
+    </div>
+</main>
+<!-- 채팅UI -->
+<figure></figure>
+<hr>
+<footer></footer>
+<script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="/js/bootstrap/bootstrap.min.js"></script>
+<script type="module" src="/js/account/member_modify.js"></script>
+<script type="module" src="/js/account/change_Pwd.js"></script>
+<script type="module" src="/js/account/change_smartPhone_number.js"></script>
+<script type="module" src="/js/main/pageLoad.js"></script>
+<script src="/js/main/index.js"></script>
+<script type="module" src="/js/item/onePick.js"></script>
+<script src="/js/item/myItem.js"></script>
+<script src="/js/item/ListbyCondition.js"></script>
+<script type="module" src="/js/item/upLoad.js"></script>
+</body>
+</html>

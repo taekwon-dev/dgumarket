@@ -1,0 +1,147 @@
+<!--큰 디바이스용 navbar-->
+<div class="container-md justify-content-center" id="nav_div1">
+    <div class="container-md justify-content-center">
+        <a class="navbar-brand site_brand" href="/shop/main/index"><i class="fas fa-republican"></i>&nbsp;동대방네</a>
+        <div>
+            <div class="d-inline-flex input-group">
+            <label for="web_items_search" class="mr-sm-2"></label>
+            <input type="text" id="web_items_search" class="items_search form-control mr-1" placeholder="상품명으로 검색">
+            <button class="btn btn-primary mr-1" type="submit">검색</button>
+            </div>
+        </div>
+        <!--로그인 후 hidden처리(회원가입, 로그인)-->
+        <div id="nav_button_form" class="">
+            <button type="button" class="btn btn-outline-primary button_register">회원가입</button>
+            <button type="button" class="btn btn-outline-primary button_login">로그인</button>
+        </div>
+        <!--로그인하기 전까지 hidden처리(사용자 프로필 이미지)-->
+        <div id="web_nav_user_picture_form" class="hidden">
+            <img id="web_nav_user_picture" class="rounded-circle" src="/imgs/avatar.png" alt="">
+            <!--클릭 시 닉네임, 회원정보, 로그아웃 버튼UI view처리-->
+            <div id="web_nav_user_info" class="rounded hidden">
+                <div class="text-center m-1">
+                    <span class="nav_user_nickname">jypman</span>
+                    <span class="nav_user_nickname">님</span>
+                </div>
+                <div class="text-center m-1">
+                    <i class="fas fa-user-cog">&nbsp;</i>
+                    <span class="info_text move_user_info" href="/shop/account/select_userInfo">회원정보</span>
+                </div>
+                <div class="text-center m-1">
+                    <i class="fas fa-lock">&nbsp;</i>
+                    <span class="info_text">로그아웃</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-md justify-content-center">
+        <ul class="navbar-nav">
+            <div class="d-inline-flex">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="tag_category" href="#" data-toggle="dropdown">
+                        <i class="fas fa-align-justify">&nbsp;</i><span id="category_page" class="find_category_update">카테고리로 찾기</span>
+                    </a>
+                    <!--navbar 드롭-->
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">도서</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">음반/DVD</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">의류/잡화</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">뷰티</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">가전/디지털</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">스포츠/레저</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">완구/취미</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">문구/오피스</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">기프티콘</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">주방용품</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">생활용품</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">홈 인테리어</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">반려동물용품</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">식품</a>
+                        <a class="dropdown-item move_ListbyCondition" href="/shop/item/ListbyCondition">기타</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tag_update" href="#">
+                        <i class="far fa-clock" id="icon_clock">&nbsp;</i>
+                        <span id="update_page" class="find_category_update move_ListbyCondition"
+                              href="/shop/item/ListbyCondition">업데이트 순으로 찾기</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="item_upload" href="#">
+                        <i class="fas fa-shopping-bag">&nbsp;</i>
+                        <span id="upload_page" class="move_upload" href="/shop/item/upLoad">중고물품 업로드</span>
+                    </a>
+                </li>
+            </div> 
+        </ul>
+    </div>
+</div>
+<!--작은 디바이스용 navbar-->
+<div class="container-md" id="nav_div2">
+    <!-- 검색 아이콘 클릭 시 hidden 처리(d-flex 삭제 처리)-->
+    <div id="left_nav_UI" class="d-flex flex-row">
+        <button id="nav_more_view_btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <i id="nav_more_view_icon" class="fas fa-bars"></i>
+        </button>
+        <button id="nav_few_view_btn" class="hidden navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <i id="nav_few_view_icon" class="fas fa-times"></i>
+        </button>
+        <div id="site_brand" class="site_brand nav_align" href="/shop/main/index">동대방네</div>
+    </div>
+    <!-- 검색 아이콘 클릭 시 hidden 처리(d-flex 삭제 처리)-->
+    <div id="right_nav_UI" class="d-flex flex-row-reverse">
+        <div>
+            <img src="/imgs/avatar.png" id="nav_user_picture" class="rounded-circle" alt="">
+            <!--프로필 사진 클릭 시 닉네임, 회원정보 or 회원가입, 로그인 or 로그아웃 view-->
+            <div id="nav_user_info" class="hidden rounded">
+                <div class="text-center m-1">
+                    <span class="nav_user_nickname">jypman</span>
+                    <span class="nav_user_nickname">님</span>
+                </div>
+                <div class="text-center m-1">
+                    <i class="fas fa-user-plus">&nbsp;</i>
+                    <span class="info_text button_register">회원가입</span>
+                </div>
+                <div class="text-center m-1">
+                    <i class="fas fa-key">&nbsp;</i>
+                    <span class="info_text button_login">로그인</span>
+                </div>
+                <div class="text-center m-1">
+                    <i class="fas fa-user-cog">&nbsp;</i>
+                    <span class="info_text move_user_info" href="/shop/account/select_userInfo">회원정보</span>
+                </div>
+                <div class="text-center m-1">
+                    <i class="fas fa-lock">&nbsp;</i>
+                    <span class="info_text">로그아웃</span>
+                </div>
+            </div>
+        </div>
+        <div id="nav_search" class="nav_align"><i class="fas fa-search"></i></div>
+    </div>
+    <!--navbar 드롭-->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <ul class="navbar-nav">
+          <li class="nav-item nav_item_bottom nav_text">
+            <div class="nav-link text-center move_upload nav_btn" href="/shop/item/upLoad">중고물품 업로드</div>
+          </li>
+          <li class="nav-item nav_item_bottom nav_text">
+            <div class="nav-link text-center move_category nav_btn" href="/shop/item/category">카테고리 별 찾기</div>
+          </li>
+          <li class="nav-item nav_text">
+            <div class="nav-link text-center nav_btn move_ListbyCondition" href="/shop/item/ListbyCondition">업데이트 별 찾기</div>
+          </li>
+        </ul>
+    </div>
+    <!--모바일 navbar 검색UI(검색 아이콘 클릭할 때까지 hidden 처리)-->
+    <div id="nav_search_form" class="hidden input-group">
+        <i id="nav_search_close" class="fas fa-arrow-left"></i>
+        <label for="mobile_items_search"></label>
+        <input id="mobile_items_search" type="text" class="items_search form-control" placeholder="상품명으로 검색">
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>

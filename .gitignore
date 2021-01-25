@@ -1,0 +1,20 @@
+# TestFile
+src/test
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# IntelliJ project files
+.idea
+.idea/*.xml
+*.iml
+dguproject.iml
+
+# Compliled files
+/target/
+
+# application properties
+application.properties
+application.yml

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>중고물품 등록</title>  
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main/index.css">
+    <link rel="stylesheet" href="/css/account/member_modify.css">
+    <link rel="stylesheet" href="/css/account/change_smartPhone_number.css">
+    <link rel="stylesheet" href="/css/main/font.css">
+    <link rel="stylesheet" href="/css/main/nav.css">
+    <link rel="stylesheet" href="/css/main/chat.css">
+    <link rel="stylesheet" href="/css/item/onePick.css">
+    <link rel="stylesheet" href="/css/item/form_picture_text.css">
+    <link rel="stylesheet" href="/css/item/ListbyCondition.css">
+    <link rel="stylesheet" href="/css/item/myItem.css">
+    <link rel="stylesheet" href="/css/item/upLoad.css">
+    <link rel="stylesheet" href="/css/item/category.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+      integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/account/select_userInfo.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/css/item/image_slider.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </head>
+  <body>
+    <!-- 로그인 및 회원가입, 물품 검색 UI -->
+    <nav class="navbar fixed-top navbar-expand-md" id="navbar_height"></nav>
+    <!-- ajax로 다른 컨텐츠 불러오기 -->
+    <main id="main_tag">
+      <div class="container">
+        <br>
+        <div class="h4">
+          나의 중고물품 등록    
+        </div>
+        <hr>
+            <div id="upLoad_picture_form" class="row">
+              <!-- 중고물품 사진 첨부 버튼 -->
+              <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <button type="button" id="upLoad_picture_button" class="btn btn-outline-primary">
+                  <label for="upLoad_picture_file">
+                    <i id="upLoad_picture_icon" class="fas fa-camera"></i>
+                    <!-- 최대 첨부 가능 수 -->
+                    <div id="upLoad_picture_counter">
+                      <span id="upLoad_picture_limit_counter">0</span>
+                      <span>/</span>
+                      <span>5</span>
+                    </div>
+                  </label>
+                </button>
+                <input multiple id="upLoad_picture_file" class="form-control-file hidden"
+                  type="file" accept="image/gif, image/jpeg, image/png, image/jpg"
+                />
+              </div>
+              <!-- 중고물품 사진을 업로드 시 해당 미리보기 사진 추가 되는 곳-->
+            </div>
+            <div class="wrong_upload"></div>
+          <hr>
+            <!-- 중고물품명 -->
+            <div class="form-group">
+              <div class="upload_title">중고물품명</div>
+              <label class="hidden" for="upLoad_title"></label>
+              <input type="text" class="form-control" placeholder="입력" id="upLoad_title">
+              <div class="wrong_upload"></div>
+            </div>
+            <hr>
+            <!-- 카테고리 -->
+            <div class="form-group">
+              <div class="upload_title">카테고리</div>
+              <label class="hidden" for="upLoad_category"></label>
+              <select class="form-control" id="upLoad_category">
+                <option value="">선택</option>
+                <option value="books">도서</option>
+                <option value="CD/DVD">음반/DVD</option>
+                <option value="clothing/stuff">의류/잡화</option>
+                <option value="beauty">뷰티(샘플 제외)</option>
+                <option value="homeAppliance/digital">가전/디지털</option>
+                <option value="sports/leisure">스포츠/레저</option>
+                <option value="toy/hobby">완구/취미</option>
+                <option value="officeSupplies">문구/오피스</option>
+                <option value="gifticon">기프티콘</option>
+                <option value="kitchenUtensils">주방용품</option>
+                <option value="householdGoods">생활용품</option>
+                <option value="homeInterior">홈 인테리어</option>
+                <option value="petSupplies">반려동물용품</option>
+                <option value="food">식품</option>
+                <option value="etc">기타 등등</option>
+              </select>
+              <div class="wrong_upload"></div>
+            </div>
+            <hr>
+            <!-- 가격 네고 여부 -->
+            <div class="form-group">
+               <div class="upload_title">가격조정 여부</div>
+               <label class="hidden" for="upLoad_price_negotiation"></label>
+               <select class="form-control" id="upLoad_price_negotiation">
+                <option value="">선택</option>
+                <option value="yes">예</option>
+                <option value="no">아니오</option>
+               </select>
+               <div class="wrong_upload"></div>
+            </div>
+            <hr>
+            <!-- 중고물품 가격 -->
+            <div class="form-group">
+              <div id="upload_price_title" class="upload_title">가격(원)</div>
+              <label class="hidden" for="upLoad_price"></label>
+              <input type="text" class="form-control" placeholder="입력" id="upLoad_price">
+              <span id="free_share" class="badge badge-primary hidden">무료나눔</span>
+              <div class="wrong_upload"></div>
+            </div>
+            <hr>
+            <!-- 중고물품 상태 -->
+            <div class="form-group">
+              <div class="upload_title">중고물품 상태</div>
+              <label class="hidden" for="upLoad_quality"></label>
+              <select class="form-control" id="upLoad_quality">
+                <option value="">선택</option>
+                <option value="S_Rank">S급(사용x,흠집x,결함x)</option>
+                <option value="A_Rank">A급(사용O,흠집x,결함x)</option>
+                <option value="B_Rank">B급(사용x,흠집O or 결함O)</option>
+                <option value="C_Rank">C급(사용O,흠집O or 결함O)</option>
+              </select>
+              <div class="wrong_upload"></div>
+            </div>
+            <hr>
+            <!-- 거래방식 -->
+            <div class="form-group">
+              <div class="upload_title">거래방식</div>
+              <label class="hidden" for="upLoad_tradingMethod"></label>
+              <select class="form-control" id="upLoad_tradingMethod">
+                <option value="">선택</option>
+                <option value="campus">캠퍼스 내 직거래</option>
+                <option value="delivery">중고물품 배송</option>
+                <option value="to_be_decided">추후 협의</option>
+              </select>
+              <div class="wrong_upload"></div>
+            </div>
+            <hr>
+            <!-- 중고물품 기타 설명 -->
+            <div class="form-group">
+              <div class="upload_title">중고물품 게시글</div>
+              <label class="hidden" for="upLoad_comment"></label>
+              <textarea class="form-control" rows="6" id="upLoad_comment" 
+                placeholder="중고물품과 관련 없는 홍보나 거래제한 품목은 게시를 삼가 주시기 바랍니다."></textarea>
+              <div class="wrong_upload"></div>
+            </div>
+            <span id="prohibited_items" data-toggle="modal" data-target="#prohibited_items_list">
+                * 거래제한 품목은 무엇이 있을까요?
+            </span>
+            <!-- 거래제한 품목 보여주는 모달 -->
+            <div class="modal fade" id="prohibited_items_list">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <!-- 모달 헤더 -->
+                        <div class="modal-header">
+                            <h4 class="modal-title">거래제한 품목</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <!-- 모달 바디 -->
+                        <div class="modal-body">
+                            주민등록증 (각종 신분증)<br/>
+                            담배 (전자담배)<br/>
+                            주류<br/>
+                            의약품<br/>
+                            수제 (음식, 화장품 등)<br/>
+                            소분판매 (식품, 화장품 등)<br/>
+                            불법도박글 (토토)<br/>
+                            타투 (불법시술)<br/>
+                            개통 불가 휴대폰<br/>
+                            온라인게임 계정<br/>
+                            성인용품 (콘돔제외)<br/>
+                            대포차<br/>
+                            대포통장<br/>
+                            불법 소프트웨어 복제품<br/>
+                            암표<br/>
+                            판매가 불가능한 각종 티켓 (비매품/증정용)<br/>
+                            렌즈<br/>
+                            화장품 샘플<br/>
+                            랜덤박스 (비공개/반공개박스)<br/>
+                            온누리상품권, 지역사랑상품권, 지역화폐 등<br/>
+                            재난기본소득 등으로 지급받은 선불카드, 지역화폐카드 등<br/>
+                            유사군복류(전투복, 전투모, 전투화, 계급장, 야전상의, 방한복, 비행복, 특전복 등)<br/>
+                            군용장구(권총집, 수통, 야전삽, 천막류, 침낭, 모포, 방탄모, 방탄복, 배낭 등)<br/>
+                            건강기능식품<br/>
+                            도수 있는 안경, 콘택트렌즈 및 썬글라스<br/>
+                            상표권 침해 물품<br/>
+                            저작권 침해 물품<br/>
+                            모의총포<br/>
+                            안전인증표시 없는 안전인증대상제품<br/>
+                            음란물<br/>
+                            불법현금융통 목적의 상품<br/>
+                            청소년유해매체물, 청소년유해약물, 청소년유해물건<br/>
+                            총포·도검·화약류·분사기·전자충격기·석궁<br/>
+                            유해화학물질<br/>
+                            반려동물(무료 분양 포함)<br/>
+                            응모권<br/>
+                            적합성 평가를 받지 않은 불법방송통신기자재<br/>
+                            개인 사용 목적으로 해외직구한 전자제품<br/>
+                            휴대폰 소액결제(통신과금서비스)를 통한 자금 융통 목적의 상품<br/>
+                            그외 법률을 위반하는 모든 상품<br/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-center">
+              <button type="button" id="upLoad_success" class="btn btn-outline-primary">작성완료</button>
+            </div>
+      </div>
+    </main>
+    <!-- 채팅UI -->
+    <figure></figure>
+    <hr>
+    <footer></footer>
+    <script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <script type="module" src="/js/main/pageLoad.js"></script>
+    <script src="/js/main/index.js"></script>
+    <script type="module" src="/js/item/onePick.js"></script>
+    <script src="/js/item/myItem.js"></script>
+    <script src="/js/item/ListbyCondition.js"></script>
+    <script type="module" src="/js/item/upLoad.js"></script>
+    <script type="module" src="/js/account/member_modify.js"></script>
+    <script type="module" src="/js/account/change_Pwd.js"></script>
+    <script type="module" src="/js/account/change_smartPhone_number.js"></script>
+  </body>
+</html>

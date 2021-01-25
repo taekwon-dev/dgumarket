@@ -1,0 +1,48 @@
+#upLoad_picture_button,.upLoad_picture{
+    width: 100%;
+    cursor: unset;
+    margin-bottom: 10px;
+    /*세로 길이는 가로 길이와 같도록 upLoad.js에서 설정 */
+}
+
+#upLoad_picture_icon{
+    cursor: pointer;
+    font-size: 65px;
+}
+#upLoad_picture_counter{
+    cursor: pointer;
+}
+.delete_upLoad_picture{
+    position: absolute;
+    right: 2px;
+    top: -4px;
+    font-size: 20px;
+    color: #ff4040;
+    cursor: pointer;
+    background-color: white;
+}
+
+.upload_title{
+    margin-bottom: 10px;
+}
+
+#upLoad_comment{
+    resize: none;
+}
+
+#prohibited_items{
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    color: red;
+}
+#input_item_price{
+    margin-bottom: 0;
+}
+#free_share{
+    margin-top: 10px;
+}
+.wrong_upload{
+    color: #e0481a;
+    margin-top: 16px;
+}
