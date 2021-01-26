@@ -3,7 +3,6 @@ package com.springboot.dgumarket.service.chat;
 import com.springboot.dgumarket.dto.chat.*;
 import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
-import com.springboot.dgumarket.payload.request.ProductStatusChangeRequest;
 
 import java.util.List;
 

@@ -139,5 +139,47 @@ public class Member {
     }
 
 
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+            name = "user_block",
+            joinColumns = { @JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "blocked_user_id")})
+    @JsonIgnore
+    private Set<Member> blockUsers; // 내가 차단한 유저들
 
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+            name = "user_block",
+            joinColumns = { @JoinColumn(name = "blocked_user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "user_id")})
+    @JsonIgnore
+    private Set<Member> UserBlockedMe; // 나를 차단한 유저들 ( 나를 차단한 유저들의 물건들은 보여서는 안된다 )
+
+    // 유저 차단하기
+    public void blockUser(Member blockUser){
+        this.getBlockUsers().add(blockUser);
+    }
+
+    // 유저 차단해제하기
+    public void unblockUser(Member unblockUser){
+        this.getBlockUsers().remove(unblockUser);
+    }
+
+    // 상대방에게 차단되었는 지 체크
+    public boolean checkBlockedBy(Member targetUser){
+        return this.getUserBlockedMe().contains(targetUser);
+    }
+
+    public int checkBlockStatus(Member targetUser){
+        if(this.getBlockUsers().contains(targetUser)){
+            return 1; // 내가 상대방을 차단한 경우 ( 우선 )
+        }else if(this.getUserBlockedMe().contains(targetUser)){
+            return 2; // 남이 나를 차단한 경우
+        }
+        return 3; // 아무도 차단하지 않은 경우
+    }
+
+    public boolean IsBlock(Member targetUser){
+        return this.getBlockUsers().contains(targetUser);
+    }
 }

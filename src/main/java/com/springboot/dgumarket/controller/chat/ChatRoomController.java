@@ -1,8 +1,8 @@
 package com.springboot.dgumarket.controller.chat;
 
 import com.springboot.dgumarket.dto.chat.*;
-import com.springboot.dgumarket.payload.request.ChatRoomLeaveRequest;
-import com.springboot.dgumarket.payload.request.ProductStatusChangeRequest;
+import com.springboot.dgumarket.payload.request.chat.ChatRoomLeaveRequest;
+import com.springboot.dgumarket.payload.request.product.ProductStatusChangeRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;

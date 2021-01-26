@@ -5,7 +5,7 @@ import com.springboot.dgumarket.dto.product.ProductReviewDto;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductReview;
-import com.springboot.dgumarket.payload.request.ProductCommentRequset;
+import com.springboot.dgumarket.payload.request.review.ProductCommentRequset;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;

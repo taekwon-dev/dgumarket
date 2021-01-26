@@ -13,6 +13,7 @@ import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
+import com.springboot.dgumarket.service.block.UserBlockService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
@@ -29,9 +30,13 @@ import java.util.Optional;
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService{
     private static Logger logger = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
-    private static final int CONSUMER = 1;
-    private static final int ETC = 0;
-    private static final int SELLER = 2;
+
+    private static final int PRODUCT_STATUS_ETC = 0;
+    private static final int PRODUCT_STATUS_CONSUMER = 1;
+    private static final int PRODUCT_STATUS_SELLER = 2;
+    private static final int PRODUCT_STATUS_PRODUCT_DELETE = 3;
+
+
     private static final int SOLD = 1;
     private static final int SOLDNOT = 0;
     private static final int YES = 1;
@@ -52,6 +57,9 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     @Autowired
     ProductReviewRepository productReviewRepository;
 
+    @Autowired
+    UserBlockService userBlockService;
+
     // 전체 채팅방 목록들 가져오기
     @Override
     public List<ChatRoomListDto> findAllRoomsByUserId(int userId) {
@@ -66,11 +74,11 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         };
 
 
-       // member entity -> member dto
-        PropertyMap<Member, ChatRoomUserDto> chatRoomUserDtoPropertyMap = new PropertyMap<Member, ChatRoomUserDto>() {
+        // member entity -> member dto
+        PropertyMap<Member, ChatMessageUserDto> chatMessageUserDtoPropertyMap = new PropertyMap<Member, ChatMessageUserDto>() {
             @Override
             protected void configure() {
-                map().setUser_id(source.getId());
+                map().setUserId(source.getId());
                 map().setNickName(source.getNickName());
             }
         };
@@ -96,7 +104,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             }
         };
 
-        modelMapper.addMappings(chatRoomUserDtoPropertyMap);
+        modelMapper.addMappings(chatMessageUserDtoPropertyMap);
         modelMapper.addMappings(chatRoomRecentMessageDtoPropertyMap);
         modelMapper.addMappings(chatRoomProductDtoPropertyMap);
         modelMapper.addMappings(chatRoomChatRoomListDtoPropertyMap);
@@ -128,11 +136,11 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             chatRoomListDto.setRoomId(chatRoom.getRoomId());
             chatRoomListDto.setChatRoomRecentMessageDto(modelMapper.map(recentMessage, ChatRoomRecentMessageDto.class));
             chatRoomListDto.setChatRoomProductDto(modelMapper.map(chatRoom.getProduct(), ChatRoomProductDto.class));
-            chatRoomListDto.setChatRoomUserDto(modelMapper.map(memberOpponent, ChatRoomUserDto.class));
+            chatRoomListDto.setChatMessageUserDto(modelMapper.map(memberOpponent, ChatMessageUserDto.class));
             chatRoomListDto.setUnreadMessageCount(unreadMessageCount);
             LocalDateTime localDateTime = chatRoomListDto.getChatRoomRecentMessageDto().getMessage_date();
             chatRoomListDto.getChatRoomRecentMessageDto().setMessage_date(localDateTime);
-
+            chatRoomListDto.setBlock(member.IsBlock(memberOpponent));
             chatRoomListDtos.add(chatRoomListDto);
         }
 
@@ -162,6 +170,14 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     @Override
     public ChatRoomSectionProductDto findRoomProductSectionByProduct(int productId, int userId) {
         Optional<Product> product = productRepository.findById(productId);
+
+        if (product.get().getProductStatus() == 1){ // 삭제되었을 경우
+
+            return product.map(value -> ChatRoomSectionProductDto.builder() // 삭제상태값만 내려줌
+                    .transaction_status_id(4)
+                    .build()).orElse(null);
+        }
+
         return product.map(value -> ChatRoomSectionProductDto.builder()
                 .product_id(value.getId())
                 .product_title(value.getTitle())
@@ -205,11 +221,19 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         Member member = memberRepository.findById(userId); // 본인
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
         Optional<ProductReview> productReview = productReviewRepository.findByChatRoom(chatRoom);
+
+        // 물건삭제되었을 경우
+        if( chatRoom.getProduct().getProductStatus() == 1){
+            return ChatRoomStatusDto.builder()
+                    .productStatus(PRODUCT_STATUS_PRODUCT_DELETE) // 3
+                    .build();
+        }
+
         if(productReview.isPresent()){
 
             if ( productReview.get().getConsumer() == member){ // 구매자
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
-                        .productStatus(CONSUMER)
+                        .productStatus(PRODUCT_STATUS_CONSUMER)
                         .transactionStatus(SOLD)
                         .build();
                 if(productReview.get().getReviewMessage() == null){
@@ -222,7 +246,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             }else if( productReview.get().getSeller() == member){ // 판매자
                 String reviewerNickname  = productReview.get().getConsumer().getNickName();
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
-                        .productStatus(SELLER)
+                        .productStatus(PRODUCT_STATUS_SELLER)
                         .transactionStatus(SOLD)
                         .reviewer_nickname(reviewerNickname).build();
                 if(productReview.get().getReviewMessage() == null){ // 거래완료 & 구매자 후기 아직 안남김
@@ -234,16 +258,16 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 return chatRoomStatusDto;
             }else { // 아무도 아닌 사람
                 return ChatRoomStatusDto.builder()
-                        .productStatus(ETC).build();
+                        .productStatus(PRODUCT_STATUS_ETC).build();
             }
         }else{ // 판매자가 구매완료 버튼 누르지 않은 경우 ( 모두에게 공평 )
             if(chatRoom.getSeller() == member){
                 return ChatRoomStatusDto.builder()
-                        .productStatus(SELLER)
+                        .productStatus(PRODUCT_STATUS_SELLER)
                         .transactionStatus(SOLDNOT).build();
             }else {
                 return ChatRoomStatusDto.builder()
-                        .productStatus(ETC).build();
+                        .productStatus(PRODUCT_STATUS_ETC).build();
             }
         }
     }

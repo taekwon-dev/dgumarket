@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -57,13 +59,15 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
     // 채팅방 들어가기 ( 채팅방목록에서 채팅방화면 들어갈 경우)
     @Override
     public RedisChatRoom join(int roomId, int senderId, String sessionId) {
-
+        Member member = memberRepository.findById(senderId); // stomp header 있는 사용자 아이디로 유저 찾기
+        logger.info("find user by userId in stomp header : {}", member.getId());
 
 
         Optional<RedisChatRoom> optionalRedisChatRoom = redisChatRoomRepository.findById(String.valueOf(roomId));
         RedisChatRoom redisChatRoom;
-        // 채팅방 존재 하는 경우
-        if(optionalRedisChatRoom.isPresent()){
+
+
+        if(optionalRedisChatRoom.isPresent()){ // 채팅방 존재 하는 경우
             logger.info("[REDIS, [ROOM][JOIN]] already chat room existed");
             logger.info("[REDIS, [ROOM][JOIN]] get connectedUsers");
             redisChatRoom = optionalRedisChatRoom.get();
@@ -74,22 +78,19 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
             logger.info("[REDIS, [ROOM][JOIN]] create new chat room : {}", redisChatRoom.toString());
         }
 
-        Member member = memberRepository.findById(senderId); // stomp header 있는 사용자 아이디로 유저 찾기
-        logger.info("find user by userId in stomp header : {}", member.getId());
 
-        // 채팅방에 유저 추가
         RedisChatUser redischatUser = RedisChatUser.builder().sessionId(sessionId).userId(senderId).build();
-        redisChatRoom.addUser(redischatUser);
+        redisChatRoom.addUser(redischatUser); // 채팅방에 유저 추가
         RedisChatRoom chatRoomAfterJoined = redisChatRoomRepository.save(redisChatRoom);
         chatRoomAfterJoined.getConnectedUsers().stream().forEach((e) -> logger.info("[REDIS, [ROOM][JOIN]] after join the room {}", e.toString()));
+        redisTemplate.opsForValue().set(sessionId, String.valueOf(roomId)); // 레디스에 유저 세션정보 추가
         logger.info("sessionId : {}, roomId : {}", sessionId, roomId);
-        redisTemplate.opsForValue().set(sessionId, String.valueOf(roomId)); // sessionId key : roomId value 로 저장
 
 
 
         logger.info("[[REDIS] {} 번에 가입된 유저들 : {}]", chatRoomAfterJoined.getRoomId(), chatRoomAfterJoined.getConnectedUsers().toString());
         // 읽지 않은 메시지 읽음 상태로 바꾸기(사용자 입장날짜 기준 뒤로)
-        int num = chatMessageRepository.updateReadstatus(roomId, Integer.valueOf(senderId));
+        int num = chatMessageRepository.updateReadstatus(roomId, senderId);
 
 
         logger.info("[MYSQL, [ROOM][JOIN]] get number of updated message status(0 -> 1) : {}", num);
@@ -115,13 +116,19 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
             chatroom.updateEntranceDate(senderId);
             chatRoomRepository.save(chatroom);
         }
-        this.template.convertAndSend("/topic/room/" + roomId + "/" + senderId, chatMessageDtos);
-        logger.info("[[ROOM][JOIN]] [SEND] /topic/room/{}/{}, messages : {}", roomId, senderId, chatMessageDtos);
+
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor
+                .create(SimpMessageType.MESSAGE);
+        headerAccessor.setSessionId(sessionId);
+        headerAccessor.setLeaveMutable(true);
+        template.convertAndSendToUser(sessionId,"/queue/room/event", chatMessageDtos, // 채팅방의 메시지들 전송
+                headerAccessor.getMessageHeaders());
+        logger.info("[[ROOM][JOIN]] [SEND] /queue/room/event, sessionId : {}, messages : {}", sessionId, chatMessageDtos);
 
         return null;
     }
 
-    // 채팅방에 나가기
+    // 레디스 채팅방에서 유저 나가게 하기
     @Override
     public RedisChatRoom leave(String roomId, String sesionId) {
         Optional<RedisChatRoom> chatRoom = redisChatRoomRepository.findById(roomId);
@@ -131,7 +138,7 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
             chatroom = chatRoom.get();
             chatroom.removeUser(sesionId);
             logger.info("[ROOM][LEAVE] [SUB] after removeUser , {}", chatroom);
-            if(chatroom.getNumberOfConnectedUsers() == 0){ // 모둔다 나갔다면 채팅방을 지운다.
+            if(chatroom.getNumberOfConnectedUsers() == 0){ // 모두다 나갔다면 채팅방을 지운다.
                 redisChatRoomRepository.delete(chatroom);
             }else{
                 RedisChatRoom redisChatRoom = redisChatRoomRepository.save(chatroom);
@@ -143,20 +150,20 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
         return null;
     }
 
-    // 레디스 채팅방 나가기
+    // 레디스 채팅방 나가기( 갑작스러운 종료에 대한 대비 )
     @Override
     @Transactional
     public void leave(String sessionId) {
         /**
          * TODO: 채팅방 나갈떄에 대한 예외처리!
          */
-
         String room_id = redisTemplate.opsForValue().get(sessionId);
-        this.leave(room_id, sessionId); // 레디스 채팅방 나가기
-        redisTemplate.delete(sessionId); // 해당 키 삭제
-
-        logger.info("레디스 채팅방 나가기 , 받은 sessionId : {}", sessionId);
-        logger.info("room id : {}, sessionId : {}", room_id, sessionId);
+        if (room_id != null){ // 채팅방 존재한다면
+            this.leave(room_id, sessionId); // 레디스 채팅방 나가기
+            redisTemplate.delete(sessionId); // 해당 키 삭제
+            logger.info("레디스 채팅방 나가기 , 받은 sessionId : {}", sessionId);
+            logger.info("room id : {}, sessionId : {}", room_id, sessionId);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package com.springboot.dgumarket.payload.response;
+package com.springboot.dgumarket.payload.response.stomp;
 
 import lombok.Getter;
 import lombok.ToString;

@@ -36,6 +36,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/product/**")
                 .addPathPatterns("/user/auth/*")
+                .addPathPatterns("/user/block/**")
                 .addPathPatterns("/report")
                 .addPathPatterns("/chat/**");
 

@@ -1,5 +1,14 @@
 ---
 REST API - Chat created by MS (21-01-08)
+
+수정내역
+21-01-25
+
+채팅방 목록을 불러올 때 `block` 필드가 하나 더 추가되었다.
+[block](#blockboolean--------true---false---)
+설명 : 해당 필드는 채팅방의 상대방을 내가 차단했는 지 차단하지 안했는 지에 대한 차단유무를 알려준다. 
+
+
 ---
 
 # 채팅방 목록들 조회하기 
@@ -21,6 +30,7 @@ REST API - Chat created by MS (21-01-08)
  2. `chatRoomRecentMessageDto` 의 `message_type` (최근 메시지의 메시지 타입)
  3. `chatRoomRecentMessageDto` 의 `message_date`(최근 메시지의 메시지 보낸 시간) 
  4. `chatRoomProductDto` 의 `product_deleted` (채팅방 물건의 삭제여부)
+ 5. `block` 차단 유무(내가 상대방을 차단했는지 에대한 유무)
  
  
  #### `roomId` (채팅방고유ID) 
@@ -48,6 +58,7 @@ REST API - Chat created by MS (21-01-08)
             "message": "/imgs/slideshow_sample.jpg"
         },
         "unreadMessageCount": 3,
+        "block": true,
         "chatRoomProductDto": {
             "product_id" : 1,
             "product_deleted": 0,
@@ -83,6 +94,7 @@ REST API - Chat created by MS (21-01-08)
             "message_date": "2021-01-09T00:28:54",
             "message": "/imgs/slideshow_sample.jpg"
         },
+        "block": false,
         "unreadMessageCount": 3,
         "chatRoomProductDto": {
             "product_id": 1, 
@@ -92,6 +104,19 @@ REST API - Chat created by MS (21-01-08)
     }
 
 ```
+
+#### `block` (채팅방고유ID) 
+
+`block` 이란 내가 특정유저를 차단했을 경우 해당 유저와 관련된 모든 채팅방들은 이미 차단된 상태를 유지해야한다. 즉, 채팅방 목록의 햄버거바를 
+클릭해서 나오는 `차단하기` 는 해당 채팅방 상대방(유저) 에 대한 차단이다. 그렇기 때문에 만약 내가 채팅방목록을 조회할 때 차단한 유저와
+관련되어 있는 채팅방들은 모두 `차단` 된 상태(유저를 차단한 상태) 를 유지해야 한다.
+
+만약 A유저가 올린 10개의 물건(1, 2, ... 10)에 대해서 B유저가 모두 채팅을 통해 거래를 시도한 상태라고 가정하자. 이때 A에게는 B유저와 대화한 10개의 채팅방이 
+존재한다. 그리고 개별 10개의 채팅방에 있는 `차단하기` 기능은 B를 차단하는 것과 동일하다. 만약 1번 물건이 있는 채팅방의 햄버거 버튼을 눌러
+차단하기를 눌렀을 경우에는 (2, 3, 4 ... 10) 나머지 B와 채팅한 채팅방들 은 `차단하기` 가 이미 일어난 것이기 때문에
+클라이언트는 채팅방 목록에서 특정 채팅방의 햄버거바를 눌러 `차단하기` 눌러 차단을 요청한 후 `차단해제`로 바꿔야 할텐데, 이때 B와 관련되어 있는 
+모든 채팅방의 햄버거 버튼을 눌렀을 때 `차단해제` 문구가 나오도록 해야한다.
+
 
 **URL** : `/chat/rooms` 
 
@@ -111,9 +136,9 @@ ___
 
 `roomId`: 채팅방의 고유 ID (채팅방 고유아이디는 생성되는 채팅목록 DOM 들의 고유한 이름으로 사용한다. )
 
-`chatRoomUserDto`: 채팅하는 상대방의 정보
+`chatMessageUserDto`: 채팅하는 상대방의 정보
 
-​		`user_id` : 상대방의 고유 ID (채팅방 들어가서 상대방에게 메시지를 보낼 때(`SEND, /message`) 사용된다.) 
+​		`userId` : 상대방의 고유 ID (채팅방 들어가서 상대방에게 메시지를 보낼 때(`SEND, /message`) 사용된다.) 
 
 ​		`nickName` : 상대방의 닉네임 (내가 어떤 사용자와 채팅하고 있는 지에 사용자의 닉네임정보 -> 채팅방 목록 중 개별 채팅방의 Jypman 닉네임부분에 해당)
 
@@ -126,6 +151,8 @@ ___
 ​		`message` : 최근 메시지의 내용  
 
 `unreadMessageCount` : 채팅방의 읽지 않은 메시지의 개수 (해당 채팅방의 읽지 않은 메시지 개수를 보여준다. -> 채팅방 목록 중 개별 채팅방의 오른쪽 읽지 않은 메시지 개수 표현)
+
+#`block(boolean)` : 해당 채팅방의 상대방을 차단했는지에 대한 유무( true : 차단함, false : 차단하지않음 )
 
 `chatRoomProductDto` : 채팅방의 물건 정보
 
@@ -143,8 +170,8 @@ ___
 [
     {
         "roomId": 105,
-        "chatRoomUserDto": {
-            "user_id": 1,
+        "chatMessageUserDto": {
+            "userId": 1,
             "nickName": "asd0296"
         },
         "chatRoomRecentMessageDto": {
@@ -152,6 +179,7 @@ ___
             "message_date": "2021-01-15T18:07:56",
             "message": "갖고싶어여"
         },
+        "block": false,
         "unreadMessageCount": 0,
         "chatRoomProductDto": {
             "product_id": 4,
@@ -161,8 +189,8 @@ ___
     },
     {
         "roomId": 106,
-        "chatRoomUserDto": {
-            "user_id": 1,
+        "chatMessageUserDto": {
+            "userId": 1,
             "nickName": "asd0296"
         },
         "chatRoomRecentMessageDto": {
@@ -171,6 +199,7 @@ ___
             "message": "안뇽"
         },
         "unreadMessageCount": 0,
+        "block": false,
         "chatRoomProductDto": {
             "product_id": 5,
             "product_deleted": 0,
@@ -188,6 +217,12 @@ ___
  
 **결론 : 채팅방 화면이 보여지는 모든 순간 에 아래의 엔드포인트로 서버에 요청하여 물건에 대한 정보를 가져온다.**  
 
+두가지 경우가 있음
+1. 물건이 삭제되지 않았을 경우 
+2. 물건이 삭제되었을경우
+
+
+1. 물건이 삭제되지 않았을 경우
 
 **URL** : `/chat/room/section/product/{product-id}` 
 
@@ -222,8 +257,7 @@ ___
 ​		`transaction_status_id`: 물건 거래 상태(0 : 판매중 (Default)
                                           1 : 예약중 (판매자가 특정 구매 의사를 보인 사람과 거래 약속을 잡은 경우, 판매자가 직접 설정)
                                           2 : 판매완료 (거래 완료 후, 판매자가 직접 설정) 
-                                          3 : 신고처리중 (관리자가 직접 설정) 
-                                          4 : 삭제 (판매자가 업로드한 게시물을 삭제한 경우))
+                                          3 : 신고처리중 (관리자가 직접 설정) )
 
 **example**
 
@@ -237,6 +271,36 @@ ___
         "product_price": "￦15000",
         "product_img_path": "/imgs/slideshow_sample.jpg",
         "transaction_status_id": 3
+    }
+}
+```
+
+2. 물건이 삭제되었을경우
+
+## Success Responses
+
+___
+ 
+**Code** : `200 OK`
+
+**Content**
+
+`message`: 응답 메시지 
+
+`status`: 응답 상태 
+
+`data`: 물건 정보
+
+​		`transaction_status_id`: 물건 거래 상태(4 : 삭제 (판매자가 업로드한 게시물을 삭제한 경우))
+
+**example**
+
+```json
+{
+    "message": "채팅방 물건 정보",
+    "status": 200,
+    "data": {
+        "transaction_status_id": 4
     }
 }
 ```
@@ -304,6 +368,7 @@ ___
 0: 판매자가 구매완료 누르지 않은 상태에서 구매자가 채팅방에 들어갈 경우
 1: 판매자가 구매완료 눌렀을 상태에서 구매자가 채팅방에 들어갈 경우
 2: 판매자가 채팅방에 들어갈 경우
+3: 아예 채팅방의 물건자체가 삭제된 경우
 
 ​		`transactionStatus`(optional) : 해당 물건에 대해서 거래완료 를 했는지에 대한 유무( 1: 거래완료 됨)
 
@@ -410,6 +475,18 @@ ___
 
 ```
 
+7.
+**example** 
+
+<span style="color: red;">채팅방의 물건이 삭제된 경우</span>.
+
+```json
+
+{
+    "productStatus": 3
+}
+
+```
 
 
 # 채팅방나가기

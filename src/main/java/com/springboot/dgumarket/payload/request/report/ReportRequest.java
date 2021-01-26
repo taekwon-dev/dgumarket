@@ -4,10 +4,16 @@ import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import lombok.Getter;
 import lombok.Setter;
 import org.openapitools.jackson.nullable.JsonNullable;
+import org.springframework.security.core.Authentication;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Set;
 
+/**
+ * created by ms, 2021-01-21
+ *  사용자 신고 요청 BODY 에 아래의 값들을 포함하여 요청
+ * {@link com.springboot.dgumarket.controller.report.ReportController#postReport(ReportRequest, Authentication)}  참고}
+ */
 @Getter
 @Setter
 public class ReportRequest {

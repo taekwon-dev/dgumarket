@@ -1,16 +1,25 @@
 package com.springboot.dgumarket.controller.chat;
 
+import com.springboot.dgumarket.dto.block.BlockStatusDto;
 import com.springboot.dgumarket.dto.chat.ChatMessagesUnreadCountDto;
-import com.springboot.dgumarket.payload.request.SendMessage;
+import com.springboot.dgumarket.exception.stomp.StompErrorException;
+import com.springboot.dgumarket.payload.request.chat.SendMessage;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.payload.response.stomp.error.StompErrorResponseMessage;
 import com.springboot.dgumarket.service.UserDetailsImpl;
+import com.springboot.dgumarket.service.block.UserBlockService;
 import com.springboot.dgumarket.service.chat.ChatMessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
@@ -23,15 +32,32 @@ public class ChatMessageController {
     @Autowired
     ChatMessageService chatMessageService;
 
+    @Autowired
+    UserBlockService userBlockService;
+
+    @Autowired
+    SimpMessagingTemplate template;
+
 
     // [STOMP] SEND Frame 메시지 받는 곳
     @MessageMapping("/message")
-    public void handleSendMessage(SendMessage sendMessage){
-        logger.info("handleSendMessage 에서 메시지를 받았습니다. {}", sendMessage);
-        chatMessageService.save(sendMessage);
+    public void handleSendMessage(SendMessage sendMessage, SimpMessageHeaderAccessor accessor) throws StompErrorException {
+
+
+
+
+        BlockStatusDto blockStatus = userBlockService.checkBlockStatus(sendMessage.getSenderId(), sendMessage.getReceiverId());
+
+        switch (blockStatus.getBlock_status()){
+            case 1:
+                throw StompErrorException.builder().ERR_CODE(1).ERR_MESSAGE("You block target user, so can't send message").build();
+            case 2:
+                throw StompErrorException.builder().ERR_CODE(2).ERR_MESSAGE("You blocked by user, so can't send message").build();
+            case 3:
+                String sessionId = accessor.getSessionId();
+                chatMessageService.save(sendMessage, sessionId);
+        }
     }
-
-
 
     // 유저의 전체 읽지 않은 메시지 개수
     @GetMapping("/user/unread/messages")
@@ -61,5 +87,15 @@ public class ChatMessageController {
         }
 
         return null;
+    }
+
+    // [STOMP] 메시지 예외처리
+    @MessageExceptionHandler(StompErrorException.class)
+    @SendToUser(destinations="/queue/error")
+    public StompErrorResponseMessage handleException(StompErrorException exception) {
+
+        return StompErrorResponseMessage.builder()
+                .error_code(exception.getERR_CODE())
+                .error_description(exception.getERR_MESSAGE()).build();
     }
 }

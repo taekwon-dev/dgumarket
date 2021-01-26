@@ -1,4 +1,4 @@
-package com.springboot.dgumarket.payload.request;
+package com.springboot.dgumarket.payload.request.review;
 
 import lombok.Getter;
 
