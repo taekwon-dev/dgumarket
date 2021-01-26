@@ -3,40 +3,11 @@ function create_chat_list(s_res){
     for (let i = 0; i < s_res.length; i++) {
         const chat_div = document.createElement('div')
         chat_div.setAttribute('class',`item_no${s_res[i].chatRoomProductDto.product_id} 
-            chat_list_no${s_res[i].roomId} opponent_no${s_res[i].chatRoomUserDto.user_id} nickname_${s_res[i].chatRoomUserDto.nickName} 
+            chat_list_no${s_res[i].roomId} opponent_no${s_res[i].chatMessageUserDto.userId} nickname_${s_res[i].chatMessageUserDto.nickName} 
             chat_list click_chat_room`);
-        if(date.getFullYear() != s_res[i].chatRoomRecentMessageDto.message_date.slice(0,4)){
-            get_date = s_res[i].chatRoomRecentMessageDto.message_date.slice(0,4)+"."+
-                s_res[i].chatRoomRecentMessageDto.message_date.slice(5,7)+"."+
-                s_res[i].chatRoomRecentMessageDto.message_date.slice(8,10)
-        }
-        else if( mm+"-"+dd != s_res[i].chatRoomRecentMessageDto.message_date.slice(5,10)){
-            if(mm == s_res[i].chatRoomRecentMessageDto.message_date.slice(5,7) &&
-                Number(dd)-1 == Number(s_res[i].chatRoomRecentMessageDto.message_date.slice(8,10))){
-                get_date = '어제'
-            }else{
-                get_date = s_res[i].chatRoomRecentMessageDto.message_date.slice(5,7)+"월 "+
-                    s_res[i].chatRoomRecentMessageDto.message_date.slice(8,10)+"일"
-            }
-        }else{
-            let t = Number(s_res[i].chatRoomRecentMessageDto.message_date.slice(11,13))
-            if(t > 11){
-                if(t > 12){t = t - 12}
-                get_date = `오후 ${t}:${s_res[i].chatRoomRecentMessageDto.message_date.slice(14,16)}`
-            }else{
-                get_date = `오전 ${t}:${s_res[i].chatRoomRecentMessageDto.message_date.slice(14,16)}`
-            }
-        }
-        if(s_res[i].chatRoomRecentMessageDto.message_type == '0'){
-            get_message = s_res[i].chatRoomRecentMessageDto.message
-        }else{
-            get_message = '사진을 보냈습니다.'
-        }
-        if(s_res[i].chatRoomProductDto.product_deleted == '0'){
-            get_image = s_res[i].chatRoomProductDto.productImgPath
-        }else{
-            get_image = '/imgs/product_delete.png'
-        }
+        date_parsing(s_res[i].chatRoomRecentMessageDto.message_date)
+        message_parsing(s_res[i].chatRoomRecentMessageDto)
+        image_parsing(s_res[i].chatRoomProductDto)
         chat_div.innerHTML =
             `<div class="card">
                 <div class="card-body row d-flex flex-wrap align-content-center">
@@ -46,7 +17,7 @@ function create_chat_list(s_res){
                     <div class="chat_list_right col-10 col-sm-10">
                         <div class="clearfix chat_list_right_top">
                             <span class="chat_opponent_nickname float-left">
-                                ${s_res[i].chatRoomUserDto.nickName}
+                                ${s_res[i].chatMessageUserDto.nickName}
                             </span>
                             <span class="room_no${s_res[i].roomId} chat_list_more_view float-right">
                                 <i class="room_no${s_res[i].roomId} more_view_icon fas fa-ellipsis-v"></i>
@@ -60,7 +31,7 @@ function create_chat_list(s_res){
                                 ${get_message}
                             </div>
                             <span class="send_count d-flex justify-content-center 
-                                align-items-center ml-auto rounded-circle">${s_res[i].unreadMessageCount}</span>
+                                align-items-center ml-auto rounded-circle"></span>
                         </div>
                     </div>
                 </div>
@@ -93,6 +64,7 @@ function create_chat_list(s_res){
         chat_list_space.appendChild(chat_div)
         //각 채팅방에서 미수신 메시지가 0인 경우 미수신 알람 미처리
         const send_count = document.getElementsByClassName('send_count')
+        send_count[i].innerText = `${s_res[i].unreadMessageCount}`
         if(s_res[i].unreadMessageCount == '0'){
             send_count[i].classList.add('hidden');
             send_count[i].classList.remove('d-flex');
@@ -100,41 +72,17 @@ function create_chat_list(s_res){
             send_count[i].innerText = '99+'
         }
     }
+    has_chat_list();
+    chat_list_opponent_nickname_width();
+    chat_list_latest_message_width();
+    send_count_height();
 }
 // 상대방으로부터 메시지가 올 때 해당 채팅목록에 최근 메시지 정보 및 갯수를 렌더링하는 함수
 function latest_message(w_res) {
     let toggle = false;
-    if(date.getFullYear() != w_res.messageDate.slice(0,4)){
-        get_date = w_res.messageDate.slice(0,4)+"."+
-            w_res.messageDate.slice(5,7)+"."+
-            w_res.messageDate.slice(8,10)
-    }
-    else if( mm+"-"+dd != w_res.messageDate.slice(5,10)){
-        if(mm == w_res.messageDate.slice(5,7) && Number(dd)-1 == Number(w_res.messageDate.slice(8,10))){
-            get_date = '어제'
-        }else{
-            get_date = w_res.messageDate.slice(5,7)+"월 "+
-                w_res.messageDate.slice(8,10)+"일"
-        }
-    }else{
-        let t = Number(w_res.messageDate.slice(11,13))
-        if(t > 11){
-            if(t > 12){t = t - 12}
-            get_date = `오후 ${t}:${w_res.messageDate.slice(14,16)}`
-        }else{
-            get_date = `오전 ${t}:${w_res.messageDate.slice(14,16)}`
-        }
-    }
-    if(w_res.messageType == '0'){
-        get_message = w_res.message
-    }else{
-        get_message = '사진을 보냈습니다.'
-    }
-    if(w_res.chatRoomProductDto.product_deleted == '0'){
-        get_image = w_res.chatRoomProductDto.productImgPath
-    }else{
-        get_image = '/imgs/product_delete.png'
-    }
+    date_parsing(w_res.messageDate)
+    message_parsing(w_res)
+    image_parsing(w_res.chatRoomProductDto)
     for (let i = 0; i < document.getElementsByClassName('chat_list').length; i++) {
         if(document.getElementsByClassName('chat_list')[i].classList[1].indexOf(w_res.roomId) > -1){
             document.getElementsByClassName('send_time')[i].innerHTML = `${get_date}`
@@ -146,7 +94,7 @@ function latest_message(w_res) {
                 document.getElementsByClassName('send_count')[i].classList.add('d-flex');
                 document.getElementsByClassName('send_count')[i].innerHTML = '1'
             }else{
-                if(Number(document.getElementsByClassName('send_count')[i].innerHTML) < 99){
+                if(Number(document.getElementsByClassName('send_count')[i].innerHTML) <= 99){
                     document.getElementsByClassName('send_count')[i].innerHTML =
                         Number(document.getElementsByClassName('send_count')[i].innerHTML) + 1;
                 }else{
@@ -173,8 +121,8 @@ function latest_message(w_res) {
                             <span class="chat_opponent_nickname float-left">
                                 ${w_res.chatMessageUserDto.nickName}
                             </span>
-                            <span class="chat_list_more_view float-right">
-                                <i class="more_view_icon fas fa-ellipsis-v"></i>
+                            <span class="room_no${w_res.roomId} chat_list_more_view float-right">
+                                <i class="room_no${w_res.roomId} more_view_icon fas fa-ellipsis-v"></i>
                             </span>
                             <span class="send_time text-center float-right">
                                 ${get_date}
@@ -185,12 +133,12 @@ function latest_message(w_res) {
                                 ${get_message}
                             </div>
                             <span class="send_count d-flex justify-content-center 
-                                align-items-center ml-auto rounded-circle">1</span>
+                                align-items-center ml-auto rounded-circle"></span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="more_view_form hidden">
+            <div class="room_no${w_res.roomId} more_view_form hidden">
                 <div class="chat_alarm">알람 끄기</div>
                 <div class="opponent_block">차단</div>
                 <div class="opponent_report">신고</div>
@@ -216,34 +164,26 @@ function latest_message(w_res) {
                 </div>
             </div>`
         chat_list_space.insertBefore(chat_div, chat_list_space.firstChild)
+        const send_count = document.getElementsByClassName('send_count')
+        send_count[0].innerText = '1'
     }
 }
 // 읽지않은 전체 채팅갯수를 플로팅 버튼 위에 실시간 알람으로 렌더링하는 함수
 function unread_total_chat() {
-    if(chat_form.className.indexOf('hidden') > -1){
-        if( total_alm.className.indexOf('hidden') > -1){
-            total_alm.classList.remove('hidden')
-            total_alm.innerText = '1'
+    if( total_alm.className.indexOf('hidden') > -1){
+        total_alm.classList.remove('hidden')
+        total_alm.innerText = '1'
+    }else{
+        if(Number(total_alm.innerText) <= 99){
+            total_alm.innerText = Number(total_alm.innerText) + 1;
         }else{
-            if(Number(total_alm.innerText) < 99){
-                total_alm.innerText = Number(total_alm.innerText) + 1;
-            }else{
-                total_alm.innerText = '99+'
-            }
+            total_alm.innerText = '99+'
         }
     }
 }
 //채팅 입력란에 채팅 메시지를 입력 및 전송 후 채팅 말풍선을 동적 생성하여 렌더링하는 함수
 function create_new_conversation(w_res) {
-    let get_time;
-    let message_state;
-    let t = Number(w_res.messageDate.slice(11,13))
-    if(t > 11){
-        if(t > 12){t = t - 12}
-        get_time = `오후 ${t}:${w_res.messageDate.slice(14,16)}`
-    }else{
-        get_time = `오전 ${t}:${w_res.messageDate.slice(14,16)}`
-    }
+    time_parsing(w_res.messageDate)
     if(w_res.messageStatus == '0'){
         message_state = '읽지 않음'
     }else{message_state = '읽음'}
@@ -257,11 +197,10 @@ function create_new_conversation(w_res) {
                 .slice(0,4),Number(w_res.messageDate.slice(5,7))-1,w_res.messageDate.slice(8,10))}</span>`
         chat_screen.appendChild(date_div)
     }else{
-        if (document.getElementsByClassName('latest_date')[document.getElementsByClassName('latest_date')
-                .length-1].innerText
-            != `${w_res.messageDate.slice(0,4)}년 ${w_res.messageDate.slice(5,7)}월 ${w_res.messageDate
-                .slice(8,10)}일 ${get_input_day_label(w_res.messageDate.slice(0,4),Number(w_res.messageDate
-                .slice(5,7))-1,w_res.messageDate.slice(8,10))}`){
+        if (document.getElementsByClassName('latest_date')[document.getElementsByClassName('latest_date').length-1]
+            .innerText != `${w_res.messageDate.slice(0,4)}년 ${w_res.messageDate.slice(5,7)}월 ${w_res.messageDate
+            .slice(8,10)}일 ${get_input_day_label(w_res.messageDate.slice(0,4),Number(w_res.messageDate
+            .slice(5,7))-1,w_res.messageDate.slice(8,10))}`){
             const date_div = document.createElement('div')
             date_div.setAttribute('class','d-flex justify-content-center')
             date_div.innerHTML =
@@ -273,8 +212,8 @@ function create_new_conversation(w_res) {
     }
     // 1분미만 연속으로 전송된 말풍선 동적생성하는 곳
     const conversation_form = document.getElementsByClassName('conversation_form')
-    if(conversation_form.length > 0 && w_res.messageDate.slice(0,16) == conversation_form[conversation_form.length-1].classList[1].slice(0,16) &&
-        w_res.chatMessageUserDto.userId == conversation_form[conversation_form.length-1].classList[2]){
+    if(conversation_form.length > 0 && w_res.messageDate.slice(0,16) == conversation_form[conversation_form.length-1].classList[1]
+        .slice(0,16) && w_res.chatMessageUserDto.userId == conversation_form[conversation_form.length-1].classList[2]){
         if (w_res.chatMessageUserDto.userId != web_items_search.value){
             const chat_bundle_div = document.createElement('div')
             chat_bundle_div.setAttribute('class',`conversation_form ${w_res.messageDate} 
@@ -282,7 +221,7 @@ function create_new_conversation(w_res) {
             chat_bundle_div.innerHTML =
                 `<div class="opponent_speech_bubble">${w_res.message}</div>
                 <div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="receiving_time">${get_time}</div>
+                    <div class="receiving_time">${get_date}</div>
                 </div>`
             const time_send_alm = document.getElementsByClassName('time_send_alm')
             conversation_form[conversation_form.length-1].removeChild(time_send_alm[time_send_alm.length-1])
@@ -295,7 +234,7 @@ function create_new_conversation(w_res) {
                 `<div class="time_send_alm d-flex flex-wrap align-content-end">
                     <div class="conversation_info">
                         <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                        <div class="outgoing_time d-flex justify-content-end">${get_time}</div>
+                        <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                     </div>
                 </div>
                 <div class="my_speech_bubble">${w_res.message}</div>`
@@ -321,7 +260,7 @@ function create_new_conversation(w_res) {
             <div class="conversation_form ${w_res.messageDate} ${w_res.chatMessageUserDto.userId} d-flex">
                 <div class="opponent_speech_bubble">${w_res.message}</div>
                 <div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="receiving_time">${get_time}</div>
+                    <div class="receiving_time">${get_date}</div>
                 </div>
             </div>`
         chat_screen.appendChild(chat_opponent_div)
@@ -335,7 +274,7 @@ function create_new_conversation(w_res) {
             <div class="time_send_alm d-flex flex-wrap align-content-end">
                 <div class="conversation_info">
                     <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                    <div class="outgoing_time d-flex justify-content-end">${get_time}</div>
+                    <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                 </div>
             </div>
             <div class="my_speech_bubble">${w_res.message}</div>
@@ -347,16 +286,8 @@ function create_new_conversation(w_res) {
 }
 // 현재까지 상대방과 대화한 메시지를 동적생성하여 불러오는 함수
 function create_conversation(w_res) {
-    let get_time;
-    let message_state;
     for (let i = 0; i < w_res.length; i++) {
-        let t = Number(w_res[i].messageDate.slice(11,13))
-        if(t > 11){
-            if(t > 12){t = t - 12}
-            get_time = `오후 ${t}:${w_res[i].messageDate.slice(14,16)}`
-        }else{
-            get_time = `오전 ${t}:${w_res[i].messageDate.slice(14,16)}`
-        }
+        time_parsing(w_res[i].messageDate)
         if(w_res[i].messageStatus == '0'){
             message_state = '읽지 않음'
         }else{message_state = '읽음'}
@@ -371,11 +302,10 @@ function create_conversation(w_res) {
                     .slice(5,7))-1,w_res[i].messageDate.slice(8,10))}</span>`
             chat_screen.appendChild(date_div)
         }else{
-            if (document.getElementsByClassName('latest_date')[document.getElementsByClassName('latest_date')
-                    .length-1].innerText
-                != `${w_res[i].messageDate.slice(0,4)}년 ${w_res[i].messageDate.slice(5,7)}월 ${w_res[i].messageDate
-                    .slice(8,10)}일 ${get_input_day_label(w_res[i].messageDate.slice(0,4),Number(w_res[i].messageDate
-                    .slice(5,7))-1,w_res[i].messageDate.slice(8,10))}`){
+            if (document.getElementsByClassName('latest_date')[document.getElementsByClassName('latest_date').length-1]
+                .innerText != `${w_res[i].messageDate.slice(0,4)}년 ${w_res[i].messageDate
+                .slice(5,7)}월 ${w_res[i].messageDate.slice(8,10)}일 ${get_input_day_label(w_res[i].messageDate.slice(0,4),Number(w_res[i].messageDate
+                .slice(5,7))-1,w_res[i].messageDate.slice(8,10))}`){
                 const date_div = document.createElement('div')
                 date_div.setAttribute('class','d-flex justify-content-center')
                 date_div.innerHTML =
@@ -396,7 +326,7 @@ function create_conversation(w_res) {
                 chat_bundle_div.innerHTML =
                     `<div class="opponent_speech_bubble">${w_res[i].message}</div>
                 <div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="receiving_time">${get_time}</div>
+                    <div class="receiving_time">${get_date}</div>
                 </div>`
                 const time_send_alm = document.getElementsByClassName('time_send_alm')
                 conversation_form[conversation_form.length-1].removeChild(time_send_alm[time_send_alm.length-1])
@@ -409,7 +339,7 @@ function create_conversation(w_res) {
                     `<div class="time_send_alm d-flex flex-wrap align-content-end">
                     <div class="conversation_info">
                         <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                        <div class="outgoing_time d-flex justify-content-end">${get_time}</div>
+                        <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                     </div>
                 </div>
                 <div class="my_speech_bubble">${w_res[i].message}</div>`
@@ -435,7 +365,7 @@ function create_conversation(w_res) {
                 <div class="conversation_form ${w_res[i].messageDate} ${w_res[i].chatMessageUserDto.userId} d-flex">
                     <div class="opponent_speech_bubble">${w_res[i].message}</div>
                     <div class="time_send_alm d-flex flex-wrap align-content-end">
-                        <div class="receiving_time">${get_time}</div>
+                        <div class="receiving_time">${get_date}</div>
                     </div>
                 </div>`
             chat_screen.appendChild(chat_opponent_div)
@@ -449,7 +379,7 @@ function create_conversation(w_res) {
                     <div class="time_send_alm d-flex flex-wrap align-content-end">
                         <div class="conversation_info">
                             <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                            <div class="outgoing_time d-flex justify-content-end">${get_time}</div>
+                            <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                         </div>
                     </div>
                     <div class="my_speech_bubble">${w_res[i].message}</div>
@@ -581,27 +511,7 @@ function trade_comment(s_res) {
     const writer_trade_comment = document.getElementById('writer_trade_comment')
     const trade_comment_date = document.getElementById('trade_comment_date')
     const trade_comment_content = document.getElementById('trade_comment_content')
-    if(date.getFullYear() != s_res.data.review_date.slice(0,4)){
-        get_date = s_res.data.review_date.slice(0,4)+"."+
-            s_res.data.review_date.slice(5,7)+"."+
-            s_res.data.review_date.slice(8,10)
-    }
-    else if( mm+"-"+dd != s_res.data.review_date.slice(5,10)){
-        if(mm == s_res.data.review_date.slice(5,7) && Number(dd)-1 == Number(s_res.data.review_date.slice(8,10))){
-            get_date = '어제'
-        }else{
-            get_date = s_res.data.review_date.slice(5,7)+"월 "+
-                s_res.data.review_date.slice(8,10)+"일"
-        }
-    }else{
-        let t = Number(s_res.data.review_date.slice(11,13))
-        if(t > 11){
-            if(t > 12){t = t - 12}
-            get_date = `오후 ${t}:${s_res.data.review_date.slice(14,16)}`
-        }else{
-            get_date = `오전 ${t}:${s_res.data.review_date.slice(14,16)}`
-        }
-    }
+    date_parsing(s_res.data.review_date)
     writer_trade_comment.innerText = `${s_res.data.review_nickname}`
     trade_comment_date.innerText = `${get_date}`
     trade_comment_content.innerText = `${s_res.data.review_comment}`

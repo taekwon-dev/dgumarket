@@ -29,6 +29,7 @@ function request_unread_total_chat() {
                     total_alm.innerText = '99+'
                 }
             }
+            request_my_chat_list()
         })
         .catch(error => {
             console.log(error)
@@ -54,14 +55,8 @@ function request_my_chat_list() {
         .then(data => {
             console.log(data);
             loading_chat_list_room.classList.add('hidden')
-            create_chat_list(data)
-            has_chat_list()
-            if(chat_start_button.className.indexOf('hidden') == -1){
-                chat_form_view()
-            }else{chat_room_close()}
-            chat_list_opponent_nickname_width();
-            chat_list_latest_message_width();
-            send_count_height()
+            create_chat_list(data);
+            websocket_connect();
         })
         .catch(error => {
             console.log(error)
@@ -248,12 +243,11 @@ function websocket_connect() {
                 },{id: `room-user-${room_id}-${web_items_search.value}`})
             }else{
                 // 상대방으로부터 메시지가 올 때 채팅목록에 최근 메시지 정보를 렌더링
-                if(chat_form.className.indexOf('hidden') == -1 && chat_room_form.className.indexOf('hidden') > -1){
-                    latest_message(JSON.parse(sub_frame.body))
-                    chat_list_opponent_nickname_width();
-                    chat_list_latest_message_width();
-                    send_count_height();
-                }
+                latest_message(JSON.parse(sub_frame.body))
+                has_chat_list();
+                chat_list_opponent_nickname_width();
+                chat_list_latest_message_width();
+                send_count_height();
                 // 상대방으로부터 메시지가 올 때 채팅 플로팅 버튼 옆에 읽지 않은 메시지 갯수 렌더링
                 unread_total_chat()
             }
