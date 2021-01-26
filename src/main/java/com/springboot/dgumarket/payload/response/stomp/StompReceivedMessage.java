@@ -1,4 +1,4 @@
-package com.springboot.dgumarket.payload.response;
+package com.springboot.dgumarket.payload.response.stomp;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.springboot.dgumarket.dto.chat.ChatMessageUserDto;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 public class StompReceivedMessage {
     int roomId; // 방 아이디
-    int messageType; // 메시지타입
+    int message_type; // 메시지타입
     int messageStatus; // 메시지읽음여부
     String message; // 메시지내용
     LocalDateTime messageDate; // 메시지작성시간

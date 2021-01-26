@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.configuration;
 
+import com.springboot.dgumarket.payload.request.chat.SendMessage;
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
 import com.springboot.dgumarket.stomp.CustomErrorHandler;
 import com.springboot.dgumarket.stomp.CustomStompJwtInterceptor;
@@ -53,8 +54,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-        config.setUserDestinationPrefix("app");
+        config.enableSimpleBroker("/topic", "/queue");
+        config.setUserDestinationPrefix("/user");
     }
 
 
@@ -84,8 +85,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor sha = StompHeaderAccessor.wrap(message);
                 StompCommand command = sha.getCommand();
 
-
-                if (StompCommand.CONNECT.equals(command)){
+                if (StompCommand.CONNECT.equals(command)) {
                     logger.info("{}, message.getPayload {}", command, message.getPayload());
                     logger.info("{}, message.getHeader {}", command, message.getHeaders());
                     logger.info("{}, accessor.toString {}", command, sha.toString());
@@ -95,6 +95,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     redisChatRoomService.leave(sessionId); // 레디스 채팅방 나가기
                 }else if(StompCommand.DISCONNECT.equals(command)){ // 갑작스러운 종료에도 채팅창을 잘 나가게 해야한다.
                     String sessionId = message.getHeaders().get("simpSessionId").toString();
+
                     redisChatRoomService.leave(sessionId); // TODO : 갑작스러운 종료에도 sessionId로 채팅방 나갈 수 있도록 하기
                 }
                 return message;

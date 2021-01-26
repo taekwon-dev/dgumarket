@@ -1,4 +1,4 @@
-package com.springboot.dgumarket.payload.request;
+package com.springboot.dgumarket.payload.request.chat;
 
 
 import com.springboot.dgumarket.model.chat.ChatMessage;

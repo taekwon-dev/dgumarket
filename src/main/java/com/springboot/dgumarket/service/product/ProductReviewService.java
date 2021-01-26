@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.service.product;
 
 import com.springboot.dgumarket.dto.product.ProductReviewDto;
-import com.springboot.dgumarket.payload.request.ProductCommentRequset;
+import com.springboot.dgumarket.payload.request.review.ProductCommentRequset;
 
 
 /**

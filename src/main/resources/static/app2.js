@@ -1,8 +1,19 @@
+/**
+ * 샘플 웹소켓 클라이언트 html
+ * - 수정내용 (1.25)
+ * 기존의 구독에서 2개 추가 되었음
+ * 1. sub user/queue/room/event
+ * 2. sub user/queue/error
+ *
+ */
+
+
 var stompClient = null;
 var room_id = null;
 var toggle = false;
 var sub_room = null;
 var sub_room_and_user = null;
+var sub_room_event = null;
 const message_container = document.getElementById('chat_message');
 
 window.addEventListener("beforeunload", function (e) {
@@ -28,6 +39,42 @@ function connect(userid) {
     stompClient.connect({}, function (frame) {
 
 
+        // 채팅방구독시 채팅방의 메시지들을 받을 구독
+        sub_room_event = stompClient.subscribe('/user/queue/room/event', function (frame) { // 추가-2 SUB
+            console.log(JSON.parse(frame.body)) // 채팅메시지들을 받게되는 부분.
+
+
+            // 물건 페이지에서 [채팅으로 거래하기] 누른 후 채팅방에서 메시지를 보냈을 떄(`SEND /message`) 받게 되는 메시지 형태
+            // 서버로부터 채팅방에 대한 정보를 받는다.
+            // 서버로 부터 채팅방 정보를 받는 경우 ( {"roomId":"101"} )
+            if (Object.keys(JSON.parse(frame.body)).length === 1 && toggle === false){
+                toggle = true;
+                room_id = JSON.parse(frame.body)['roomId']
+
+                sub_room = stompClient.subscribe('/topic/room/' + room_id, function (f) { // {"roomId":"101"} 이용 -> ( STOMP API 3번, 채팅방에 대해 구독)
+                    console.log(JSON.parse(f.body)) // 실시간으로 오는 메시지 받아서 DOM 에 그려야 하는 부분
+
+                },{ id: "room-" + room_id}); // header
+
+
+                sub_room_and_user = stompClient.subscribe('/topic/room/' + room_id + '/' + userid, function (f) {
+
+                    console.log(JSON.parse(f.body))
+
+                },{ id: "room-user-" + room_id + "-" + userid}); // header
+
+
+
+
+                $("#leave_btn").prop("disabled", false)
+                $("#join_btn").prop("disabled", true)
+            }
+        });
+
+        // 에러메시지를 담고있는 MESSAGE Frame 을 받을 구독
+        stompClient.subscribe('/user/queue/error', function (frame) {
+            console.log(frame);
+        });
 
 
         getUnreadMessages() // 유저의 읽지 않은 메시지 개수 가져오기 (HTTP REST API)
@@ -35,39 +82,10 @@ function connect(userid) {
 
         setConnected(true);
         console.log('Connected: ' + frame);
+
+
         stompClient.subscribe('/topic/chat/' + userid, function (frame) { // (STOMP API 2번) 나에게 오는 메시지 받기, 구독
 
-            room_id = JSON.parse(frame.body)['roomId']
-
-
-            // 물건 페이지에서 [채팅으로 거래하기] 누른 후 채팅방에서 메시지를 보냈을 떄(`SEND /message`) 받게 되는 메시지 형태
-            // 서버로부터 채팅방에 대한 정보를 받는다.
-            // 서버로 부터 채팅방 정보를 받는 경우 ( {"roomId":"101"} )
-            if (Object.keys(JSON.parse(frame.body)).length === 1 && toggle === false){
-
-                toggle = true;
-
-                sub_room = stompClient.subscribe('/topic/room/' + room_id, function (f) { // {"roomId":"101"} 이용 -> ( STOMP API 3번, 채팅방에 대해 구독)
-
-                    console.log(JSON.parse(f.body)) // 메시지 받아서 DOM 에 그려야 하는 부분
-
-                    // if(JSON.parse(f.body)['type'] === 1){
-                    //     console.log("/chat/" + JSON.parse(f.body)['path'])
-                    //     document.getElementById('image').src = "/chat/" + JSON.parse(f.body)['path']
-                    //     console.log("document.getElementById('image').src : " + document.getElementById('image').src);
-                    // }
-                },{ id: "room-" + room_id}); // header
-
-                sub_room_and_user = stompClient.subscribe('/topic/room/' + room_id + '/' + userid, function (f) { // {"roomId":"101"} 이용 -> ( STOMP API 4번, 채팅방 + 유저(나)에 대해 구독)
-
-                    console.log(JSON.parse(f.body)) // 메시지 받아서 DOM 에 그려야 하는 부분
-
-                },{ id: "room-user-" + room_id + "-" + userid}); // header
-
-
-                $("#leave_btn").prop("disabled", false)
-                $("#join_btn").prop("disabled", true)
-            }
 
 
         });
@@ -130,22 +148,17 @@ function showGreeting(message) {
 
 // [채팅방 목록 -> 채팅방 화면]
 function join(room_id, userid){
-
-    // stompClient.send('/room/join', {chatRoomId: room_id, userId: userid}, {})
-    console.log("00000000000000000000")
     if(toggle === false){
-        console.log("11111111111111111")
         toggle = true
-        console.log("22222222222222222")
 
         sub_room = stompClient.subscribe('/topic/room/' + room_id , function (fr){ // (STOMP API 3번) 채팅방 구독하기
             console.log(JSON.parse(fr.body)) // 메시지 받아서 DOM 에 그려야 하는 부분
+        },{ id: "room-" + room_id}) //
 
-        },{ id: "room-" + room_id}) // header
-
-        sub_room_and_user = stompClient.subscribe('/topic/room/' + room_id + '/' + userid, function(f){ // (STOMP API 4번) 채팅방+유저(나) 구독하기
+        sub_room_and_user = stompClient.subscribe('/topic/room/' + room_id + '/' + userid, function(f){ // (수정)상대방입장했을 때의 이벤트{join}만 받는다.
             console.log(JSON.parse(f.body))
-        },{id: "room-user-" + room_id + "-" + userid}) // header
+        },{id: "room-user-" + room_id + "-" + userid})
+
 
         $("#join_btn").prop("disabled", true)
         $("#leave_btn").prop("disabled", false)
