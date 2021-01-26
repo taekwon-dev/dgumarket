@@ -1,11 +1,10 @@
-//테스트 코드
-$(document).ready(function(){
-    request_unread_total_chat()
-});
 // 테스트 코드
-web_items_search.addEventListener('keyup',websocket_connect)
-
-chat_start_button.addEventListener('click',request_my_chat_list)
+web_items_search.addEventListener('keyup', function () {
+    request_unread_total_chat()
+})
+chat_start_button.addEventListener('click',function () {
+    chat_form_view();
+})
 document.addEventListener('click',function (event) {
     // onePick.html에서 '채팅으로 거래하기' 버튼 클릭 시 이벤트 실행
     if (event.target.id == "chat_trade_button") {
@@ -28,9 +27,9 @@ document.addEventListener('click',function (event) {
         //상대방 nickname을 class에 저장하기
         chat_screen.classList.add(`nickname_${json.chatMessageUserDto.nickName}`)
 
-        request_trade_item_info(chat_screen)
-        chat_form_view()
-        chat_room_view()
+        chat_form_view();
+        chat_room_view();
+        request_trade_item_info(chat_screen);
     }
     // 모바일 채팅방에서 상대방 프로필,닉네임,거래중인 물품 이미지를 클릭할 경우 채팅창이 닫히도록 하기(해당 페이지로 이동되었다는 것을 보여주기 위함)
     if (hasClass(event.target, 'opponent_profile_picture') ||
@@ -38,7 +37,6 @@ document.addEventListener('click',function (event) {
         event.target.id == 'trade_item_picture') {
         if (window.matchMedia('( min-width:280px ) and ( max-width:767px )').matches) {
             chat_form_close();
-            request_unread_total_chat();
             unsubscribe_chat_room();
         }
     }
@@ -76,6 +74,16 @@ $(document).on('click','.click_chat_room',function () {
     chat_screen.classList.add(this.classList[2])
     //상대방 nickname을 class에 저장하기
     chat_screen.classList.add(this.classList[3])
+    if(total_alm.innerText && Number(total_alm.innerText) > 0){
+        total_alm.innerText = Number(total_alm.innerText) - Number(this.firstChild
+            .children[0].children[1].children[1].children[1].innerText)
+        this.firstChild
+            .children[0].children[1].children[1].children[1].innerText = ''
+        this.firstChild
+            .children[0].children[1].children[1].children[1].classList.add('hidden')
+        this.firstChild
+            .children[0].children[1].children[1].children[1].classList.remove('d-flex')
+    }
 })
 // 채팅목록에서 ...을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단 후 더보기 팝엽창 열기
 $(document).on('click','.chat_list_more_view',function (event) {
@@ -106,11 +114,11 @@ chat_search_icon.addEventListener('click',function () {
 })
 back_btn.addEventListener('click', function () {
     if(chat_screen.className.indexOf('chat_list_no') > -1){unsubscribe_chat_room();}
-    request_my_chat_list()
+    chat_room_close();
 })
 close_btn.addEventListener('click',function () {
     if(chat_list_form.className == 'hidden' && chat_screen.className.indexOf('chat_list_no') > -1){unsubscribe_chat_room();}
-    chat_form_close();request_unread_total_chat();
+    chat_form_close();
 })
 confirm_trade_success.addEventListener('click',request_trade_success)
 chat_write_trade_comment.addEventListener('click',from_seller_to_consumer)
@@ -120,13 +128,12 @@ document.addEventListener('keydown',function (event) {
     if (event.keyCode == 27){
         if(chat_list_form.className == 'hidden' && chat_screen.className.indexOf('chat_list_no') > -1){unsubscribe_chat_room();}
         chat_form_close();
-        request_unread_total_chat();
     }
 })
 chat_room_out.addEventListener('click', function () {
     request_chat_room_out();
     unsubscribe_chat_room();
-    request_my_chat_list();
+    chat_room_close();
 })
 // 채팅 입력란의 내용이 공백뿐일 경우 채팅 전송 방지
 chat_input.addEventListener( 'keydown' ,function(event) {
@@ -155,7 +162,6 @@ window.addEventListener("beforeunload", function () {
 });
 chat_screen.addEventListener('scroll',function () {
     create_chat_scroll_btn()
-    console.log(chat_screen.scrollHeight,chat_screen.scrollTop)
     if(chat_screen.clientHeight + chat_screen.scrollTop >= chat_screen.scrollHeight){
         delete_chat_scroll_btn()
     }

@@ -3,8 +3,8 @@ const chat_start_button = document.getElementById('chat_start_button');
 const chat_form = document.getElementById('chat_form');
 const chat_header = document.getElementById('chat_header')
 const chat_list_form = document.getElementById('chat_list_form');
-const chat_search_icon = document.getElementById('chat_search_icon')
 const chat_list_space = document.getElementById('chat_list_space')
+const chat_search_icon = document.getElementById('chat_search_icon')
 const chat_title_chat = document.getElementById('chat_title_chat');
 const chat_search_form = document.getElementById('chat_search_form');
 const trade_item_info = document.getElementById('trade_item_info');
@@ -27,12 +27,17 @@ const notification_trade_state = document.getElementById('notification_trade_sta
 const notification_trade_state_text = document.getElementById('notification_trade_state_text')
 const input_trade_comment = document.getElementById('input_trade_comment')
 const comment_submit = document.getElementById('comment_submit')
-let get_date;
 let get_message;
 let get_image;
+let get_date;
+let message_state;
 const date = new Date();
 const mm =  date.getMonth() < 9 ? `0${date.getMonth()+1}` : `${date.getMonth()+1}`;
 const dd = date.getDate() < 10 ? `0${date.getDate()}` : `${date.getDate()}`
+// 동적 생성된 엘리먼트 중에서 해당 클래스를 갖고 있을 경우 이벤트 바인딩하는 함수
+function hasClass(elem, className) {
+    return elem.className.split(' ').indexOf(className) > -1;
+}
 // 채팅UI를 여는 함수
 function chat_form_view() {
     chat_form.classList.remove('chat_close')
@@ -46,6 +51,9 @@ function chat_form_view() {
         body_scroll.style.position = 'fixed'
         body_scroll.style.top = `-${body_scrollY}`
     }
+    chat_list_opponent_nickname_width();
+    chat_list_latest_message_width();
+    send_count_height();
 }
 // 채탕방을 여는 함수
 function chat_room_view() {
@@ -59,8 +67,7 @@ function chat_room_view() {
     back_btn.classList.add('d-flex')
     chat_room_form.classList.remove('hidden');
     chat_room_form.classList.add('chat_room_open');
-    chat_input_form_width()
-    init_chat_list()
+    chat_input_form_width();
     const close_chat_room_form = document.getElementById('close_chat_room_form')
     if(chat_screen.className.indexOf('welcome') > -1){
         close_chat_room_form.classList.add('hidden')
@@ -85,10 +92,12 @@ function chat_room_close(){
     back_btn.classList.add('hidden')
     back_btn.classList.remove('d-flex')
     chat_room_form.classList.add('hidden')
-    //채팅방의 product_id, roomId 제거
     chat_screen.removeAttribute('class')
     notification_trade_state.classList.add('hidden')
-    init_conversation()
+    init_conversation();
+    chat_list_opponent_nickname_width();
+    chat_list_latest_message_width();
+    send_count_height();
 }
 // 채팅방이 하나라도 있을 경우 채팅방 없을 때 보이는 알림 이미지 안 보이게 하는 함수
 function has_chat_list(){
@@ -98,10 +107,6 @@ function has_chat_list(){
     }else{
         chat_room_empty.classList.remove('hidden')
     }
-}
-// 동적 생성된 엘리먼트 중에서 해당 클래스를 갖고 있을 경우 이벤트 바인딩하는 함수
-function hasClass(elem, className) {
-    return elem.className.split(' ').indexOf(className) > -1;
 }
 // 채팅방 리스트 검색하는 함수
 function chat_room_search() {
@@ -117,20 +122,24 @@ function chat_room_search() {
 }
 //채팅방 리스트의 닉네임 너비를 자동조절하는 함수
 function chat_list_opponent_nickname_width() {
-    for (let i = 0; i < document.getElementsByClassName('chat_opponent_nickname').length; i++) {
-        document.getElementsByClassName('chat_opponent_nickname')[i].style.maxWidth =
-            (document.getElementsByClassName('chat_list_right_top')[i]
-                .clientWidth - document.getElementsByClassName('send_time')[i]
-                .clientWidth - document.getElementsByClassName('chat_list_more_view')[i].clientWidth)+'px';
+    if(chat_form.className.indexOf('hidden') == -1 && chat_room_form.className.indexOf('hidden') > -1){
+        for (let i = 0; i < document.getElementsByClassName('chat_opponent_nickname').length; i++) {
+            document.getElementsByClassName('chat_opponent_nickname')[i].style.maxWidth =
+                (document.getElementsByClassName('chat_list_right_top')[i]
+                    .clientWidth - document.getElementsByClassName('send_time')[i]
+                    .clientWidth - document.getElementsByClassName('chat_list_more_view')[i].clientWidth)+'px';
+        }
     }
 }
 //채팅방 리스트의 최근메시지의 너비를 자동조절하는 함수
 function chat_list_latest_message_width() {
-    for (let i = 0; i < document.getElementsByClassName('chat_list_right_bottom').length; i++) {
-        document.getElementsByClassName('chat_conversation')[i].style.maxWidth =
-            (document.getElementsByClassName('chat_list_right_bottom')[i]
-                .clientWidth - document.getElementsByClassName('send_count')[i]
-                .clientWidth - 9)+'px';
+    if(chat_form.className.indexOf('hidden') == -1 && chat_room_form.className.indexOf('hidden') > -1){
+        for (let i = 0; i < document.getElementsByClassName('chat_list_right_bottom').length; i++) {
+            document.getElementsByClassName('chat_conversation')[i].style.maxWidth =
+                (document.getElementsByClassName('chat_list_right_bottom')[i]
+                    .clientWidth - document.getElementsByClassName('send_count')[i]
+                    .clientWidth - 9) + 'px';
+        }
     }
 }
 // 채팅 전체 폼 닫기 함수
@@ -141,7 +150,10 @@ function chat_form_close() {
         chat_form.classList.add('hidden');
         //읽지않은 채팅 메시지 갯수를 보여주는 UI는 다른 함수에서 경우의 수에 따라 view처리
         chat_start_button.classList.remove('hidden');
-        chat_room_close()
+        if(total_alm.innerText && Number(total_alm.innerText) > 0){
+            total_alm.classList.remove('hidden');
+        }
+        chat_room_close();
         if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
             const body_scroll = document.documentElement
             const body_scrollY = body_scroll.style.top
@@ -150,7 +162,6 @@ function chat_form_close() {
             window.scrollTo(0, parseInt(body_scrollY || '0')*-1)
         }
     },350)
-    init_chat_list()
 }
 //채팅방 목록에서 각 채팅방의 수신 채팅 수를 알려주는 UI의 가로에 맞게 높이를 자동 조절하는 함수
 function send_count_height() {
@@ -173,13 +184,7 @@ function init_conversation() {
         chat_screen.removeChild(chat_screen.firstChild)
     }
 }
-//채팅방에 입장 시 채팅방 목록들을 초기화하는 함수
-function init_chat_list() {
-    while (chat_list_space.hasChildNodes()){
-        chat_list_space.removeChild(chat_list_space.firstChild)
-    }
-}
-// 특정날짜 요일 계산하는 함수
+// 특정날짜의 요일 파싱하는 함수
 function get_input_day_label(year,month,day) {
     const week = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
     const day_of_week = week[new Date(year,month,day).getDay()];
@@ -198,5 +203,46 @@ function limit_string() {
     if(chat_input.value.length > 2000){
         alert('최대 입력 글자 수는 2000자까지입니다.')
         chat_input.value = chat_input.value.slice(0,2000)
+    }
+}
+//날짜 파싱하는 함수
+function date_parsing(dt) {
+    if(date.getFullYear() != dt.slice(0,4)){
+        return get_date = dt.slice(0,4)+"."+ dt.slice(5,7)+"."+ dt.slice(8,10)
+    }
+    else if( mm+"-"+dd != dt.slice(5,10)){
+        if(mm == dt.slice(5,7) && Number(dd)-1 == Number(dt.slice(8,10))){
+            return get_date = '어제'
+        }else{
+            return get_date = dt.slice(5,7)+"월 "+ dt.slice(8,10)+"일"
+        }
+    }else{
+        time_parsing(dt)
+    }
+}
+//시간 파싱하는 함수
+function time_parsing(tm) {
+    let t = Number(tm.slice(11,13))
+    if(t > 11){
+        if(t > 12){t = t - 12}
+        return get_date = `오후 ${t}:${tm.slice(14,16)}`
+    }else{
+        return get_date = `오전 ${t}:${tm.slice(14,16)}`
+    }
+}
+// 메시지의 종류별로 내용을 파싱하는 함수
+function message_parsing(msg) {
+    if(msg.message_type == '0'){
+        return get_message = msg.message
+    }else{
+        return get_message = '사진을 보냈습니다.'
+    }
+}
+//중고물품 삭제여부에 따른 중고물품 이미지 파싱하는 함수
+function image_parsing(img) {
+    if(img.product_deleted == '0'){
+        return get_image = img.productImgPath
+    }else{
+        return get_image = '/imgs/product_delete.png'
     }
 }
