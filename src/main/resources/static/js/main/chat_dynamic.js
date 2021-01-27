@@ -1,172 +1,315 @@
-// 채팅방 리스트 동적으로 생성하는 함수
-function create_chat_list(s_res){
-    for (let i = 0; i < s_res.length; i++) {
-        const chat_div = document.createElement('div')
-        chat_div.setAttribute('class',`item_no${s_res[i].chatRoomProductDto.product_id} 
-            chat_list_no${s_res[i].roomId} opponent_no${s_res[i].chatMessageUserDto.userId} nickname_${s_res[i].chatMessageUserDto.nickName} 
-            chat_list click_chat_room`);
-        date_parsing(s_res[i].chatRoomRecentMessageDto.message_date)
-        message_parsing(s_res[i].chatRoomRecentMessageDto)
-        image_parsing(s_res[i].chatRoomProductDto)
-        chat_div.innerHTML =
-            `<div class="card">
-                <div class="card-body row d-flex flex-wrap align-content-center">
-                    <div class="item_image_form1 col-2 col-sm-2 d-flex flex-wrap align-content-center justify-content-end">
-                        <img src=${get_image}  class="rounded-circle item_image" alt="">
-                    </div>
-                    <div class="chat_list_right col-10 col-sm-10">
-                        <div class="clearfix chat_list_right_top">
-                            <span class="chat_opponent_nickname float-left">
-                                ${s_res[i].chatMessageUserDto.nickName}
-                            </span>
-                            <span class="room_no${s_res[i].roomId} chat_list_more_view float-right">
-                                <i class="room_no${s_res[i].roomId} more_view_icon fas fa-ellipsis-v"></i>
-                            </span>
-                            <span class="send_time text-center float-right">
-                                ${get_date}
-                            </span>
-                        </div>
-                        <div class="d-flex align-items-center chat_list_right_bottom">
-                            <div class="chat_conversation mr-auto">
-                                ${get_message}
-                            </div>
-                            <span class="send_count d-flex justify-content-center 
-                                align-items-center ml-auto rounded-circle"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="room_no${s_res[i].roomId} more_view_form hidden">
-                <div class="chat_alarm">알람 끄기</div>
-                <div class="opponent_block">차단</div>
-                <div class="opponent_report">신고</div>
-                <div class="chat_room_leave" data-toggle="modal" 
-                    data-target="#chat_list_leave_chat_no${s_res[i].roomId}">나가기</div>
-                <div class="more_view_cancel">취소</div>
-            </div>
-            <!-- 채팅 나가기 버튼 클릭 시 팝업창 생성 -->
-            <div id="chat_list_leave_chat_no${s_res[i].roomId}" class="modal fade chat_room_out_modal">
-                <div class="modal-dialog modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h6 class="modal-title">채팅방에서 나가시겠습니까?</h6>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <p>나가기를 하면 채팅방과 채팅 <br>내용이 모두 삭제됩니다.</p>
-                            <button type="button" id="chat_list_leave_chat_btn_no${s_res[i].roomId}" 
-                                class="btn btn-outline-danger chat_list_chat_room_out" data-dismiss="modal">나가기</button>
-                            <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`
-        chat_list_space.appendChild(chat_div)
-        //각 채팅방에서 미수신 메시지가 0인 경우 미수신 알람 미처리
-        const send_count = document.getElementsByClassName('send_count')
-        send_count[i].innerText = `${s_res[i].unreadMessageCount}`
-        if(s_res[i].unreadMessageCount == '0'){
-            send_count[i].classList.add('hidden');
-            send_count[i].classList.remove('d-flex');
-        }else if(Number(s_res[i].unreadMessageCount) > 99){
-            send_count[i].innerText = '99+'
-        }
+const total_alm = document.getElementById('total_alm');
+const chat_start_button = document.getElementById('chat_start_button');
+const chat_form = document.getElementById('chat_form');
+const chat_header = document.getElementById('chat_header')
+const chat_list_form = document.getElementById('chat_list_form');
+const chat_list_space = document.getElementById('chat_list_space')
+const chat_search_icon = document.getElementById('chat_search_icon')
+const chat_title_chat = document.getElementById('chat_title_chat');
+const chat_search_form = document.getElementById('chat_search_form');
+const trade_item_info = document.getElementById('trade_item_info');
+const back_btn = document.getElementById('back_btn');
+const empty_btn = document.getElementById('empty_btn')
+const chat_room_form = document.getElementById('chat_room_form');
+const chat_opponent_search = document.getElementById('chat_opponent_search');
+const close_btn = document.getElementById('close_btn')
+const chat_input_form1 = document.getElementById('chat_input_form1')
+const chat_room_out = document.getElementById('chat_room_out');
+const trade_success_form = document.getElementById('trade_success_form')
+const chat_input = document.getElementById('chat_input');
+const chat_submit_btn = document.getElementById('chat_submit_btn');
+const send_file_btn = document.getElementById('send_file_btn')
+const send_file_text = document.getElementById('send_file_text')
+const input_send_file = document.getElementById('send-file')
+const block_btn = document.getElementById('block_btn')
+const block_text = document.getElementById('block_text')
+const block_icon = document.getElementById('block_icon')
+const chat_screen = document.getElementById('chat_screen');
+const confirm_trade_success = document.getElementById('confirm_trade_success')
+const chat_write_trade_comment = document.getElementById('chat_write_trade_comment')
+const chat_view_trade_comment = document.getElementById('chat_view_trade_comment')
+const trade_success_btn = document.getElementById('trade_success_btn')
+const trade_success_text = document.getElementById('trade_success_text')
+const notification_trade_state = document.getElementById('notification_trade_state')
+const notification_trade_state_text = document.getElementById('notification_trade_state_text')
+const input_trade_comment = document.getElementById('input_trade_comment')
+const comment_submit = document.getElementById('comment_submit')
+const trade_state = document.getElementById('trade_state')
+let get_message;
+let get_image;
+let get_date;
+let message_state;
+const date = new Date();
+const mm =  date.getMonth() < 9 ? `0${date.getMonth()+1}` : `${date.getMonth()+1}`;
+const dd = date.getDate() < 10 ? `0${date.getDate()}` : `${date.getDate()}`
+// 동적 생성된 엘리먼트 중에서 해당 클래스를 갖고 있을 경우 이벤트 바인딩하는 함수
+function hasClass(elem, className) {
+    return elem.className.split(' ').indexOf(className) > -1;
+}
+// 채팅UI를 여는 함수
+function chat_form_view() {
+    chat_form.classList.remove('chat_close')
+    chat_input_form1.classList.remove('chat_input_form_close')
+    total_alm.classList.add('hidden');
+    chat_start_button.classList.add('hidden');
+    chat_form.classList.remove('hidden');
+    if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
+        const body_scrollY = document.documentElement.style.getPropertyValue('--scroll-y')
+        const body_scroll = document.documentElement
+        body_scroll.style.position = 'fixed'
+        body_scroll.style.top = `-${body_scrollY}`
     }
-    has_chat_list();
     chat_list_opponent_nickname_width();
     chat_list_latest_message_width();
     send_count_height();
 }
-// 상대방으로부터 메시지가 올 때 해당 채팅목록에 최근 메시지 정보 및 갯수를 렌더링하는 함수
-function latest_message(w_res) {
-    let toggle = false;
-    date_parsing(w_res.messageDate)
-    message_parsing(w_res)
-    image_parsing(w_res.chatRoomProductDto)
-    for (let i = 0; i < document.getElementsByClassName('chat_list').length; i++) {
-        if(document.getElementsByClassName('chat_list')[i].classList[1].indexOf(w_res.roomId) > -1){
-            document.getElementsByClassName('send_time')[i].innerHTML = `${get_date}`
-            document.getElementsByClassName('chat_conversation')[i].innerHTML = `${get_message}`
-            document.getElementsByClassName('item_image')[i].innerHTML = `${get_image}`
-            document.getElementsByClassName('chat_opponent_nickname')[i].innerHTML = `${w_res.chatMessageUserDto.nickName}`
-            if( document.getElementsByClassName('send_count')[i].className.indexOf('hidden') > -1){
-                document.getElementsByClassName('send_count')[i].classList.remove('hidden');
-                document.getElementsByClassName('send_count')[i].classList.add('d-flex');
-                document.getElementsByClassName('send_count')[i].innerHTML = '1'
-            }else{
-                if(Number(document.getElementsByClassName('send_count')[i].innerHTML) <= 99){
-                    document.getElementsByClassName('send_count')[i].innerHTML =
-                        Number(document.getElementsByClassName('send_count')[i].innerHTML) + 1;
-                }else{
-                    document.getElementsByClassName('send_count')[i].innerHTML = '99+'
-                }
-            }
-            chat_list_space.insertBefore(document.getElementsByClassName('chat_list')[i], chat_list_space.firstChild)
-            return toggle = true;
+// 채탕방을 여는 함수
+function chat_room_view() {
+    chat_list_form.classList.add('hidden');
+    chat_title_chat.classList.add('hidden');
+    chat_search_form.classList.add('hidden');
+    trade_item_info.classList.add('d-flex')
+    empty_btn.classList.add('hidden')
+    trade_item_info.classList.remove('hidden');
+    back_btn.classList.remove('hidden');
+    back_btn.classList.add('d-flex')
+    chat_room_form.classList.remove('hidden');
+    chat_room_form.classList.add('chat_room_open');
+    chat_input_form_width();
+    const close_chat_room_form = document.getElementById('close_chat_room_form')
+    if(chat_screen.className.indexOf('welcome') > -1){
+        close_chat_room_form.classList.add('hidden')
+    }else{close_chat_room_form.classList.remove('hidden')}
+}
+// 채팅방 하단UI의 너비를 조절하는 함수
+function chat_input_form_width() {
+    const chat_input_form1 = document.getElementById('chat_input_form1')
+    if(chat_input_form1){
+        chat_input_form1.style.width = (chat_form.clientWidth - 30)+'px';
+    }
+}
+// 채팅방에서 뒤로 가는 함수
+function chat_room_close(){
+    chat_title_chat.classList.remove('hidden')
+    chat_list_form.classList.remove('hidden')
+    chat_search_form.classList.remove('hidden')
+    trade_item_info.classList.remove('d-flex')
+    chat_room_form.classList.remove('chat_room_open');
+    empty_btn.classList.remove('hidden')
+    trade_item_info.classList.add('hidden')
+    back_btn.classList.add('hidden')
+    back_btn.classList.remove('d-flex')
+    chat_room_form.classList.add('hidden')
+    chat_screen.removeAttribute('class')
+    notification_trade_state.classList.add('hidden')
+    init_conversation();
+    chat_list_opponent_nickname_width();
+    chat_list_latest_message_width();
+    send_count_height();
+}
+// 채팅방이 하나라도 있을 경우 채팅방 없을 때 보이는 알림 이미지 안 보이게 하는 함수
+function has_chat_list(){
+    const chat_room_empty = document.getElementById('chat_room_empty')
+    if(document.getElementsByClassName('chat_list').length > 0) {
+        chat_room_empty.classList.add('hidden')
+    }else{
+        chat_room_empty.classList.remove('hidden')
+    }
+}
+// 채팅방 리스트 검색하는 함수
+function chat_room_search() {
+    const chat_list = document.getElementsByClassName('chat_list')
+    for (let i = 0; i < chat_list.length; i++) {
+        const chat_opponent_nickname = chat_list[i].getElementsByClassName('chat_opponent_nickname');
+        if (chat_opponent_nickname[0].innerHTML.toLowerCase().indexOf(chat_opponent_search.value.toLowerCase()) > -1) {
+            chat_list[i].style.display = "flex";
+        }else{
+            chat_list[i].style.display = "none";
         }
     }
-    if(toggle == false){
-        const chat_div = document.createElement('div')
-        chat_div.setAttribute('class',`item_no${w_res.chatRoomProductDto.product_id} 
-            chat_list_no${w_res.roomId} opponent_no${w_res.chatMessageUserDto.userId} nickname_${w_res.chatMessageUserDto.nickName} 
-            chat_list click_chat_room`);
-        chat_div.innerHTML =
-            `<div class="card">
-                <div class="card-body row d-flex flex-wrap align-content-center">
-                    <div class="item_image_form1 col-2 col-sm-2 d-flex flex-wrap align-content-center justify-content-end">
-                        <img src=${get_image}  class="rounded-circle item_image" alt="">
-                    </div>
-                    <div class="chat_list_right col-10 col-sm-10">
-                        <div class="clearfix chat_list_right_top">
-                            <span class="chat_opponent_nickname float-left">
-                                ${w_res.chatMessageUserDto.nickName}
-                            </span>
-                            <span class="room_no${w_res.roomId} chat_list_more_view float-right">
-                                <i class="room_no${w_res.roomId} more_view_icon fas fa-ellipsis-v"></i>
-                            </span>
-                            <span class="send_time text-center float-right">
-                                ${get_date}
-                            </span>
-                        </div>
-                        <div class="d-flex align-items-center chat_list_right_bottom">
-                            <div class="chat_conversation mr-auto">
-                                ${get_message}
-                            </div>
-                            <span class="send_count d-flex justify-content-center 
-                                align-items-center ml-auto rounded-circle"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="room_no${w_res.roomId} more_view_form hidden">
-                <div class="chat_alarm">알람 끄기</div>
-                <div class="opponent_block">차단</div>
-                <div class="opponent_report">신고</div>
-                <div class="chat_room_leave" data-toggle="modal" 
-                    data-target="#chat_list_leave_chat_no${w_res.roomId}">나가기</div>
-                <div class="more_view_cancel">취소</div>
-            </div>
-            <!-- 채팅 나가기 버튼 클릭 시 팝업창 생성 -->
-            <div id="chat_list_leave_chat_no${w_res.roomId}" class="modal fade chat_room_out_modal">
-                <div class="modal-dialog modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h6 class="modal-title">채팅방에서 나가시겠습니까?</h6>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <p>나가기를 하면 채팅방과 채팅 <br>내용이 모두 삭제됩니다.</p>
-                            <button type="button" id="chat_list_leave_chat_btn_no${w_res.roomId}" 
-                                class="btn btn-outline-danger chat_list_chat_room_out" data-dismiss="modal">나가기</button>
-                            <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`
-        chat_list_space.insertBefore(chat_div, chat_list_space.firstChild)
-        const send_count = document.getElementsByClassName('send_count')
-        send_count[0].innerText = '1'
+}
+//채팅방 리스트의 닉네임 너비를 자동조절하는 함수
+function chat_list_opponent_nickname_width() {
+    if(chat_form.className.indexOf('hidden') == -1 && chat_room_form.className.indexOf('hidden') > -1){
+        for (let i = 0; i < document.getElementsByClassName('chat_opponent_nickname').length; i++) {
+            document.getElementsByClassName('chat_opponent_nickname')[i].style.maxWidth =
+                (document.getElementsByClassName('chat_list_right_top')[i]
+                    .clientWidth - document.getElementsByClassName('send_time')[i]
+                    .clientWidth - document.getElementsByClassName('chat_list_more_view')[i].clientWidth)+'px';
+        }
     }
+}
+//채팅방 리스트의 최근메시지의 너비를 자동조절하는 함수
+function chat_list_latest_message_width() {
+    if(chat_form.className.indexOf('hidden') == -1 && chat_room_form.className.indexOf('hidden') > -1){
+        for (let i = 0; i < document.getElementsByClassName('chat_list_right_bottom').length; i++) {
+            document.getElementsByClassName('chat_conversation')[i].style.maxWidth =
+                (document.getElementsByClassName('chat_list_right_bottom')[i]
+                    .clientWidth - document.getElementsByClassName('send_count')[i]
+                    .clientWidth - 9) + 'px';
+        }
+    }
+}
+// 채팅 전체 폼 닫기 함수
+function chat_form_close() {
+    chat_form.classList.add('chat_close')
+    chat_input_form1.classList.add('chat_input_form_close')
+    setTimeout(function () {
+        chat_form.classList.add('hidden');
+        //읽지않은 채팅 메시지 갯수를 보여주는 UI는 다른 함수에서 경우의 수에 따라 view처리
+        chat_start_button.classList.remove('hidden');
+        if(total_alm.innerText && Number(total_alm.innerText) > 0){
+            total_alm.classList.remove('hidden');
+        }
+        chat_room_close();
+        if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
+            const body_scroll = document.documentElement
+            const body_scrollY = body_scroll.style.top
+            body_scroll.style.position = ''
+            body_scroll.style.top = ''
+            window.scrollTo(0, parseInt(body_scrollY || '0')*-1)
+        }
+    },350)
+}
+//채팅방 목록에서 각 채팅방의 수신 채팅 수를 알려주는 UI의 가로에 맞게 높이를 자동 조절하는 함수
+function send_count_height() {
+    const send_count = document.getElementsByClassName('send_count')
+    if(send_count){
+        for (let i = 0; i < send_count.length; i++) {
+            send_count[i].style.height = (send_count[i].clientWidth)+'px';
+        }
+    }
+}
+// 채팅방의 높이를 자동조절하는 함수
+function chat_screen_and_room_height() {
+    chat_room_form.style.height = chat_screen.style.height =
+        (chat_form.clientHeight - chat_header.clientHeight - notification_trade_state.clientHeight
+            - chat_input_form1.clientHeight - 14)+'px';
+}
+// 채팅방에서 뒤로 갈 경우 채팅방의 대화내용 초기화하는 함수
+function init_conversation() {
+    while (chat_screen.hasChildNodes()){
+        chat_screen.removeChild(chat_screen.firstChild)
+    }
+}
+// 특정날짜의 요일 파싱하는 함수
+function get_input_day_label(year,month,day) {
+    const week = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+    const day_of_week = week[new Date(year,month,day).getDay()];
+    return day_of_week;
+}
+// 거래후기 작성 시 누가 누구에게 작성하는지 보여주는 함수
+function from_seller_to_consumer() {
+    const seller_user_id = document.getElementById('seller_user_id')
+    seller_user_id.innerText = `${chat_screen.classList[3].slice(9)}`
+    const nav_user_nickname = document.getElementsByClassName('nav_user_nickname')
+    input_trade_comment.placeholder = `${nav_user_nickname[0].innerText}님의 진심이 담긴 한마디가 ${chat_screen.classList[3]
+        .slice(9)}님에게 큰 도움이 될 수 있습니다. 또한 거래후기는 수정 삭제가 불가하므로 신중히 작성 부탁드립니다.`
+}
+//채팅입력 글자수 최대 2000자로 제한하는 함수
+function limit_string() {
+    if(chat_input.value.length > 2000){
+        alert('최대 입력 글자 수는 2000자까지입니다.')
+        chat_input.value = chat_input.value.slice(0,2000)
+    }
+}
+//날짜 파싱하는 함수
+function date_parsing(dt) {
+    if(date.getFullYear() != dt.slice(0,4)){
+        return get_date = dt.slice(0,4)+"."+ dt.slice(5,7)+"."+ dt.slice(8,10)
+    }
+    else if( mm+"-"+dd != dt.slice(5,10)){
+        if(mm == dt.slice(5,7) && Number(dd)-1 == Number(dt.slice(8,10))){
+            return get_date = '어제'
+        }else{
+            return get_date = dt.slice(5,7)+"월 "+ dt.slice(8,10)+"일"
+        }
+    }else{
+        time_parsing(dt)
+    }
+}
+//시간 파싱하는 함수
+function time_parsing(tm) {
+    let t = Number(tm.slice(11,13))
+    if(t > 11){
+        if(t > 12){t = t - 12}
+        return get_date = `오후 ${t}:${tm.slice(14,16)}`
+    }else{
+        return get_date = `오전 ${t}:${tm.slice(14,16)}`
+    }
+}
+// 메시지의 종류별로 내용을 파싱하는 함수
+function message_parsing(msg) {
+    if(msg.message_type == '0'){
+        return get_message = msg.message
+    }else{
+        return get_message = '사진을 보냈습니다.'
+    }
+}
+//중고물품 삭제여부에 따른 중고물품 이미지 파싱하는 함수
+function image_parsing(img) {
+    if(img.product_deleted == '0'){
+        return get_image = img.productImgPath
+    }else{
+        return get_image = '/imgs/product_delete.png'
+    }
+}
+// 채팅방 html 코드를 제공하는 함수
+function chat_list_js(res){
+const chat_list_html =
+    `<div class="card">
+        <div class="card-body row d-flex flex-wrap align-content-center">
+            <div class="item_image_form1 col-2 col-sm-2 d-flex flex-wrap align-content-center justify-content-end">
+                <img src=${get_image}  class="rounded-circle item_image" alt="">
+            </div>
+            <div class="chat_list_right col-10 col-sm-10">
+                <div class="clearfix chat_list_right_top">
+                    <span class="chat_opponent_nickname float-left">
+                        ${res.chatMessageUserDto.nickName}
+                    </span>
+                    <span class="room_no${res.roomId} chat_list_more_view float-right">
+                        <i class="room_no${res.roomId} more_view_icon fas fa-ellipsis-v"></i>
+                    </span>
+                    <span class="send_time text-center float-right">
+                        ${get_date}
+                    </span>
+                </div>
+                <div class="d-flex align-items-center chat_list_right_bottom">
+                    <div class="chat_conversation mr-auto">
+                        ${get_message}
+                    </div>
+                    <span class="send_count d-flex justify-content-center 
+                        align-items-center ml-auto rounded-circle"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="room_no${res.roomId} more_view_form hidden">
+        <div class="chat_alarm">알람 끄기</div>
+        <div class="opponent_block user_no${res.chatMessageUserDto.userId}"></div>
+        <div class="opponent_report">신고</div>
+        <div class="chat_room_leave" data-toggle="modal" 
+            data-target="#chat_list_leave_chat_no${res.roomId}">나가기</div>
+        <div class="more_view_cancel">취소</div>
+    </div>
+    <!-- 채팅 나가기 버튼 클릭 시 팝업창 생성 -->
+    <div id="chat_list_leave_chat_no${res.roomId}" class="modal fade chat_room_out_modal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">채팅방에서 나가시겠습니까?</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>나가기를 하면 채팅방과 채팅 <br>내용이 모두 삭제됩니다.</p>
+                    <button type="button" id="chat_list_leave_chat_btn_no${res.roomId}" 
+                        class="btn btn-outline-danger chat_list_chat_room_out" data-dismiss="modal">나가기</button>
+                    <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>`
+    return chat_list_html;
 }
 // 읽지않은 전체 채팅갯수를 플로팅 버튼 위에 실시간 알람으로 렌더링하는 함수
 function unread_total_chat() {
@@ -179,215 +322,6 @@ function unread_total_chat() {
         }else{
             total_alm.innerText = '99+'
         }
-    }
-}
-//채팅 입력란에 채팅 메시지를 입력 및 전송 후 채팅 말풍선을 동적 생성하여 렌더링하는 함수
-function create_new_conversation(w_res) {
-    time_parsing(w_res.messageDate)
-    if(w_res.messageStatus == '0'){
-        message_state = '읽지 않음'
-    }else{message_state = '읽음'}
-    //채팅방의 대화내용들을 연월일 기준으로 채팅 말풍선을 구분하는 UI를 생성하는 곳
-    if(!document.querySelector('.latest_date')){
-        const date_div = document.createElement('div')
-        date_div.setAttribute('class','d-flex justify-content-center')
-        date_div.innerHTML =
-            `<span class="badge badge-primary m-3 latest_date">${w_res.messageDate.slice(0,4)}년 ${w_res.messageDate
-                .slice(5,7)}월 ${w_res.messageDate.slice(8,10)}일 ${get_input_day_label(w_res.messageDate
-                .slice(0,4),Number(w_res.messageDate.slice(5,7))-1,w_res.messageDate.slice(8,10))}</span>`
-        chat_screen.appendChild(date_div)
-    }else{
-        if (document.getElementsByClassName('latest_date')[document.getElementsByClassName('latest_date').length-1]
-            .innerText != `${w_res.messageDate.slice(0,4)}년 ${w_res.messageDate.slice(5,7)}월 ${w_res.messageDate
-            .slice(8,10)}일 ${get_input_day_label(w_res.messageDate.slice(0,4),Number(w_res.messageDate
-            .slice(5,7))-1,w_res.messageDate.slice(8,10))}`){
-            const date_div = document.createElement('div')
-            date_div.setAttribute('class','d-flex justify-content-center')
-            date_div.innerHTML =
-                `<span class="badge badge-primary m-3 latest_date">${w_res.messageDate.slice(0,4)}년 ${w_res.messageDate
-                    .slice(5,7)}월 ${w_res.messageDate.slice(8,10)}일 ${get_input_day_label(w_res.messageDate
-                    .slice(0,4),Number(w_res.messageDate.slice(5,7))-1,w_res.messageDate.slice(8,10))}</span>`
-            chat_screen.appendChild(date_div)
-        }
-    }
-    // 1분미만 연속으로 전송된 말풍선 동적생성하는 곳
-    const conversation_form = document.getElementsByClassName('conversation_form')
-    if(conversation_form.length > 0 && w_res.messageDate.slice(0,16) == conversation_form[conversation_form.length-1].classList[1]
-        .slice(0,16) && w_res.chatMessageUserDto.userId == conversation_form[conversation_form.length-1].classList[2]){
-        if (w_res.chatMessageUserDto.userId != web_items_search.value){
-            const chat_bundle_div = document.createElement('div')
-            chat_bundle_div.setAttribute('class',`conversation_form ${w_res.messageDate} 
-                ${w_res.chatMessageUserDto.userId} d-flex`)
-            chat_bundle_div.innerHTML =
-                `<div class="opponent_speech_bubble">${w_res.message}</div>
-                <div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="receiving_time">${get_date}</div>
-                </div>`
-            const time_send_alm = document.getElementsByClassName('time_send_alm')
-            conversation_form[conversation_form.length-1].removeChild(time_send_alm[time_send_alm.length-1])
-            const opponent_form = document.getElementsByClassName('opponent_form')
-            opponent_form[opponent_form.length-1].appendChild(chat_bundle_div)
-        }else{
-            const chat_bundle_div = document.createElement('div')
-            chat_bundle_div.setAttribute('class','d-flex justify-content-end')
-            chat_bundle_div.innerHTML=
-                `<div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="conversation_info">
-                        <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                        <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
-                    </div>
-                </div>
-                <div class="my_speech_bubble">${w_res.message}</div>`
-            const conversation_info = document.getElementsByClassName('conversation_info')
-            const outgoing_time = document.getElementsByClassName('outgoing_time')
-            conversation_info[conversation_info.length-1].removeChild(outgoing_time[outgoing_time.length-1])
-            conversation_form[conversation_form.length-1].appendChild(chat_bundle_div)
-            chat_input.value = "";
-        }
-    }
-    // 상대방 말풍선 동적생성하는 곳
-    else if(w_res.chatMessageUserDto.userId != `${web_items_search.value}`){
-        const chat_opponent_div = document.createElement('div')
-        chat_opponent_div.setAttribute('class','opponent_form')
-        chat_opponent_div.innerHTML =
-            `<div class="d-flex flex-wrap align-content-center">
-                <div>
-                    <img src=${w_res.chatMessageUserDto.profileImgPath} href="/shop/item/myItem"
-                         class="move_myItem rounded-circle opponent_profile_picture" alt="">
-                </div>
-                <div href="/shop/item/myItem" class="d-flex align-items-center move_myItem opponent_nickname">${w_res.chatMessageUserDto.nickName}</div>
-            </div>
-            <div class="conversation_form ${w_res.messageDate} ${w_res.chatMessageUserDto.userId} d-flex">
-                <div class="opponent_speech_bubble">${w_res.message}</div>
-                <div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="receiving_time">${get_date}</div>
-                </div>
-            </div>`
-        chat_screen.appendChild(chat_opponent_div)
-    }
-    // 본인 말풍선 동적생성하는 곳
-    else{const chat_new_my_div = document.createElement('div');
-        chat_new_my_div.setAttribute('class',`conversation_form ${w_res.messageDate} 
-            ${w_res.chatMessageUserDto.userId} my_chat`);
-        chat_new_my_div.innerHTML =
-        `<div class="d-flex justify-content-end">
-            <div class="time_send_alm d-flex flex-wrap align-content-end">
-                <div class="conversation_info">
-                    <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                    <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
-                </div>
-            </div>
-            <div class="my_speech_bubble">${w_res.message}</div>
-        </div>`
-        chat_screen.appendChild(chat_new_my_div);
-        chat_input.value = "";
-    }
-    chat_screen.scrollTop = chat_screen.scrollHeight
-}
-// 현재까지 상대방과 대화한 메시지를 동적생성하여 불러오는 함수
-function create_conversation(w_res) {
-    for (let i = 0; i < w_res.length; i++) {
-        time_parsing(w_res[i].messageDate)
-        if(w_res[i].messageStatus == '0'){
-            message_state = '읽지 않음'
-        }else{message_state = '읽음'}
-        //채팅방의 대화내용들을 연월일 기준으로 채팅 말풍선을 구분하는 UI를 생성하는 곳
-        if(!document.querySelector('.latest_date')){
-            const date_div = document.createElement('div')
-            date_div.setAttribute('class','d-flex justify-content-center')
-            date_div.innerHTML =
-                `<span class="badge badge-primary m-3 latest_date">${w_res[i].messageDate
-                    .slice(0,4)}년 ${w_res[i].messageDate.slice(5,7)}월 ${w_res[i].messageDate
-                    .slice(8,10)}일 ${get_input_day_label(w_res[i].messageDate.slice(0,4),Number(w_res[i].messageDate
-                    .slice(5,7))-1,w_res[i].messageDate.slice(8,10))}</span>`
-            chat_screen.appendChild(date_div)
-        }else{
-            if (document.getElementsByClassName('latest_date')[document.getElementsByClassName('latest_date').length-1]
-                .innerText != `${w_res[i].messageDate.slice(0,4)}년 ${w_res[i].messageDate
-                .slice(5,7)}월 ${w_res[i].messageDate.slice(8,10)}일 ${get_input_day_label(w_res[i].messageDate.slice(0,4),Number(w_res[i].messageDate
-                .slice(5,7))-1,w_res[i].messageDate.slice(8,10))}`){
-                const date_div = document.createElement('div')
-                date_div.setAttribute('class','d-flex justify-content-center')
-                date_div.innerHTML =
-                    `<span class="badge badge-primary m-3 latest_date">${w_res[i].messageDate.slice(0,4)}년 ${w_res[i].messageDate
-                        .slice(5,7)}월 ${w_res[i].messageDate.slice(8,10)}일 ${get_input_day_label(w_res[i].messageDate
-                        .slice(0,4),Number(w_res[i].messageDate.slice(5,7))-1,w_res[i].messageDate.slice(8,10))}</span>`
-                chat_screen.appendChild(date_div)
-            }
-        }
-        // 1분미만 연속으로 전송된 말풍선 동적생성하는 곳
-        const conversation_form = document.getElementsByClassName('conversation_form')
-        if(conversation_form.length > 0 && w_res[i].messageDate.slice(0,16) == conversation_form[conversation_form.length-1].classList[1].slice(0,16) &&
-            w_res[i].chatMessageUserDto.userId == conversation_form[conversation_form.length-1].classList[2]){
-            if (w_res[i].chatMessageUserDto.userId != web_items_search.value){
-                const chat_bundle_div = document.createElement('div')
-                chat_bundle_div.setAttribute('class',`conversation_form ${w_res[i].messageDate} 
-                ${w_res[i].chatMessageUserDto.userId} d-flex`)
-                chat_bundle_div.innerHTML =
-                    `<div class="opponent_speech_bubble">${w_res[i].message}</div>
-                <div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="receiving_time">${get_date}</div>
-                </div>`
-                const time_send_alm = document.getElementsByClassName('time_send_alm')
-                conversation_form[conversation_form.length-1].removeChild(time_send_alm[time_send_alm.length-1])
-                const opponent_form = document.getElementsByClassName('opponent_form')
-                opponent_form[opponent_form.length-1].appendChild(chat_bundle_div)
-            }else{
-                const chat_bundle_div = document.createElement('div')
-                chat_bundle_div.setAttribute('class','d-flex justify-content-end')
-                chat_bundle_div.innerHTML=
-                    `<div class="time_send_alm d-flex flex-wrap align-content-end">
-                    <div class="conversation_info">
-                        <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                        <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
-                    </div>
-                </div>
-                <div class="my_speech_bubble">${w_res[i].message}</div>`
-                const conversation_info = document.getElementsByClassName('conversation_info')
-                const outgoing_time = document.getElementsByClassName('outgoing_time')
-                conversation_info[conversation_info.length-1].removeChild(outgoing_time[outgoing_time.length-1])
-                conversation_form[conversation_form.length-1].appendChild(chat_bundle_div)
-                chat_input.value = "";
-            }
-        }
-        // 상대방 말풍선 불러오는 곳
-        else if(w_res[i].chatMessageUserDto.userId != `${web_items_search.value}`){
-            const chat_opponent_div = document.createElement('div')
-            chat_opponent_div.setAttribute('class','opponent_form')
-            chat_opponent_div.innerHTML =
-                `<div class="d-flex flex-wrap align-content-center">
-                    <div>
-                        <img src=${w_res[i].chatMessageUserDto.profileImgPath} href="/shop/item/myItem"
-                             class="move_myItem rounded-circle opponent_profile_picture" alt="">
-                    </div>
-                    <div href="/shop/item/myItem" class="d-flex align-items-center move_myItem opponent_nickname">${w_res[i].chatMessageUserDto.nickName}</div>
-                </div>
-                <div class="conversation_form ${w_res[i].messageDate} ${w_res[i].chatMessageUserDto.userId} d-flex">
-                    <div class="opponent_speech_bubble">${w_res[i].message}</div>
-                    <div class="time_send_alm d-flex flex-wrap align-content-end">
-                        <div class="receiving_time">${get_date}</div>
-                    </div>
-                </div>`
-            chat_screen.appendChild(chat_opponent_div)
-        }
-        // 본인 말풍선 불러오는 곳
-        else{const chat_my_div = document.createElement('div');
-            chat_my_div.setAttribute('class',`conversation_form ${w_res[i].messageDate} 
-                ${w_res[i].chatMessageUserDto.userId} my_chat`);
-            chat_my_div.innerHTML =
-                `<div class="d-flex justify-content-end">                
-                    <div class="time_send_alm d-flex flex-wrap align-content-end">
-                        <div class="conversation_info">
-                            <div class="my_conversation d-flex justify-content-end">${message_state}</div>
-                            <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
-                        </div>
-                    </div>
-                    <div class="my_speech_bubble">${w_res[i].message}</div>
-                </div>`
-            chat_screen.appendChild(chat_my_div);
-            chat_input.value = "";
-        }
-        chat_screen.scrollTop = chat_screen.scrollHeight
     }
 }
 // 채팅방에 입장 후 읽지 않은 채팅 메시지를 읽음으로 바꿔주는 함수
@@ -405,37 +339,33 @@ function trade_item_info_view(s_res) {
     const trade_item_title = document.getElementById('trade_item_title')
     const trade_item_price = document.getElementById('trade_item_price')
     const trade_item_picture = document.getElementById('trade_item_picture')
-    const trade_state = document.getElementById('trade_state')
     if(s_res.data.transaction_status_id != '4'){
         trade_item_picture.src = `${s_res.data.product_img_path}`
         trade_item_title.innerText = `${s_res.data.product_title}`
         trade_item_price.innerText = `${s_res.data.product_price.slice(1)} 원`
+        trade_item_picture.classList.add('move_onePick')
     }
     if(s_res.data.transaction_status_id == '0'){
         trade_state.innerText = '[판매중]'
         trade_state.style.color = 'rgb(29, 161, 242)';
         // 고유 href 추가
-        trade_item_picture.classList.add('move_onePick')
     }
     else if(s_res.data.transaction_status_id == '1'){
         trade_state.innerText = '[예약중]'
         trade_state.style.color = '#19ce60';
         // 고유 href 추가
-        trade_item_picture.classList.add('move_onePick')
 
     }
     else if(s_res.data.transaction_status_id == '2'){
         trade_state.innerText = '[판매완료]';
         trade_state.style.color = '#8b8b8b';
         // 고유 href 추가
-        trade_item_picture.classList.add('move_onePick')
 
     }
     else if(s_res.data.transaction_status_id == '3'){
         trade_state.innerText = '[신고처리중]'
         trade_state.style.color = 'rgb(247, 47, 51)';
         // 고유 href 추가
-        trade_item_picture.classList.add('move_onePick')
 
     }else{
         trade_state.innerText = '[삭제]';
@@ -446,20 +376,27 @@ function trade_item_info_view(s_res) {
     }
 }
 // 채팅방에서 해당 중고물품의 거래상태가 판매완료일 경우에만 알림창 보여주는 함수
-function trade_state(s_res) {
+function trade_state_view(s_res) {
     if(s_res.productStatus == '3'){
         trade_success_form.classList.add('hidden')
         notification_trade_state.classList.add('hidden')
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
         trade_success_btn.removeAttribute('disabled')
+        trade_success_text.style.color = '#2f363d'
     }
     else if(s_res.productStatus == '2' && Object.keys(s_res).length == 1){
         trade_success_form.classList.remove('hidden')
         notification_trade_state.classList.add('hidden')
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        trade_success_btn.removeAttribute('disabled')
+        if(trade_state.innerText !== '[판매완료]'){
+            trade_success_btn.removeAttribute('disabled')
+            trade_success_text.style.color = '#2f363d'
+        }else{
+            trade_success_btn.setAttribute('disabled','')
+            trade_success_text.style.color = '#adb5bd'
+        }
     }
     else if(s_res.productStatus == '2' && s_res.transactionStatus == '1' && Object.keys(s_res).length == 3){
         trade_success_form.classList.remove('hidden')
@@ -468,6 +405,7 @@ function trade_state(s_res) {
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
         trade_success_btn.setAttribute('disabled','')
+        trade_success_text.style.color = '#adb5bd'
     }else if(s_res.productStatus == '2' && s_res.transactionStatus == '1' && s_res.isReviewUpload == '1'){
         trade_success_form.classList.remove('hidden')
         notification_trade_state.classList.remove('hidden')
@@ -475,36 +413,55 @@ function trade_state(s_res) {
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.remove('hidden')
         trade_success_btn.setAttribute('disabled','')
+        trade_success_text.style.color = '#adb5bd'
     }else if(s_res.productStatus == '1' && s_res.transactionStatus == '1' && Object.keys(s_res).length == 2){
         trade_success_form.classList.add('hidden')
         notification_trade_state.classList.remove('hidden')
         notification_trade_state_text.innerText = '판매가 완료되었습니다. 후기를 작성할 수 있습니다.'
         chat_write_trade_comment.classList.remove('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        trade_success_btn.removeAttribute('disabled')
+        if(trade_state.innerText !== '[판매완료]'){
+            trade_success_btn.removeAttribute('disabled')
+            trade_success_text.style.color = '#2f363d'
+        }else{
+            trade_success_btn.setAttribute('disabled','')
+            trade_success_text.style.color = '#adb5bd'
+        }
     }else if(s_res.productStatus == '1' && s_res.transactionStatus == '1' && s_res.isReviewUpload == '1'){
         trade_success_form.classList.add('hidden')
         notification_trade_state.classList.remove('hidden')
         notification_trade_state_text.innerHTML = `판매가 완료되었습니다.<br>나의 후기를 볼 수 있습니다.`
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.remove('hidden')
-        trade_success_btn.removeAttribute('disabled')
+        if(trade_state.innerText !== '[판매완료]'){
+            trade_success_btn.removeAttribute('disabled')
+            trade_success_text.style.color = '#2f363d'
+        }else{
+            trade_success_btn.setAttribute('disabled','')
+            trade_success_text.style.color = '#adb5bd'
+        }
     }else if(s_res.productStatus == '0'){
         trade_success_form.classList.add('hidden')
         notification_trade_state.classList.add('hidden')
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        trade_success_btn.removeAttribute('disabled')
+        if(trade_state.innerText !== '[판매완료]'){
+            trade_success_btn.removeAttribute('disabled')
+            trade_success_text.style.color = '#2f363d'
+        }else{
+            trade_success_btn.setAttribute('disabled','')
+            trade_success_text.style.color = '#adb5bd'
+        }
     }
 }
 //거래후기 완료를 요청한 후 거래상태를 변경하는 함수
 function trade_success_view() {
-    const trade_state = document.getElementById('trade_state')
     trade_state.innerText = '[판매완료]';
     trade_state.style.color = '#8b8b8b';
     notification_trade_state.classList.remove('hidden')
     notification_trade_state_text.innerHTML = `판매가 완료되었습니다.<br>${chat_screen.classList[3].slice(9)}님이 아직 후기를 작성하지 않았습니다.`
     trade_success_btn.setAttribute('disabled','')
+    trade_success_text.style.color = '#adb5bd'
 }
 // 중고물품 거래후기 정보를 서버로부터 응답받은 후 렌더링하는 함수
 function trade_comment(s_res) {
@@ -516,19 +473,78 @@ function trade_comment(s_res) {
     trade_comment_date.innerText = `${get_date}`
     trade_comment_content.innerText = `${s_res.data.review_comment}`
 }
-// 채팅방의 스크롤을 움직일 경우 스크롤을 채팅방의 최하단으로 이동시키는 버튼 생성하는 함수
-function create_chat_scroll_btn() {
-    const chat_scroll_btn_form = document.getElementById('chat_scroll_btn_form')
-    if(!chat_scroll_btn_form){
-        const scroll_div = document.createElement('div')
-        scroll_div.setAttribute('id','chat_scroll_btn_form')
-        scroll_div.setAttribute('class','d-flex align-items-center justify-content-center rounded-circle')
-        scroll_div.innerHTML = `<i id="chat_scroll_btn_icon" class="far fa-hand-point-down"></i>`
-        chat_screen.appendChild(scroll_div)
+// 채팅방 목록 렌더링 시 상대 유저 차단여부에 대해 파싱해주는 함수
+function user_block(blk,i) {
+    const opponent_block = document.getElementsByClassName('opponent_block')
+    if(blk == false){
+        opponent_block[i].innerHTML = '차단'
+    }else{
+        opponent_block[i].innerHTML = '차단해제'
     }
 }
-// 채팅방의 스크롤을 채팅방의 최하단으로 이동시키는 버튼 지우는 함수
-function delete_chat_scroll_btn() {
-    const chat_scroll_btn_form = document.getElementById('chat_scroll_btn_form')
-    chat_screen.removeChild(chat_scroll_btn_form)
+//차단을 했을 경우 css바뀌는 함수
+function state_block_effect() {
+    chat_input.setAttribute('disabled','')
+    chat_input.style.opacity = '0.8'
+    chat_submit_btn.setAttribute('disabled','')
+    chat_submit_btn.style.background = '#adb5bd'
+    send_file_btn.setAttribute('disabled','')
+    input_send_file.setAttribute('disabled','')
+    send_file_text.style.color = '#adb5bd'
+    if(!trade_state.innerText == '[판매완료]'){
+        trade_success_btn.setAttribute('disabled','')
+        trade_success_text.style.color = '#adb5bd'
+    }
+    if(chat_room_form.className.indexOf('hidden') == -1){
+        notification_trade_state.classList.remove('hidden')
+    }
+}
+// 차단을 했을 경우 파싱하는 함수
+function state_block() {
+    block_text.innerText = '차단해제'
+    block_icon.className ='fas fa-unlock-alt chat_button_icon'
+    chat_input.placeholder = '차단하신 상대방과 채팅을 할 수 없습니다.'
+    if(chat_room_form.className.indexOf('hidden') == -1){
+        notification_trade_state_text.innerText =
+            `차단하신 ${chat_screen.classList[3].slice(9)}님과 채팅을 할 수 없습니다.`
+    }
+}
+// 차단을 해제했을 경우 파싱하는 함수
+function state_unblock() {
+    block_text.innerText = '차단'
+    block_icon.className ='fas fa-user-lock chat_button_icon'
+    chat_input.removeAttribute('disabled')
+    chat_input.removeAttribute('style')
+    chat_submit_btn.removeAttribute('disabled')
+    chat_submit_btn.removeAttribute('style')
+    send_file_btn.removeAttribute('disabled')
+    input_send_file.removeAttribute('disabled')
+    send_file_text.style.color = '#2f363d'
+    if(!trade_state.innerText == '[판매완료]'){
+        trade_success_btn.removeAttribute('disabled')
+        trade_success_text.style.color = '#2f363d'
+    }
+    if(chat_room_form.className.indexOf('hidden') == -1){
+        notification_trade_state.classList.add('hidden')
+    }
+    chat_input.placeholder = '메시지를 입력하세요'
+}
+// 상대방 유저에 대한 차단 여부에 따라 파싱하는 함수
+function block_state(s_res) {
+    if(s_res.data.block_status !== '3'){
+        state_block_effect()
+    }
+    if(s_res.data.block_status == '1'){
+        state_block()
+    }
+    else if(s_res.data.block_status == '2'){
+        block_text.innerText = '차단'
+        block_icon.className ='fas fa-user-lock chat_button_icon'
+        chat_input.placeholder = '상대방에게 차단되어 채팅을 할 수 없습니다.'
+        notification_trade_state_text.innerText =
+            `${chat_screen.classList[3].slice(9)}님에게 차단되어 채팅을 할 수 없습니다.`
+    }
+    else if(s_res.data.block_status == '3'){
+        state_unblock()
+    }
 }

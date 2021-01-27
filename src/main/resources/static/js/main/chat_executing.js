@@ -56,6 +56,7 @@ document.addEventListener('click',function (event) {
             }
         }
     }
+    // 채팅방에서 스크롤 버튼 클릭 시 채팅방 화면 최하단으로 이동
     if(event.target.id == "chat_scroll_btn_form" || event.target.id == "chat_scroll_btn_icon"){
         chat_screen.scrollTop = chat_screen.scrollHeight;
     }
@@ -63,26 +64,18 @@ document.addEventListener('click',function (event) {
 // 채팅방 목록 클릭시 해당 채팅방 열기
 $(document).on('click','.click_chat_room',function () {
     chat_room_view()
-    request_trade_item_info(this)
-    request_trade_state(this)
-    join_chat_room(this)
-    //product_id를 class에 저장하기
     chat_screen.classList.add(this.classList[0])
-    //roomId를 class에 저장하기
     chat_screen.classList.add(this.classList[1])
-    //상대방 user_id를 class에 저장하기
     chat_screen.classList.add(this.classList[2])
-    //상대방 nickname을 class에 저장하기
     chat_screen.classList.add(this.classList[3])
+    request_trade_item_info(this)
+    join_chat_room(this)
     if(total_alm.innerText && Number(total_alm.innerText) > 0){
         total_alm.innerText = Number(total_alm.innerText) - Number(this.firstChild
             .children[0].children[1].children[1].children[1].innerText)
-        this.firstChild
-            .children[0].children[1].children[1].children[1].innerText = ''
-        this.firstChild
-            .children[0].children[1].children[1].children[1].classList.add('hidden')
-        this.firstChild
-            .children[0].children[1].children[1].children[1].classList.remove('d-flex')
+        this.firstChild.children[0].children[1].children[1].children[1].innerText = ''
+        this.firstChild.children[0].children[1].children[1].children[1].classList.add('hidden')
+        this.firstChild.children[0].children[1].children[1].children[1].classList.remove('d-flex')
     }
 })
 // 채팅목록에서 ...을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단 후 더보기 팝엽창 열기
@@ -95,7 +88,15 @@ $(document).on('click','.chat_list_more_view',function (event) {
 $(document).on('click','.more_view_form',function (event) {
     event.stopPropagation()
 })
-// 채팅목록에서 취소를 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단하기
+// 채팅목록에서 더보기 팝업창의 선택지를 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단 하기
+$(document).on('click','.opponent_block',function () {
+    if(this.innerText == '차단'){
+        request_user_block(this.classList[1].slice(7))
+    }else{
+        request_user_unblock(this.classList[1].slice(7));
+    }
+})
+// 채팅목록에서 취소를 클릭할 때 더보기 팝업창 닫기
 $(document).on('click','.more_view_cancel',function () {
     this.parentNode.classList.add('hidden')
 })
@@ -151,6 +152,12 @@ chat_submit_btn.addEventListener('click',function() {
     if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") !== "") {
         send_message()
     }
+})
+block_btn.addEventListener('click',function () {
+    if(block_text.innerText == '차단'){
+        request_user_block(chat_screen.classList[2].slice(11))
+    }
+    else{request_user_unblock(chat_screen.classList[2].slice(11))}
 })
 window.addEventListener('resize',function () {
     chat_input_form_width();chat_list_opponent_nickname_width();send_count_height();
