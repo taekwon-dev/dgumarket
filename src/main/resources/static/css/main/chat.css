@@ -388,13 +388,14 @@
 /* 채팅방 안의 버튼들 사이즈 자동조절 */
 .chat_button_form1{
     width: 11%;
+    margin-right: 20px;
 }
 .chat_button_form2{
     position: relative;
     width: 100%;
     padding-bottom: 100%;
 }
-#send_file_btn,#close_chat_room,#trade_success_btn{
+#send_file_btn,#close_chat_room,#trade_success_btn,#block_btn{
     border-radius: 50%;
     cursor: pointer;
     position: absolute;

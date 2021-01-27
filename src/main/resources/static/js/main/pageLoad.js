@@ -11,10 +11,10 @@ $('nav').load('/shop/component/nav',function(){
 //chatUI component
 $('figure').load('/shop/component/chat',function () {
     return new Promise((resolve, reject) => {
-        resolve($.getScript('/js/main/chat_static.js'))
+        resolve($.getScript('/js/main/chat_dynamic.js'))
         reject(new Error('failed to request chatUI'))
     })
-        .then( () => {return $.getScript('/js/main/chat_dynamic.js')})
+        .then( () => {return $.getScript('/js/main/chat_create.js')})
         .then( () => {return $.getScript('/webjars/sockjs-client/sockjs.min.js')})
         .then( () => {return $.getScript('/webjars/stomp-websocket/stomp.min.js')})
         .then( () => {return $.getScript('/js/main/chat_server.js')})

@@ -85,9 +85,9 @@
                                 </label>
                             </button>
                         </div>
-                        <div style="font-size: 10px" class="text-center">사진첨부</div>
+                        <div style="font-size: 10px" id="send_file_text" class="text-center">사진첨부</div>
                         <input id="send-file" class="form-control-file hidden" type="file" accept="image/gif, image/jpeg, image/png, image/jpg" multiple>
-                    </div>&nbsp;&nbsp;&nbsp;&nbsp;
+                    </div>
                     <!-- 채팅방 나가기 버튼 UI -->
                     <div id="close_chat_room_form" class="chat_button_form1">
                         <div class="chat_button_form2">
@@ -98,7 +98,7 @@
                             </button>
                         </div>
                         <div style="font-size: 10px" class="text-center">나가기</div>
-                    </div>&nbsp;&nbsp;&nbsp;&nbsp;
+                    </div>
                     <!-- 채팅방 거래완료 버튼 UI(판매자 전용 버튼 그 외 hidden처리) -->
                     <div id="trade_success_form" class="hidden chat_button_form1">
                         <div class="chat_button_form2">
@@ -108,7 +108,18 @@
                                 </div>
                             </button>
                         </div>
-                        <div style="font-size: 10px" class="text-center">거래완료</div>
+                        <div style="font-size: 10px" id="trade_success_text" class="text-center">거래완료</div>
+                    </div>
+                    <!-- 채팅 유저 차단 버튼 UI -->
+                    <div class="chat_button_form1">
+                        <div class="chat_button_form2">
+                            <button type="button" id="block_btn" class="btn btn-outline-light">
+                                <div class="d-flex flex-wrap align-content-center justify-content-center">
+                                    <i id="block_icon" class="fas fa-user-lock chat_button_icon"></i>
+                                </div>
+                            </button>
+                        </div>
+                        <div style="font-size: 10px" id="block_text" class="text-center">차단</div>
                     </div>
                 </div>
                 <!-- 후기 남기기 버튼 클릭 시 팝업창 view -->
