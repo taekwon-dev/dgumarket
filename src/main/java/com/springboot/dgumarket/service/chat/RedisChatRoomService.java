@@ -9,7 +9,7 @@ public interface RedisChatRoomService {
 
     RedisChatRoom join(int roomId, int userId, String sessionId);
 
-    RedisChatRoom leave(String roomId, String sesionId);
+    RedisChatRoom leave(String roomId, String sessionId);
 
     void leave(String sessionId);
 }

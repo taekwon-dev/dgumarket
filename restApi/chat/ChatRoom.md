@@ -49,8 +49,9 @@ REST API - Chat created by MS (21-01-08)
  ```json
   {
         "roomId": 62,
-        "chatRoomUserDto": {
-            "nickName": "a"
+        "chatMessageUserDto": {
+            "userId": 1,
+            "nickName": "asd0296"
         },
         "chatRoomRecentMessageDto": {
             "message_type": 1,
@@ -86,8 +87,9 @@ REST API - Chat created by MS (21-01-08)
  ```json
   {
         "roomId": 62,
-        "chatRoomUserDto": {
-            "nickName": "a"
+        "chatMessageUserDto": {
+            "userId": 1,
+            "nickName": "asd0296"
         },
         "chatRoomRecentMessageDto": {
             "message_type": 1,

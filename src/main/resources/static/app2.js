@@ -7,18 +7,32 @@
  *
  */
 
-
 var stompClient = null;
-var room_id = null;
+var _room_id = null;
 var toggle = false;
 var sub_room = null;
 var sub_room_and_user = null;
 var sub_room_event = null;
 const message_container = document.getElementById('chat_message');
+var test_result = null;
+let alarm_list = null;
+
 
 window.addEventListener("beforeunload", function (e) {
     return sub_room_and_user.unsubscribe("room-user");
 });
+
+
+// 알람 허용유무 조사
+if(Notification.permission === "granted"){
+    console.log("이미 알람 허용된상태")
+}else if(Notification.permission !== "denied"){ //
+    Notification.requestPermission().then(permission => { // 알람 허용 유무 묻기
+        if(permission === "granted"){
+            console.log("알람 허용")
+        }
+    });
+}
 
 function setConnected(connected) {
     $("#connect").prop("disabled", connected);
@@ -49,19 +63,35 @@ function connect(userid) {
             // 서버로 부터 채팅방 정보를 받는 경우 ( {"roomId":"101"} )
             if (Object.keys(JSON.parse(frame.body)).length === 1 && toggle === false){
                 toggle = true;
-                room_id = JSON.parse(frame.body)['roomId']
-
-                sub_room = stompClient.subscribe('/topic/room/' + room_id, function (f) { // {"roomId":"101"} 이용 -> ( STOMP API 3번, 채팅방에 대해 구독)
+                _room_id = JSON.parse(frame.body)['roomId']
+                sub_room = stompClient.subscribe('/topic/room/' + _room_id, function (f) { // {"roomId":"101"} 이용 -> ( STOMP API 3번, 채팅방에 대해 구독)
                     console.log(JSON.parse(f.body)) // 실시간으로 오는 메시지 받아서 DOM 에 그려야 하는 부분
+                    if (document.visibilityState === "hidden"){ // 유저가 화면을 띄우지 않았을 경우(다른 텝으로 이동)
+                        if(Notification.permission === "granted"){
+                            switch (is_alarm(f)){
+                                case 1: // on
+                                    console.log("알림이 켜져있습니다.")
+                                    showNotification(f);
+                                    break;
+                                case 2: // off
+                                    console.log("알림이 꺼져있습니다.")
+                                    break;
+                                case 3: // 아예 없는 경우
+                                    console.log("새로운 알림입니다.")
+                                    showNotification(f);
+                                    break;
+                            }
+                        }
+                    }
 
-                },{ id: "room-" + room_id}); // header
+                },{ id: "room-" + _room_id}); // header
 
 
-                sub_room_and_user = stompClient.subscribe('/topic/room/' + room_id + '/' + userid, function (f) {
+                sub_room_and_user = stompClient.subscribe('/topic/room/' + _room_id + '/' + userid, function (f) {
 
                     console.log(JSON.parse(f.body))
 
-                },{ id: "room-user-" + room_id + "-" + userid}); // header
+                },{ id: "room-user-" + _room_id + "-" + userid}); // header
 
 
 
@@ -85,9 +115,26 @@ function connect(userid) {
 
 
         stompClient.subscribe('/topic/chat/' + userid, function (frame) { // (STOMP API 2번) 나에게 오는 메시지 받기, 구독
-
-
-
+            console.log(frame);
+            // 1번과 2번이 아닌 다른 10번유저가 1번에게 메시지를 보내는 경우
+            var msgbody = JSON.parse(frame.body);
+            if (document.visibilityState === "hidden" || ((msgbody.roomId !== _room_id) && _room_id !== null)){
+                if(Notification.permission === "granted"){
+                    switch (is_alarm(frame)){
+                        case 1: // on
+                            console.log("알림이 켜져있습니다.")
+                            showNotification(frame);
+                            break;
+                        case 2: // off
+                            console.log("알림이 꺼져있습니다.")
+                            break;
+                        case 3: // 아예 없는 경우
+                            console.log("새로운 알림입니다.")
+                            showNotification(frame);
+                            break;
+                    }
+                }
+            }
         });
 
     },function (error) {
@@ -148,11 +195,33 @@ function showGreeting(message) {
 
 // [채팅방 목록 -> 채팅방 화면]
 function join(room_id, userid){
+
+
     if(toggle === false){
         toggle = true
-
+        _room_id = room_id;
         sub_room = stompClient.subscribe('/topic/room/' + room_id , function (fr){ // (STOMP API 3번) 채팅방 구독하기
             console.log(JSON.parse(fr.body)) // 메시지 받아서 DOM 에 그려야 하는 부분
+
+
+            if (document.visibilityState === "hidden"){ // 유저가 화면을 띄우지 않았을 경우(다른 텝으로 이동)
+                if(Notification.permission === "granted"){ // 알람승인
+                    switch (is_alarm(fr)){
+                        case 1: // on
+                            console.log("알림이 켜져있습니다.")
+                            showNotification(fr);
+                            break;
+                        case 2: // off
+                            console.log("알림이 꺼져있습니다.")
+                            break;
+                        case 3: // 아예 없는 경우
+                            console.log("새로운 알림입니다.")
+                            showNotification(fr);
+                            break;
+                    }
+                }
+            }
+
         },{ id: "room-" + room_id}) //
 
         sub_room_and_user = stompClient.subscribe('/topic/room/' + room_id + '/' + userid, function(f){ // (수정)상대방입장했을 때의 이벤트{join}만 받는다.
@@ -171,6 +240,7 @@ function leaveRoom(leave){
     $("#leave_btn").prop("disabled", leave)
     sub_room.unsubscribe(); // (STOMP API 6번) 채팅방에대한 구독 취소
     sub_room_and_user.unsubscribe(); // (STOMP API 6번) (채팅방 + 유저(나))에대한 구독 취소
+    _room_id = null;
     toggle = false;
 }
 
@@ -187,15 +257,11 @@ $(function () {
     $("#join_btn").click(function () { join($("#room-id").val(), $("#userid").val(), true); });
     $("#leave_btn").click(function (){ leaveRoom(true)});
     $("#upload_button").click( function () { upload(document.getElementById('upload'))});
+    $("#alarm_button").click(function (){alarm_onoff(document.getElementById('alarm_input').value)});
 });
 
 
-/**
- * userId가 대화하고 있는 채팅방 정보(관련된 메시지들 포함)를 가져와 리턴합니다
- *
- * @param userId 사용자 아이디
- * @returns userId가 대화하고 있는 채팅방 정보(관련된 메시지들 포함)
- */
+// 채팅방 목록 조회 API
 function getRoomAndMessages(userId){
     var result = "";
     $.ajax({
@@ -204,8 +270,23 @@ function getRoomAndMessages(userId){
         type : 'GET',
         async : false,
         success : function(data) {
-            console.log('get rooms and messages : ' ,data)
+            // console.log('get rooms and messages : ' ,data)
             result = data
+            test_result = data;
+
+            if(localStorage.getItem('alarm_list') == null) {
+                var alarm_list = [];
+                for(var i in test_result) {
+                    var jsonObject = {};
+                    jsonObject.room_id = test_result[i].roomId;
+                    jsonObject.alarm = "on";
+                    alarm_list.push(jsonObject);
+                    console.log(alarm_list)
+                    localStorage.setItem("alarm_list", JSON.stringify(alarm_list))
+                }
+            }
+
+
         }, // success
         error : function(xhr, status) {
             alert(xhr + " : " + status);
@@ -241,3 +322,85 @@ function getUnreadMessages(){
     return result;
 }
 
+// 알림 띄어주기
+function showNotification(message){ // topic/chat/{user-id} 로 오는 유저 메시지들
+    const msgBody = JSON.parse(message.body)
+
+    var n = new Notification(" 동국마켓 : " + msgBody.chatMessageUserDto.nickName, {
+        body: msgBody.message,
+        icon: msgBody.chatRoomProductDto.productImgPath,
+        tag: msgBody.roomId
+    });
+
+
+    // 타이머 용
+    // var i = 0;
+    // // 어떤 브라우저(파이어폭스 등)는 일정 시간 동안 알림이 너무 많은 경우 차단하기 때문에 인터벌 사용.
+    // var interval = window.setInterval(function () {
+    //     // 태그 덕분에 "안녕! 9" 알림만 보여야 함
+    //     console.log('일정시간마다 실행!!')
+    //     var n = new Notification(" 동국마켓 : " + msgBody.chatMessageUserDto.nickName, {
+    //         body: msgBody.message,
+    //         icon: msgBody.chatRoomProductDto.productImgPath,
+    //         tag : '알림너무많음'
+    //     });
+    //     window.clearInterval(interval);
+    // }, 200);
+}
+
+
+function alarm_onoff(room_id) {
+    console.log("선택한 방번호 : " + room_id)
+    var alarm_list = JSON.parse(localStorage.getItem("alarm_list"))
+
+
+    var isOn = alarm_list.filter(x => x.room_id === parseInt(room_id)).map(x => x.alarm)
+    console.log("isOn : " + isOn)
+    if(isOn == "off"){
+        // off
+        console.log("1")
+        for (var i = 0; i < alarm_list.length; i++) {
+            if(alarm_list[i].room_id === parseInt(room_id)){  //look for match with room_id
+                console.log("2")
+                alarm_list[i].alarm = "on";
+                break;  //exit loop since you found the room
+            }
+        }
+        localStorage.setItem("alarm_list", JSON.stringify(alarm_list));  //put the object back
+    }else if (isOn == "on"){
+        // on
+        for (var i = 0; i < alarm_list.length; i++) {
+            if(alarm_list[i].room_id === parseInt(room_id)){  //look for match with room_id
+                alarm_list[i].alarm = "off"
+                break;  //exit loop since you found the room
+            }
+        }
+        localStorage.setItem("alarm_list", JSON.stringify(alarm_list));  //put the object back
+    }
+}
+
+// 알람 on/off 체크하기
+function is_alarm(frame) {
+    var alarm_list = JSON.parse(localStorage.getItem("alarm_list"))
+    var _isOn = alarm_list.filter(x => x.room_id === parseInt(JSON.parse(frame.body).roomId)).map(x => x.alarm);
+
+    console.log("roomId : " + JSON.parse(frame.body).roomId);
+    console.log("is on? : " + alarm_list.filter(x => x.room_id === parseInt(JSON.parse(frame.body).roomId)).map(x => x.alarm))
+    console.log("_isOn : " + _isOn)
+    console.log("_isOn === on? " + _isOn === 'on')
+    console.log("_isOn === on? " + _isOn === 'off')
+    if(_isOn == "on"){
+        console.log("알람기능 ON")
+        return 1;
+    }else if (_isOn == "off"){
+        console.log("알람기능 OFF")
+        return 2;
+    }else{ // 없는 경우
+        var jsonObject = {};
+        jsonObject.room_id = parseInt(JSON.parse(frame.body).roomId)
+        jsonObject.alarm = "on"
+        alarm_list.push(jsonObject)
+        localStorage.setItem("alarm_list", JSON.stringify(alarm_list));
+        return 3;
+    }
+}
