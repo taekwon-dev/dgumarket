@@ -304,6 +304,36 @@ function request_block_state(user_id) {
             console.log(error)
         })
 }
+// 유저 혹은 중고물품에 대해 신고 요청하는 함수
+function request_report(cat, room, rsn) {
+    const params = {
+        report_category_id : cat.value,
+        report_room_id : room,
+        report_etc_reason : rsn.value
+    }
+    const reqPromise = fetch('/report', {
+        method: 'POST',
+        body: JSON.stringify(params),
+        headers : {'Content-Type' : 'application/json'}
+    })
+    reqPromise.then(res => {
+        if (res.status >= 200 && res.status < 300){
+            console.log('유저 신고 요청 성공')
+            console.log(JSON.stringify(params))
+            return res.text();
+        }else{
+            console.log('유저 신고 요청 실패')
+            return Promise.reject(new Error(res.status))
+        }
+    })
+        .then(data => {
+            console.log(data);
+            alert('신고가 정상적으로 처리되었습니다.')
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
 //웹소켓 연결 및 구독하는 함수
 function websocket_connect() {
     let socket = new SockJS('/ws');
