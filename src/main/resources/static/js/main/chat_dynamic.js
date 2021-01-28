@@ -24,6 +24,11 @@ const input_send_file = document.getElementById('send-file')
 const block_btn = document.getElementById('block_btn')
 const block_text = document.getElementById('block_text')
 const block_icon = document.getElementById('block_icon')
+const report_btn = document.getElementById('report_btn')
+const report_icon = document.getElementById('report_icon')
+const report_text = document.getElementById('report_icon')
+const report_submit = document.getElementById('report_submit')
+const input_report = document.getElementById('input_report')
 const chat_screen = document.getElementById('chat_screen');
 const confirm_trade_success = document.getElementById('confirm_trade_success')
 const chat_write_trade_comment = document.getElementById('chat_write_trade_comment')
@@ -287,7 +292,8 @@ const chat_list_html =
     <div class="room_no${res.roomId} more_view_form hidden">
         <div class="chat_alarm">알람 끄기</div>
         <div class="opponent_block user_no${res.chatMessageUserDto.userId}"></div>
-        <div class="opponent_report">신고</div>
+        <div class="opponent_report" data-toggle="modal"
+            data-target="#report_no${res.roomId}">신고</div>
         <div class="chat_room_leave" data-toggle="modal" 
             data-target="#chat_list_leave_chat_no${res.roomId}">나가기</div>
         <div class="more_view_cancel">취소</div>
@@ -304,6 +310,36 @@ const chat_list_html =
                     <p>나가기를 하면 채팅방과 채팅 <br>내용이 모두 삭제됩니다.</p>
                     <button type="button" id="chat_list_leave_chat_btn_no${res.roomId}" 
                         class="btn btn-outline-danger chat_list_chat_room_out" data-dismiss="modal">나가기</button>
+                    <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 신고하기 버튼 클릭 시 팝업창 view -->
+    <div id="report_no${res.roomId}" class="modal fade chat_report_modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">신고하기</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <label for="report_category_no${res.roomId}"></label>
+                    <select id="report_category_no${res.roomId}" class="custom-select">
+                        <option value="">선택</option>
+                        <option value="1">욕설 및 비방 등의 언어폭력</option>
+                        <option value="2">성희롱</option>
+                        <option value="3">전문판매업자 의심</option>
+                        <option value="4">광고 및 홍보성 글</option>
+                        <option value="5">사기피해 및 사기의심</option>
+                        <option value="6">판매 금지 품목 업로드</option>
+                        <option value="7">기타</option>
+                    </select>
+                    <div class="form-group">
+                        <label for="input_report"></label>
+                        <textarea class="form-control" rows="4" id="input_report_no${res.roomId}" placeholder="구체적인 사유를 적어주세요."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-outline-success report_submit" data-dismiss="modal" id="report_submit_no${res.roomId}">전송</button>
                     <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
                 </div>
             </div>

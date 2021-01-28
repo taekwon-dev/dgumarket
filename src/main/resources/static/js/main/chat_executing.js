@@ -46,6 +46,11 @@ document.addEventListener('click',function (event) {
         has_chat_list()
         request_chat_room_out(event.target.id)
     }
+    // 채탕방 목록에서 해당 채팅방의 유저를 신고하기
+    if (hasClass(event.target, 'report_submit')) {
+        request_report(event.target.previousSibling.previousSibling.previousSibling.previousSibling,
+            event.target.id.slice(16), event.target.previousSibling.previousSibling.children[1])
+    }
     // 채팅방 목록에서 더보기 창이 뜬 상태에서 다른 곳 클릭하면 더보기 창 닫히도록 하기
     const more_view_form = document.getElementsByClassName('more_view_form')
     if (more_view_form.length > 0){
@@ -88,7 +93,6 @@ $(document).on('click','.chat_list_more_view',function (event) {
 $(document).on('click','.more_view_form',function (event) {
     event.stopPropagation()
 })
-// 채팅목록에서 더보기 팝업창의 선택지를 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단 하기
 $(document).on('click','.opponent_block',function () {
     if(this.innerText == '차단'){
         request_user_block(this.classList[1].slice(7))
@@ -96,13 +100,16 @@ $(document).on('click','.opponent_block',function () {
         request_user_unblock(this.classList[1].slice(7));
     }
 })
-// 채팅목록에서 취소를 클릭할 때 더보기 팝업창 닫기
-$(document).on('click','.more_view_cancel',function () {
-    this.parentNode.classList.add('hidden')
+// 채팅목록에서 채팅방 신고 모달UI의 버튼을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단하기
+$(document).on('click','.chat_report_modal',function (event) {
+    event.stopPropagation()
 })
 // 채팅목록에서 채팅방 나가기 모달UI의 버튼을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단하기
 $(document).on('click','.chat_room_out_modal',function (event) {
     event.stopPropagation()
+})
+$(document).on('click','.more_view_cancel',function () {
+    this.parentNode.classList.add('hidden')
 })
 window.addEventListener('scroll',() => {
     document.documentElement.style.setProperty('--scroll-y',`${window.scrollY}px`)
@@ -158,6 +165,9 @@ block_btn.addEventListener('click',function () {
         request_user_block(chat_screen.classList[2].slice(11))
     }
     else{request_user_unblock(chat_screen.classList[2].slice(11))}
+})
+report_submit.addEventListener('click',function () {
+    request_report(report_category, chat_screen.classList[1].slice(12), input_report)
 })
 window.addEventListener('resize',function () {
     chat_input_form_width();chat_list_opponent_nickname_width();send_count_height();

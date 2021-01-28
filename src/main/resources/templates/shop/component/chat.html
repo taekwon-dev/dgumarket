@@ -121,6 +121,17 @@
                         </div>
                         <div style="font-size: 10px" id="block_text" class="text-center">차단</div>
                     </div>
+                    <!-- 채팅 유저 신고 버튼 UI -->
+                    <div class="chat_button_form1">
+                        <div class="chat_button_form2">
+                            <button type="button" id="report_btn" class="btn btn-outline-light" data-toggle="modal" data-target="#report_user">
+                                <div class="d-flex flex-wrap align-content-center justify-content-center">
+                                    <i id="report_icon" class="fas fa-angry chat_button_icon"></i>
+                                </div>
+                            </button>
+                        </div>
+                        <div style="font-size: 10px" id="report_text" class="text-center">신고</div>
+                    </div>
                 </div>
                 <!-- 후기 남기기 버튼 클릭 시 팝업창 view -->
                 <div id="write_trade_comment" class="modal fade">
@@ -192,6 +203,39 @@
                             <div class="modal-body text-center">
                                 <p>거래를 완료해도 채팅방은 삭제되지<br>않으며 거래완료 후 거래상태를<br>변경할 수 없습니다.</p>
                                 <button type="button" id="confirm_trade_success" class="btn btn-outline-primary" data-dismiss="modal">완료</button>
+                                <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 신고하기 버튼 클릭 시 팝업창 view -->
+                <div id="report_user" class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6 class="modal-title">
+                                    신고하기
+                                </h6>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <label for="report_category"></label>
+                                <select id="report_category" class="custom-select">
+                                    <option value="">선택</option>
+                                    <option value="1">욕설 및 비방 등의 언어폭력</option>
+                                    <option value="2">성희롱</option>
+                                    <option value="3">전문판매업자 의심</option>
+                                    <option value="4">광고 및 홍보성 글</option>
+                                    <option value="5">사기피해 및 사기의심</option>
+                                    <option value="6">판매 금지 품목 업로드</option>
+                                    <option value="7">기타</option>
+                                </select>
+                                <div class="form-group">
+                                    <label for="input_report"></label>
+                                    <textarea class="form-control" rows="4" id="input_report"
+                                        placeholder="구체적인 사유를 적어주세요."></textarea>
+                                </div>
+                                <button type="button" class="btn btn-outline-success" data-dismiss="modal" id="report_submit">전송</button>
                                 <button type="button" class="btn btn-outline-warning" data-dismiss="modal">취소</button>
                             </div>
                         </div>

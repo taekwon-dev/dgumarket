@@ -395,7 +395,7 @@
     width: 100%;
     padding-bottom: 100%;
 }
-#send_file_btn,#close_chat_room,#trade_success_btn,#block_btn{
+#send_file_btn,#close_chat_room,#trade_success_btn,#block_btn,#report_btn{
     border-radius: 50%;
     cursor: pointer;
     position: absolute;
@@ -403,6 +403,9 @@
     height: 100%;
     padding: 0;
     background-color: rgb(29, 161, 242);
+}
+#report_btn{
+    background-color: #F70000;
 }
 .send-file-icon-label{
     margin: 0 0 0;
