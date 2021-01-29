@@ -109,10 +109,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         List<ChatMessageDto> chatMessageDtos = new ArrayList<>();
         for (ChatMessage chatMessageEntity : chatMessageEntitys) {
             ChatMessageDto chatMessageDto = new ChatMessageDto();
+            chatMessageDto.setRoomId(chatMessageEntity.getRoomId());
             chatMessageDto.setChatMessageUserDto(modelMapper.map(chatMessageEntity.getSender(), ChatMessageUserDto.class)); // 보내는이 정보
             chatMessageDto.setMessageDate(chatMessageEntity.getMsgDate());
             chatMessageDto.setMessage(chatMessageEntity.getMessage());
-            chatMessageDto.setMessageType(chatMessageEntity.getMsgType());
+            chatMessageDto.setMessage_type(chatMessageEntity.getMsgType());
             chatMessageDto.setMessageStatus(chatMessageEntity.getMsgStatus());
             chatMessageDtos.add(chatMessageDto);
         }

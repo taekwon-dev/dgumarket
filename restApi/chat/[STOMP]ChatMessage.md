@@ -13,6 +13,15 @@ app2.js 에 변경된 샘플 클라이언트 코드 참조
 1.`[SUBSCRIBE] /user/queue/error` 
 2.`[SUBSCRIBE] /user/queue/room/event`
 
+---
+
+수정사항
+21-01-29(ms)
+
+채팅방의 메시지들 정보 가져올 때 roomId 필드 추가
+기존 messageType 필드 -> message_type 로 바뀜
+
+
 ### 1. `[SUBSCRIBE] /user/queue/error`
 에러메시지를 담고 있는 MESSAGE 프레임을 받기위함 (가령 차단된상대에게 메시지를 보내면, sub 콜벡부분에 서버가 에러코드와 메시지를 던달한다.)
 
@@ -102,7 +111,7 @@ content-length:83
 
 `roomId`: 채팅메시지가 속한 채팅방 고유 ID (채팅방 고유아이디는 생성되는 채팅목록 DOM 들의 고유한 이름으로 사용한다. )
 
-`messageType` : 메시지의 타입(0: 텍스트, 1: 이미지)
+`message_type` : 메시지의 타입(0: 텍스트, 1: 이미지)
 
 `messageStatus` : 메시지 읽음여부(0: 읽지않음, 1:읽음)
 
@@ -121,6 +130,7 @@ content-length:83
 ```json
 [
   {
+    "roomId": 1,
     "messageType": 0,
     "messageStatus": 1,
     "message": "minshik2233",
@@ -132,6 +142,7 @@ content-length:83
     }
   },
   {
+    "roomId": 1,
     "messageType": 0,
     "messageStatus": 1,
     "message": "minshik2233",
@@ -143,6 +154,7 @@ content-length:83
     }
   },
   {
+    "roomId": 1,
     "messageType": 0,
     "messageStatus": 1,
     "message": "minshik2233",
@@ -154,6 +166,7 @@ content-length:83
     }
   },
   {
+    "roomId": 1,
     "messageType": 0,
     "messageStatus": 1,
     "message": "minshik2233",
