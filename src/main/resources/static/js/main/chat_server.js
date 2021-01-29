@@ -1,6 +1,7 @@
 let stomp_client = null;
 let sub_room = null;
 let sub_room_and_user = null;
+let room_id = null;
 
 // 모든 채팅방 통틀어서 읽지 않은 메시지 갯수를 요청하는 함수
 function request_unread_total_chat() {
@@ -138,6 +139,94 @@ function request_trade_state(click_chat_room) {
             console.log(error)
         })
 }
+// 채팅방 입장 시 채팅 상대와의 차단 여부 요청하는 함수
+function request_block_state(user_id) {
+    const reqPromise = fetch(`/user/block/${user_id.slice(11)}`, {
+        method: 'GET',
+        headers : {Accept : 'application/json'}
+    })
+    reqPromise.then(res => {
+        if (res.status >= 200 && res.status < 300){
+            console.log('차단상태 조회 요청 성공')
+            return res.json();
+        }else{
+            console.log('차단상태 조회 요청 실패')
+            return Promise.reject(new Error(res.status))
+        }
+    })
+        .then(data => {
+            console.log(data);
+            block_state(data);
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
+// 유저에 대해 차단 요청하는 함수
+function request_user_block(user_id) {
+    const param = { block_user : user_id }
+    const reqPromise = fetch('/user/block', {
+        method: 'POST',
+        body: JSON.stringify(param),
+        headers : {'Content-Type' : 'application/json'}
+    })
+    reqPromise.then(res => {
+        if (res.status >= 200 && res.status < 300){
+            console.log('유저 차단 요청 성공')
+            console.log(JSON.stringify(param))
+            return res.text();
+        }else{
+            console.log('유저 차단 요청 실패')
+            return Promise.reject(new Error(res.status))
+        }
+    })
+        .then(data => {
+            console.log(data);
+            if(data == 'block success'){
+                const block = document.getElementsByClassName(`user_no${user_id}`)
+                for (let i = 0; i < block.length; i++) {block[i].innerText = '차단해제'}
+                if(chat_room_form.className.indexOf('hidden') == -1){
+                    state_block_effect()
+                    state_block()
+                }
+                alert('차단이 정상적으로 완료되었습니다.')
+            }else{
+                alert('예전에 거래를 했던 유저의 경우 차단할 수 없습니다.')
+            }
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
+// 유저에 대해 차단 해제 요청하는 함수
+function request_user_unblock(user_id) {
+    const reqPromise = fetch(`/user/block/${user_id}`, {
+        method: 'DELETE',
+        headers : {}
+    })
+    reqPromise.then(res => {
+        if (res.status >= 200 && res.status < 300){
+            console.log('유저 차단 해제 요청 성공')
+            return res.text();
+        }else{
+            console.log('유저 차단 해제 요청 실패')
+            return Promise.reject(new Error(res.status))
+        }
+    })
+        .then(data => {
+            console.log(data);
+            const block = document.getElementsByClassName(`user_no${user_id}`)
+            for (let i = 0; i < block.length; i++) {block[i].innerText = '차단'}
+            if(chat_room_form.className.indexOf('hidden') == -1) {
+                state_unblock()
+            }
+            notification_trade_state.classList.add('hidden')
+            alert('차단이 정상적으로 해제되었습니다.')
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
 //채팅방에서 해당 중고물품의 거래후기 작성 후 업로드를 요청하는 함수
 function request_upload_trade_comment() {
     const param = {product_comment : input_trade_comment.value}
@@ -221,89 +310,6 @@ function request_chat_room_out(from_chat_list) {
             console.log(error)
         })
 }
-// 유저에 대해 차단 요청하는 함수
-function request_user_block(user_id) {
-    const param = { block_user : user_id }
-    const reqPromise = fetch('/user/block', {
-        method: 'POST',
-        body: JSON.stringify(param),
-        headers : {'Content-Type' : 'application/json'}
-    })
-    reqPromise.then(res => {
-        if (res.status >= 200 && res.status < 300){
-            console.log('유저 차단 요청 성공')
-            console.log(JSON.stringify(param))
-            return res.text();
-        }else{
-            console.log('유저 차단 요청 실패')
-            return Promise.reject(new Error(res.status))
-        }
-    })
-        .then(data => {
-            console.log(data);
-            if(data == 'block success'){
-                const block = document.getElementsByClassName(`user_no${user_id}`)
-                for (let i = 0; i < block.length; i++) {block[i].innerText = '차단해제'}
-                state_block_effect()
-                state_block()
-                alert('차단이 정상적으로 완료되었습니다.')
-            }else{
-                alert('예전에 거래를 했던 유저의 경우 차단할 수 없습니다.')
-            }
-        })
-        .catch(error => {
-            console.log(error)
-        })
-}
-// 유저에 대해 차단 해제 요청하는 함수
-function request_user_unblock(user_id) {
-    const reqPromise = fetch(`/user/block/${user_id}`, {
-        method: 'DELETE',
-        headers : {}
-    })
-    reqPromise.then(res => {
-        if (res.status >= 200 && res.status < 300){
-            console.log('유저 차단 해제 요청 성공')
-            return res.text();
-        }else{
-            console.log('유저 차단 해제 요청 실패')
-            return Promise.reject(new Error(res.status))
-        }
-    })
-        .then(data => {
-            console.log(data);
-            const block = document.getElementsByClassName(`user_no${user_id}`)
-            for (let i = 0; i < block.length; i++) {block[i].innerText = '차단'}
-            state_unblock()
-            alert('차단이 정상적으로 해제되었습니다.')
-        })
-        .catch(error => {
-            console.log(error)
-        })
-}
-// 채팅방 입장 시 채팅 상대와의 차단 여부 요청하는 함수
-function request_block_state(user_id) {
-    const reqPromise = fetch(`/user/block/${user_id.slice(11)}`, {
-        method: 'GET',
-        headers : {Accept : 'application/json'}
-    })
-    reqPromise.then(res => {
-        if (res.status >= 200 && res.status < 300){
-            console.log('차단상태 조회 요청 성공')
-            return res.json();
-        }else{
-            console.log('차단상태 조회 요청 실패')
-            return Promise.reject(new Error(res.status))
-        }
-    })
-        .then(data => {
-            console.log(data);
-            block_state(data);
-        })
-        .catch(error => {
-            console.log(error)
-        })
-}
 // 유저 혹은 중고물품에 대해 신고 요청하는 함수
 function request_report(cat, room, rsn) {
     const params = {
@@ -329,6 +335,8 @@ function request_report(cat, room, rsn) {
         .then(data => {
             console.log(data);
             alert('신고가 정상적으로 처리되었습니다.')
+            cat.value = '';
+            rsn.value = '';
         })
         .catch(error => {
             console.log(error)
@@ -341,7 +349,7 @@ function websocket_connect() {
     stomp_client.connect({}, function() {
         stomp_client.subscribe(`/user/queue/room/event`, function (convo_frame) {
             if(JSON.parse(convo_frame.body).roomId){
-                const room_id = JSON.parse(convo_frame.body).roomId
+                room_id = JSON.parse(convo_frame.body).roomId
                 sub_room = stomp_client.subscribe(`/topic/room/${room_id}`, function(sub_room_frame) {
                     console.log('sub_room_frame: ' + sub_room_frame)
                     create_new_conversation(JSON.parse(sub_room_frame.body))
@@ -350,11 +358,12 @@ function websocket_connect() {
                 sub_room_and_user = stomp_client.subscribe(`/topic/room/${room_id}/${web_items_search.value}`,function(sub_room_and_user_frame) {
                     console.log('sub_room_and_user_frame: ' + sub_room_and_user_frame)
                     read_message(JSON.parse(sub_room_and_user_frame.body))
-                    chat_screen.classList.add(`chat_list_no${room_id}`)
-                    close_chat_room_form.classList.remove('hidden')
                 },{id: `room-user-${room_id}-${web_items_search.value}`})
             }else{
                 create_conversation(JSON.parse(convo_frame.body))
+                if(chat_screen.className.indexOf('welcome') > -1){
+                    new_create_chat_list(JSON.parse(convo_frame.body)[0])
+                }
             }
         })
         stomp_client.subscribe(`/topic/chat/${web_items_search.value}`, function (sub_frame) {
@@ -382,7 +391,7 @@ function websocket_connect() {
 }
 // 웹소켓 연결 끊는 함수(옵션)
 function websocket_disconnect() {
-    if (stomp_client !== null) {stomp_client.disconnect();}
+    if (stomp_client != null) {stomp_client.disconnect();}
     console.log("Disconnected");
 }
 // 채팅 메시지 보내는 함수
@@ -411,7 +420,7 @@ function join_chat_room(click_chat_room) {
 }
 // 채팅방에서 뒤로 가거나 채팅창을 닫을 때 채팅방에 대한 구독을 취소하는 함수
 function unsubscribe_chat_room(){
-    if (stomp_client !== null){
+    if (stomp_client != null){
         sub_room.unsubscribe();
         sub_room_and_user.unsubscribe();
     }

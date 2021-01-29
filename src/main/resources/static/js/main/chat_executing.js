@@ -48,8 +48,13 @@ document.addEventListener('click',function (event) {
     }
     // 채탕방 목록에서 해당 채팅방의 유저를 신고하기
     if (hasClass(event.target, 'report_submit')) {
-        request_report(event.target.previousSibling.previousSibling.previousSibling.previousSibling,
-            event.target.id.slice(16), event.target.previousSibling.previousSibling.children[1])
+        if(event.target.previousSibling.previousSibling.previousSibling.previousSibling.value == ''
+            || event.target.previousSibling.previousSibling.children[1].value == ''){
+            alert('신고 유형과 구체적인 사유를 모두 기입해주시기 바랍니다.')
+        }else{
+            request_report(event.target.previousSibling.previousSibling.previousSibling.previousSibling,
+                event.target.id.slice(16), event.target.previousSibling.previousSibling.children[1])
+        }
     }
     // 채팅방 목록에서 더보기 창이 뜬 상태에서 다른 곳 클릭하면 더보기 창 닫히도록 하기
     const more_view_form = document.getElementsByClassName('more_view_form')
@@ -75,9 +80,10 @@ $(document).on('click','.click_chat_room',function () {
     chat_screen.classList.add(this.classList[3])
     request_trade_item_info(this)
     join_chat_room(this)
-    if(total_alm.innerText && Number(total_alm.innerText) > 0){
+    if(Number(total_alm.innerText) > 0){
         total_alm.innerText = Number(total_alm.innerText) - Number(this.firstChild
             .children[0].children[1].children[1].children[1].innerText)
+        if(total_alm.innerText == '0'){total_alm.classList.add('hidden')}
         this.firstChild.children[0].children[1].children[1].children[1].innerText = ''
         this.firstChild.children[0].children[1].children[1].children[1].classList.add('hidden')
         this.firstChild.children[0].children[1].children[1].children[1].classList.remove('d-flex')
@@ -130,7 +136,10 @@ close_btn.addEventListener('click',function () {
 })
 confirm_trade_success.addEventListener('click',request_trade_success)
 chat_write_trade_comment.addEventListener('click',from_seller_to_consumer)
-comment_submit.addEventListener('click',request_upload_trade_comment)
+comment_submit.addEventListener('click', function () {
+    if(input_trade_comment.value == ''){alert('구매후기를 작성해주세요')}
+    else{request_upload_trade_comment()}
+})
 chat_view_trade_comment.addEventListener('click',request_view_trade_comment)
 document.addEventListener('keydown',function (event) {
     if (event.keyCode == 27){
@@ -148,7 +157,7 @@ chat_input.addEventListener( 'keydown' ,function(event) {
     if (event.keyCode == 13 && !event.shiftKey){
         // 엔터 클릭 후 개행 방지
         event.preventDefault();
-        if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") !== "") {
+        if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") != "") {
             send_message()
         }
     }
@@ -156,18 +165,23 @@ chat_input.addEventListener( 'keydown' ,function(event) {
 chat_input.addEventListener('keyup',limit_string)
 // 채팅 입력란의 내용이 공백뿐일 경우 채팅 전송 방지
 chat_submit_btn.addEventListener('click',function() {
-    if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") !== "") {
+    if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") != "") {
         send_message()
     }
 })
 block_btn.addEventListener('click',function () {
     if(block_text.innerText == '차단'){
         request_user_block(chat_screen.classList[2].slice(11))
+    }else{
+        request_user_unblock(chat_screen.classList[2].slice(11))
     }
-    else{request_user_unblock(chat_screen.classList[2].slice(11))}
 })
 report_submit.addEventListener('click',function () {
-    request_report(report_category, chat_screen.classList[1].slice(12), input_report)
+    if(report_category.value == '' || input_report.value == ''){
+        alert('신고 유형과 구체적인 사유를 모두 기입해주시기 바랍니다.')
+    }else{
+        request_report(report_category, chat_screen.classList[1].slice(12), input_report)
+    }
 })
 window.addEventListener('resize',function () {
     chat_input_form_width();chat_list_opponent_nickname_width();send_count_height();

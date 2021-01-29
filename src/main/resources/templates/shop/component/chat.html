@@ -39,12 +39,6 @@
             </button>
         </div>
     </div>
-    <!--중고물품 업로드한 사용자가 해당 중고물품 거래상태가 완료가 되었을 경우 알림문구 view 처리 -->
-    <div id="notification_trade_state" class="hidden">
-        <div id="notification_trade_state_text"></div>
-        <div id="chat_write_trade_comment" class="hidden" data-toggle="modal" data-target="#write_trade_comment">[후기 남기기]</div>
-        <div id="chat_view_trade_comment" class="hidden" data-toggle="modal" data-target="#view_trade_comment">[후기 보기]</div>
-    </div>
     <!-- 채팅 검색 hidden 가능-->
     <div id="chat_search_form" class="">
         <span id="chat_search_icon"><i class="fas fa-times-circle"></i></span>
@@ -69,6 +63,12 @@
     </div>
     <!-- 채팅방 폼 -->
     <div id="chat_room_form" class="hidden">
+        <!--중고물품 업로드한 사용자가 해당 중고물품 거래상태가 완료가 되었을 경우 알림문구 view 처리 -->
+        <div id="notification_trade_state" class="hidden">
+            <div id="notification_trade_state_text"></div>
+            <div id="chat_write_trade_comment" class="hidden" data-toggle="modal" data-target="#write_trade_comment">[후기 남기기]</div>
+            <div id="chat_view_trade_comment" class="hidden" data-toggle="modal" data-target="#view_trade_comment">[후기 보기]</div>
+        </div>
         <!-- 채팅 스크린 -->
         <div id="chat_screen"></div>
         <!-- 체팅 하단 UI -->
@@ -126,11 +126,11 @@
                         <div class="chat_button_form2">
                             <button type="button" id="report_btn" class="btn btn-outline-light" data-toggle="modal" data-target="#report_user">
                                 <div class="d-flex flex-wrap align-content-center justify-content-center">
-                                    <i id="report_icon" class="fas fa-angry chat_button_icon"></i>
+                                    <i class="fas fa-angry chat_button_icon"></i>
                                 </div>
                             </button>
                         </div>
-                        <div style="font-size: 10px" id="report_text" class="text-center">신고</div>
+                        <div style="font-size: 10px" class="text-center">신고</div>
                     </div>
                 </div>
                 <!-- 후기 남기기 버튼 클릭 시 팝업창 view -->
