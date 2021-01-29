@@ -24,9 +24,6 @@ const input_send_file = document.getElementById('send-file')
 const block_btn = document.getElementById('block_btn')
 const block_text = document.getElementById('block_text')
 const block_icon = document.getElementById('block_icon')
-const report_btn = document.getElementById('report_btn')
-const report_icon = document.getElementById('report_icon')
-const report_text = document.getElementById('report_icon')
 const report_submit = document.getElementById('report_submit')
 const input_report = document.getElementById('input_report')
 const chat_screen = document.getElementById('chat_screen');
@@ -55,7 +52,7 @@ function hasClass(elem, className) {
 function chat_form_view() {
     chat_form.classList.remove('chat_close')
     chat_input_form1.classList.remove('chat_input_form_close')
-    total_alm.classList.add('hidden');
+    // total_alm.classList.add('hidden');
     chat_start_button.classList.add('hidden');
     chat_form.classList.remove('hidden');
     if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
@@ -104,6 +101,8 @@ function chat_room_close(){
     trade_item_info.classList.add('hidden')
     back_btn.classList.add('hidden')
     back_btn.classList.remove('d-flex')
+    chat_input.value = ''
+    chat_input.placeholder = '매시지를 입력하세요'
     chat_room_form.classList.add('hidden')
     chat_screen.removeAttribute('class')
     notification_trade_state.classList.add('hidden')
@@ -159,22 +158,20 @@ function chat_list_latest_message_width() {
 function chat_form_close() {
     chat_form.classList.add('chat_close')
     chat_input_form1.classList.add('chat_input_form_close')
-    setTimeout(function () {
-        chat_form.classList.add('hidden');
-        //읽지않은 채팅 메시지 갯수를 보여주는 UI는 다른 함수에서 경우의 수에 따라 view처리
-        chat_start_button.classList.remove('hidden');
-        if(total_alm.innerText && Number(total_alm.innerText) > 0){
-            total_alm.classList.remove('hidden');
-        }
-        chat_room_close();
-        if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
-            const body_scroll = document.documentElement
-            const body_scrollY = body_scroll.style.top
-            body_scroll.style.position = ''
-            body_scroll.style.top = ''
-            window.scrollTo(0, parseInt(body_scrollY || '0')*-1)
-        }
-    },350)
+    chat_form.classList.add('hidden');
+    //읽지않은 채팅 메시지 갯수를 보여주는 UI는 다른 함수에서 경우의 수에 따라 view처리
+    chat_start_button.classList.remove('hidden');
+    if(Number(total_alm.innerText) > 0){
+        total_alm.classList.remove('hidden');
+    }
+    chat_room_close();
+    if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
+        const body_scroll = document.documentElement
+        const body_scrollY = body_scroll.style.top
+        body_scroll.style.position = ''
+        body_scroll.style.top = ''
+        window.scrollTo(0, parseInt(body_scrollY || '0')*-1)
+    }
 }
 //채팅방 목록에서 각 채팅방의 수신 채팅 수를 알려주는 UI의 가로에 맞게 높이를 자동 조절하는 함수
 function send_count_height() {
@@ -259,7 +256,7 @@ function image_parsing(img) {
         return get_image = '/imgs/product_delete.png'
     }
 }
-// 채팅방 html 코드를 제공하는 함수
+// 채팅방 목록의 html 코드를 제공하는 함수
 function chat_list_js(res){
 const chat_list_html =
     `<div class="card">
@@ -418,21 +415,14 @@ function trade_state_view(s_res) {
         notification_trade_state.classList.add('hidden')
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        trade_success_btn.removeAttribute('disabled')
-        trade_success_text.style.color = '#2f363d'
     }
     else if(s_res.productStatus == '2' && Object.keys(s_res).length == 1){
         trade_success_form.classList.remove('hidden')
         notification_trade_state.classList.add('hidden')
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        if(trade_state.innerText !== '[판매완료]'){
-            trade_success_btn.removeAttribute('disabled')
-            trade_success_text.style.color = '#2f363d'
-        }else{
-            trade_success_btn.setAttribute('disabled','')
-            trade_success_text.style.color = '#adb5bd'
-        }
+        trade_success_btn.removeAttribute('disabled')
+        trade_success_text.style.color = '#2f363d'
     }
     else if(s_res.productStatus == '2' && s_res.transactionStatus == '1' && Object.keys(s_res).length == 3){
         trade_success_form.classList.remove('hidden')
@@ -456,38 +446,17 @@ function trade_state_view(s_res) {
         notification_trade_state_text.innerText = '판매가 완료되었습니다. 후기를 작성할 수 있습니다.'
         chat_write_trade_comment.classList.remove('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        if(trade_state.innerText !== '[판매완료]'){
-            trade_success_btn.removeAttribute('disabled')
-            trade_success_text.style.color = '#2f363d'
-        }else{
-            trade_success_btn.setAttribute('disabled','')
-            trade_success_text.style.color = '#adb5bd'
-        }
     }else if(s_res.productStatus == '1' && s_res.transactionStatus == '1' && s_res.isReviewUpload == '1'){
         trade_success_form.classList.add('hidden')
         notification_trade_state.classList.remove('hidden')
         notification_trade_state_text.innerHTML = `판매가 완료되었습니다.<br>나의 후기를 볼 수 있습니다.`
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.remove('hidden')
-        if(trade_state.innerText !== '[판매완료]'){
-            trade_success_btn.removeAttribute('disabled')
-            trade_success_text.style.color = '#2f363d'
-        }else{
-            trade_success_btn.setAttribute('disabled','')
-            trade_success_text.style.color = '#adb5bd'
-        }
     }else if(s_res.productStatus == '0'){
         trade_success_form.classList.add('hidden')
         notification_trade_state.classList.add('hidden')
         chat_write_trade_comment.classList.add('hidden')
         chat_view_trade_comment.classList.add('hidden')
-        if(trade_state.innerText !== '[판매완료]'){
-            trade_success_btn.removeAttribute('disabled')
-            trade_success_text.style.color = '#2f363d'
-        }else{
-            trade_success_btn.setAttribute('disabled','')
-            trade_success_text.style.color = '#adb5bd'
-        }
     }
 }
 //거래후기 완료를 요청한 후 거래상태를 변경하는 함수
@@ -527,23 +496,20 @@ function state_block_effect() {
     send_file_btn.setAttribute('disabled','')
     input_send_file.setAttribute('disabled','')
     send_file_text.style.color = '#adb5bd'
-    if(!trade_state.innerText == '[판매완료]'){
-        trade_success_btn.setAttribute('disabled','')
-        trade_success_text.style.color = '#adb5bd'
-    }
-    if(chat_room_form.className.indexOf('hidden') == -1){
+    if(chat_screen.className){
         notification_trade_state.classList.remove('hidden')
     }
+    chat_write_trade_comment.classList.add('hidden')
+    chat_view_trade_comment.classList.add('hidden')
 }
 // 차단을 했을 경우 파싱하는 함수
 function state_block() {
     block_text.innerText = '차단해제'
     block_icon.className ='fas fa-unlock-alt chat_button_icon'
+    chat_input.value = ''
     chat_input.placeholder = '차단하신 상대방과 채팅을 할 수 없습니다.'
-    if(chat_room_form.className.indexOf('hidden') == -1){
-        notification_trade_state_text.innerText =
-            `차단하신 ${chat_screen.classList[3].slice(9)}님과 채팅을 할 수 없습니다.`
-    }
+    notification_trade_state_text.innerText =
+        `차단하신 ${chat_screen.classList[3].slice(9)}님과 채팅을 할 수 없습니다.`
 }
 // 차단을 해제했을 경우 파싱하는 함수
 function state_unblock() {
@@ -551,23 +517,16 @@ function state_unblock() {
     block_icon.className ='fas fa-user-lock chat_button_icon'
     chat_input.removeAttribute('disabled')
     chat_input.removeAttribute('style')
+    chat_input.placeholder = '메시지를 입력하세요'
     chat_submit_btn.removeAttribute('disabled')
     chat_submit_btn.removeAttribute('style')
     send_file_btn.removeAttribute('disabled')
     input_send_file.removeAttribute('disabled')
     send_file_text.style.color = '#2f363d'
-    if(!trade_state.innerText == '[판매완료]'){
-        trade_success_btn.removeAttribute('disabled')
-        trade_success_text.style.color = '#2f363d'
-    }
-    if(chat_room_form.className.indexOf('hidden') == -1){
-        notification_trade_state.classList.add('hidden')
-    }
-    chat_input.placeholder = '메시지를 입력하세요'
 }
 // 상대방 유저에 대한 차단 여부에 따라 파싱하는 함수
 function block_state(s_res) {
-    if(s_res.data.block_status !== '3'){
+    if(s_res.data.block_status != '3'){
         state_block_effect()
     }
     if(s_res.data.block_status == '1'){
@@ -576,6 +535,7 @@ function block_state(s_res) {
     else if(s_res.data.block_status == '2'){
         block_text.innerText = '차단'
         block_icon.className ='fas fa-user-lock chat_button_icon'
+        chat_input.value = ''
         chat_input.placeholder = '상대방에게 차단되어 채팅을 할 수 없습니다.'
         notification_trade_state_text.innerText =
             `${chat_screen.classList[3].slice(9)}님에게 차단되어 채팅을 할 수 없습니다.`

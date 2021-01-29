@@ -26,6 +26,30 @@ function create_chat_list(s_res){
     chat_list_latest_message_width();
     send_count_height();
 }
+// 새로운 채팅방 목록 생성하는 함수
+function new_create_chat_list(w_res) {
+    // 날짜, 메시지, 이미지 파싱
+    date_parsing(w_res.messageDate)
+    message_parsing(w_res)
+    get_image = document.getElementById('trade_item_picture').src
+    chat_screen.classList.add(`chat_list_no${room_id}`)
+    close_chat_room_form.classList.remove('hidden')
+    // 채팅방 생성
+    const chat_div = document.createElement('div')
+    chat_div.setAttribute('class',`${chat_screen.classList[0]} 
+        ${chat_screen.classList[4]} ${chat_screen.classList[2]} 
+        ${chat_screen.classList[3]} chat_list click_chat_room`);
+    chat_div.innerHTML = chat_list_js(w_res)
+    chat_list_space.insertBefore(chat_div, chat_list_space.firstChild)
+    // 채팅방목록의 닉네임, 미수신 개수, 더보기창의 차단UI 파싱
+    const chat_opponent_nickname = document.querySelector('.chat_opponent_nickname')
+    chat_opponent_nickname.innerText = `${chat_screen.classList[3].slice(9)}`
+    const send_count = document.querySelector('.send_count')
+    send_count.classList.add('hidden')
+    send_count.classList.remove('d-flex')
+    const opponent_block = document.querySelector('.opponent_block')
+    opponent_block.innerText = '차단'
+}
 // 상대방으로부터 메시지가 올 때 해당 채팅목록에 최근 메시지 정보 및 갯수를 렌더링하는 함수
 function latest_message(w_res) {
     let toggle = false;
@@ -37,19 +61,22 @@ function latest_message(w_res) {
             document.getElementsByClassName('send_time')[i].innerHTML = `${get_date}`
             document.getElementsByClassName('chat_conversation')[i].innerHTML = `${get_message}`
             document.getElementsByClassName('item_image')[i].innerHTML = `${get_image}`
-            document.getElementsByClassName('chat_opponent_nickname')[i].innerHTML = `${w_res.chatMessageUserDto.nickName}`
-            const send_count = document.getElementsByClassName('send_count')
-            if( send_count[i].className.indexOf('hidden') > -1
-                && chat_room_form.className == 'hidden'){
-                send_count[i].classList.remove('hidden');
-                send_count[i].classList.add('d-flex');
-                send_count[i].innerHTML = '1'
-            }else{
-                if(Number(send_count[i].innerHTML) <= 99){
-                    send_count[i].innerHTML =
-                        Number(send_count[i].innerHTML) + 1;
+            if(chat_screen.className.indexOf('welcome') == -1){
+                const send_count = document.getElementsByClassName('send_count')
+                if( send_count[i].className.indexOf('hidden') > -1
+                    && chat_room_form.className == 'hidden'){
+                    send_count[i].classList.remove('hidden');
+                    send_count[i].classList.add('d-flex');
+                    send_count[i].innerHTML = '1'
+                    console.log(1)
                 }else{
-                    send_count[i].innerHTML = '99+'
+                    if(Number(send_count[i].innerHTML) <= 99){
+                        send_count[i].innerHTML =
+                            Number(send_count[i].innerHTML) + 1;
+                        console.log(2)
+                    }else{
+                        send_count[i].innerHTML = '99+'
+                    }
                 }
             }
             chat_list_space.insertBefore(document.getElementsByClassName('chat_list')[i], chat_list_space.firstChild)
@@ -62,11 +89,11 @@ function latest_message(w_res) {
             chat_list_no${w_res.roomId} opponent_no${w_res.chatMessageUserDto.userId} nickname_${w_res.chatMessageUserDto.nickName} 
             chat_list click_chat_room`);
         chat_div.innerHTML = chat_list_js(w_res)
-        const opponent_block = document.getElementsByClassName('opponent_block')
-        opponent_block.innerText = '차단'
         chat_list_space.insertBefore(chat_div, chat_list_space.firstChild)
-        const send_count = document.getElementsByClassName('send_count')
-        send_count[0].innerText = '1'
+        const opponent_block = document.querySelector('.opponent_block')
+        opponent_block.innerText = '차단'
+        const send_count = document.querySelector('.send_count')
+        send_count.innerText = '1'
     }
 }
 //채팅 입력란에 채팅 메시지를 입력 및 전송 후 채팅 말풍선을 동적 생성하여 렌더링하는 함수
@@ -275,8 +302,8 @@ function create_conversation(w_res) {
             chat_screen.appendChild(chat_my_div);
             chat_input.value = "";
         }
-        chat_screen.scrollTop = chat_screen.scrollHeight
     }
+    chat_screen.scrollTop = chat_screen.scrollHeight
 }
 // 채팅방의 스크롤을 움직일 경우 스크롤을 채팅방의 최하단으로 이동시키는 버튼 생성하는 함수
 function create_chat_scroll_btn() {
