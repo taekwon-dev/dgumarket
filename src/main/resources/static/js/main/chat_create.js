@@ -26,18 +26,19 @@ function create_chat_list(s_res){
     chat_list_latest_message_width();
     send_count_height();
 }
-// 새로운 채팅방 목록 생성하는 함수
+// 채팅 거래를 통해 새로운 채팅방 목록을 생성하는 함수
 function new_create_chat_list(w_res) {
     // 날짜, 메시지, 이미지 파싱
     date_parsing(w_res.messageDate)
     message_parsing(w_res)
     get_image = document.getElementById('trade_item_picture').src
-    chat_screen.classList.add(`chat_list_no${room_id}`)
+    chat_screen.className =
+        `${chat_screen.classList[0]} chat_list_no${room_id} ${chat_screen.classList[2]} ${chat_screen.classList[3]}`
     close_chat_room_form.classList.remove('hidden')
     // 채팅방 생성
     const chat_div = document.createElement('div')
     chat_div.setAttribute('class',`${chat_screen.classList[0]} 
-        ${chat_screen.classList[4]} ${chat_screen.classList[2]} 
+        ${chat_screen.classList[1]} ${chat_screen.classList[2]} 
         ${chat_screen.classList[3]} chat_list click_chat_room`);
     chat_div.innerHTML = chat_list_js(w_res)
     chat_list_space.insertBefore(chat_div, chat_list_space.firstChild)
@@ -45,10 +46,13 @@ function new_create_chat_list(w_res) {
     const chat_opponent_nickname = document.querySelector('.chat_opponent_nickname')
     chat_opponent_nickname.innerText = `${chat_screen.classList[3].slice(9)}`
     const send_count = document.querySelector('.send_count')
+    send_count.innerText = '0'
     send_count.classList.add('hidden')
     send_count.classList.remove('d-flex')
     const opponent_block = document.querySelector('.opponent_block')
     opponent_block.innerText = '차단'
+    block_form.classList.remove('hidden')
+    report_form.classList.remove('hidden')
 }
 // 상대방으로부터 메시지가 올 때 해당 채팅목록에 최근 메시지 정보 및 갯수를 렌더링하는 함수
 function latest_message(w_res) {
@@ -61,21 +65,23 @@ function latest_message(w_res) {
             document.getElementsByClassName('send_time')[i].innerHTML = `${get_date}`
             document.getElementsByClassName('chat_conversation')[i].innerHTML = `${get_message}`
             document.getElementsByClassName('item_image')[i].innerHTML = `${get_image}`
-            if(chat_screen.className.indexOf('welcome') == -1){
-                const send_count = document.getElementsByClassName('send_count')
-                if( send_count[i].className.indexOf('hidden') > -1
-                    && chat_room_form.className == 'hidden'){
-                    send_count[i].classList.remove('hidden');
-                    send_count[i].classList.add('d-flex');
-                    send_count[i].innerHTML = '1'
-                    console.log(1)
-                }else{
-                    if(Number(send_count[i].innerHTML) <= 99){
-                        send_count[i].innerHTML =
-                            Number(send_count[i].innerHTML) + 1;
-                        console.log(2)
+            if(w_res.chatMessageUserDto.userId != `${web_items_search.value}`){
+                if(chat_room_form.className.indexOf('hidden') > -1 || w_res.roomId != chat_screen.classList[1].slice(12)){
+                    const send_count = document.getElementsByClassName('send_count')
+                    if( send_count[i].innerText == '0'){
+                        send_count[i].innerText = Number(send_count[i].innerText) + 1;
+                        send_count[i].classList.remove('hidden');
+                        send_count[i].classList.add('d-flex');
+                        console.log('안 읽은 메시지가 1이 되었다')
                     }else{
-                        send_count[i].innerHTML = '99+'
+                        if(Number(send_count[i].innerText) <= 99){
+                            send_count[i].innerText =
+                                Number(send_count[i].innerText) + 1;
+                            console.log('안 읽은 메시지가 1씩 추가되고 있다.')
+                        }else{
+                            send_count[i].innerText = '99+'
+                            console.log('안 읽은 메시지가 99 이상이다.')
+                        }
                     }
                 }
             }
@@ -83,6 +89,7 @@ function latest_message(w_res) {
             return toggle = true;
         }
     }
+    // 채팅방 나간 후 다시 생성될 때
     if(toggle == false){
         const chat_div = document.createElement('div')
         chat_div.setAttribute('class',`item_no${w_res.chatRoomProductDto.product_id} 
@@ -303,7 +310,6 @@ function create_conversation(w_res) {
             chat_input.value = "";
         }
     }
-    chat_screen.scrollTop = chat_screen.scrollHeight
 }
 // 채팅방의 스크롤을 움직일 경우 스크롤을 채팅방의 최하단으로 이동시키는 버튼 생성하는 함수
 function create_chat_scroll_btn() {
