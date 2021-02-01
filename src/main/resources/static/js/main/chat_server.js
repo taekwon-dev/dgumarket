@@ -21,12 +21,11 @@ function request_unread_total_chat() {
         .then(data => {
             console.log(data);
             if(data.data.unreadMessagesCnt == '0'){
-                total_alm.classList.add('hidden')
+                total_alm.innerText = `${data.data.unreadMessagesCnt}`
             }else{
+                total_alm.innerText = `${data.data.unreadMessagesCnt}`
                 total_alm.classList.remove('hidden')
-                if(Number(data.data.unreadMessagesCnt) <= 99){
-                    total_alm.innerText = `${data.data.unreadMessagesCnt}`
-                }else{
+                if(Number(data.data.unreadMessagesCnt) > 99){
                     total_alm.innerText = '99+'
                 }
             }
@@ -81,7 +80,57 @@ function request_trade_item_info(click_chat_room) {
         .then(data => {
             console.log(data);
             trade_item_info_view(data)
-            if(chat_screen.className.indexOf('chat_list_no') > -1){request_trade_state(click_chat_room)}
+            // if(chat_screen.className.indexOf('chat_list_no') > -1){request_trade_state(click_chat_room)}
+            if(chat_screen.className.indexOf('chat_list_no') > -1){request_block_state(click_chat_room)}
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
+// 채팅방 입장 시 채팅 상대와의 차단 여부 요청하는 함수
+function request_block_state(click_chat_room) {
+    const reqPromise = fetch(`/user/block/${click_chat_room.classList[2].slice(11)}`, {
+        method: 'GET',
+        headers : {Accept : 'application/json'}
+    })
+    reqPromise.then(res => {
+        if (res.status >= 200 && res.status < 300){
+            console.log('차단상태 조회 요청 성공')
+            return res.json();
+        }else{
+            console.log('차단상태 조회 요청 실패')
+            return Promise.reject(new Error(res.status))
+        }
+    })
+        .then(data => {
+            console.log(data);
+            block_state(data);
+            chat_screen_and_room_height();
+            if(data.data.block_status == '3'){request_trade_state(click_chat_room)}
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
+//채팅방에서 중고물품의 현재 거래완료 및 후기작성 유무 요청하는 함수
+function request_trade_state(click_chat_room) {
+    const reqPromise = fetch(`/chat/room/${click_chat_room.classList[1].slice(12)}/status`, {
+        method: 'GET',
+        headers : {Accept : 'application/json'}
+    })
+    reqPromise.then(res => {
+        if (res.status >= 200 && res.status < 300){
+            console.log('중고물품 현재 거래상태 요청 성공')
+            return res.json();
+        }else{
+            console.log('중고물품 현재 거래상태 요청 실패')
+            return Promise.reject(new Error(res.status))
+        }
+    })
+        .then(data => {
+            console.log(data);
+            trade_state_view(data);
+            chat_screen_and_room_height();
         })
         .catch(error => {
             console.log(error)
@@ -106,57 +155,14 @@ function request_trade_success() {
         }
     })
         .then(data => {
-            console.log(data);
-            trade_success_view()
-            chat_screen_and_room_height()
-        })
-        .catch(error => {
-            console.log(error)
-        })
-}
-//채팅방에서 중고물품의 현재 거래완료 및 후기작성 유무 요청하는 함수
-function request_trade_state(click_chat_room) {
-    const reqPromise = fetch(`/chat/room/${click_chat_room.classList[1].slice(12)}/status`, {
-        method: 'GET',
-        headers : {Accept : 'application/json'}
-    })
-    reqPromise.then(res => {
-        if (res.status >= 200 && res.status < 300){
-            console.log('중고물품 현재 거래상태 요청 성공')
-            return res.json();
-        }else{
-            console.log('중고물품 현재 거래상태 요청 실패')
-            return Promise.reject(new Error(res.status))
-        }
-    })
-        .then(data => {
-            console.log(data);
-            trade_state_view(data)
-            chat_screen_and_room_height()
-            request_block_state(click_chat_room.classList[2])
-        })
-        .catch(error => {
-            console.log(error)
-        })
-}
-// 채팅방 입장 시 채팅 상대와의 차단 여부 요청하는 함수
-function request_block_state(user_id) {
-    const reqPromise = fetch(`/user/block/${user_id.slice(11)}`, {
-        method: 'GET',
-        headers : {Accept : 'application/json'}
-    })
-    reqPromise.then(res => {
-        if (res.status >= 200 && res.status < 300){
-            console.log('차단상태 조회 요청 성공')
-            return res.json();
-        }else{
-            console.log('차단상태 조회 요청 실패')
-            return Promise.reject(new Error(res.status))
-        }
-    })
-        .then(data => {
-            console.log(data);
-            block_state(data);
+            if(data == 'transaction_status_updated_fail'){
+                console.log(data);
+                alert('상대방을 차단한 상태에서 거래완료를 할 수 없습니다.')
+            }else{
+                console.log(data);
+                trade_success_view();
+                chat_screen_and_room_height();
+            }
         })
         .catch(error => {
             console.log(error)
@@ -186,8 +192,11 @@ function request_user_block(user_id) {
                 const block = document.getElementsByClassName(`user_no${user_id}`)
                 for (let i = 0; i < block.length; i++) {block[i].innerText = '차단해제'}
                 if(chat_room_form.className.indexOf('hidden') == -1){
-                    state_block_effect()
-                    state_block()
+                    state_block_effect();
+                    state_block();
+                    trade_success_btn.setAttribute('disabled','')
+                    trade_success_text.style.color = '#adb5bd'
+                    chat_screen_and_room_height();
                 }
                 alert('차단이 정상적으로 완료되었습니다.')
             }else{
@@ -218,9 +227,11 @@ function request_user_unblock(user_id) {
             const block = document.getElementsByClassName(`user_no${user_id}`)
             for (let i = 0; i < block.length; i++) {block[i].innerText = '차단'}
             if(chat_room_form.className.indexOf('hidden') == -1) {
-                state_unblock()
+                state_unblock();
+                notification_trade_state.classList.add('hidden')
+                request_trade_state(chat_screen);
+                chat_screen_and_room_height();
             }
-            notification_trade_state.classList.add('hidden')
             alert('차단이 정상적으로 해제되었습니다.')
         })
         .catch(error => {
@@ -278,12 +289,10 @@ function request_view_trade_comment() {
         })
 }
 // 채팅방 나가기를 요청하는 함수
-function request_chat_room_out(from_chat_list) {
+function request_chat_room_out(leave_btn) {
     let room_id;
     if(chat_list_form.className.indexOf('hidden') == -1){
-        room_id = from_chat_list.slice(27)
-    }else if(chat_screen.classList[4]){
-        room_id = chat_screen.classList[4].slice(12)
+        room_id = leave_btn.id.slice(27)
     }else{
         room_id = chat_screen.classList[1].slice(12)
     }
@@ -305,6 +314,19 @@ function request_chat_room_out(from_chat_list) {
     })
         .then(data => {
             console.log(data);
+            if(chat_list_form.className.indexOf('hidden') == -1){
+                const send_count = document.getElementsByClassName('send_count')
+                total_alm.innerText =
+                    Number(total_alm.innerText) - Number(send_count[$('.chat_list_chat_room_out').index(leave_btn)].innerText)
+                if(total_alm.innerText == '0'){total_alm.classList.add('hidden');}
+                const chat_list = document.getElementsByClassName('chat_list')
+                chat_list_space.removeChild(chat_list[$('.chat_list_chat_room_out').index(leave_btn)])
+            }else{
+                unsubscribe_chat_room();
+                chat_list_space.removeChild(document.getElementsByClassName(chat_screen.classList[1])[0])
+                chat_room_close();
+            }
+            has_chat_list()
         })
         .catch(error => {
             console.log(error)
@@ -354,6 +376,12 @@ function websocket_connect() {
                     console.log('sub_room_frame: ' + sub_room_frame)
                     create_new_conversation(JSON.parse(sub_room_frame.body))
                     latest_message(JSON.parse(sub_room_frame.body))
+                    if(chat_input.hasAttribute('disabled')){
+                        unblocked_from_user();
+                        if(chat_screen.className){notification_trade_state.classList.add('hidden')}
+                        chat_screen_and_room_height();
+                        request_trade_state(chat_screen)
+                    }
                 },{id: `room-${room_id}`})
                 sub_room_and_user = stomp_client.subscribe(`/topic/room/${room_id}/${web_items_search.value}`,function(sub_room_and_user_frame) {
                     console.log('sub_room_and_user_frame: ' + sub_room_and_user_frame)
@@ -361,6 +389,7 @@ function websocket_connect() {
                 },{id: `room-user-${room_id}-${web_items_search.value}`})
             }else{
                 create_conversation(JSON.parse(convo_frame.body))
+                chat_screen.scrollTop = chat_screen.scrollHeight
                 if(chat_screen.className.indexOf('welcome') > -1){
                     new_create_chat_list(JSON.parse(convo_frame.body)[0])
                 }
@@ -378,12 +407,17 @@ function websocket_connect() {
         });
         stomp_client.subscribe('/user/queue/error', function (err_msg_frame) {
             console.log(err_msg_frame)
+            chat_input.value = ''
+            state_block_effect();
+            chat_screen_and_room_height();
             if(JSON.parse(err_msg_frame.body).error_code == '1'){
                 alert(`차단하신 ${chat_screen.classList[3].slice(9)}님과 채팅을 할 수 없습니다.`)
             }else{
                 alert(`${chat_screen.classList[3].slice(9)}님에게 차단되어 채팅을 할 수 없습니다.`)
+                blocked_from_user();
+                trade_success_btn.setAttribute('disabled','')
+                trade_success_text.style.color = '#adb5bd'
             }
-            chat_input.value = ''
         });
     },function (error) {
         console.log("[Connected Error] : " + error);
@@ -412,6 +446,12 @@ function join_chat_room(click_chat_room) {
         console.log(JSON.parse(join_sub_room_frame.body))
         create_new_conversation(JSON.parse(join_sub_room_frame.body))
         latest_message(JSON.parse(join_sub_room_frame.body))
+        if(chat_input.hasAttribute('disabled')){
+            unblocked_from_user();
+            if(chat_screen.className){notification_trade_state.classList.add('hidden')}
+            chat_screen_and_room_height();
+            request_trade_state(chat_screen)
+        }
     },{ id: `room-${click_chat_room.classList[1].slice(12)}`})
     sub_room_and_user = stomp_client.subscribe(`/topic/room/${click_chat_room.classList[1].slice(12)}/${web_items_search.value}`, function(join_sub_room_and_user_frame){
         console.log(JSON.parse(join_sub_room_and_user_frame.body))

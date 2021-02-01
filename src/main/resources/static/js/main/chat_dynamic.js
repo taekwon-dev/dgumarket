@@ -15,15 +15,18 @@ const chat_opponent_search = document.getElementById('chat_opponent_search');
 const close_btn = document.getElementById('close_btn')
 const chat_input_form1 = document.getElementById('chat_input_form1')
 const chat_room_out = document.getElementById('chat_room_out');
+const close_chat_room_form = document.getElementById('close_chat_room_form')
 const trade_success_form = document.getElementById('trade_success_form')
 const chat_input = document.getElementById('chat_input');
 const chat_submit_btn = document.getElementById('chat_submit_btn');
 const send_file_btn = document.getElementById('send_file_btn')
 const send_file_text = document.getElementById('send_file_text')
 const input_send_file = document.getElementById('send-file')
+const block_form = document.getElementById('block_form')
 const block_btn = document.getElementById('block_btn')
 const block_text = document.getElementById('block_text')
 const block_icon = document.getElementById('block_icon')
+const report_form = document.getElementById('report_form')
 const report_submit = document.getElementById('report_submit')
 const input_report = document.getElementById('input_report')
 const chat_screen = document.getElementById('chat_screen');
@@ -52,10 +55,11 @@ function hasClass(elem, className) {
 function chat_form_view() {
     chat_form.classList.remove('chat_close')
     chat_input_form1.classList.remove('chat_input_form_close')
-    // total_alm.classList.add('hidden');
     chat_start_button.classList.add('hidden');
+    chat_form.classList.add('chat_open')
+    chat_input_form1.classList.add('chat_input_form_open')
     chat_form.classList.remove('hidden');
-    if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
+    if (window.matchMedia( '( min-width:280px ) and ( max-width:767px )' ).matches) {
         const body_scrollY = document.documentElement.style.getPropertyValue('--scroll-y')
         const body_scroll = document.documentElement
         body_scroll.style.position = 'fixed'
@@ -70,23 +74,21 @@ function chat_room_view() {
     chat_list_form.classList.add('hidden');
     chat_title_chat.classList.add('hidden');
     chat_search_form.classList.add('hidden');
-    trade_item_info.classList.add('d-flex')
     empty_btn.classList.add('hidden')
+    trade_item_info.classList.add('d-flex')
+    back_btn.classList.add('d-flex')
+    chat_room_form.classList.add('chat_room_open');
     trade_item_info.classList.remove('hidden');
     back_btn.classList.remove('hidden');
-    back_btn.classList.add('d-flex')
     chat_room_form.classList.remove('hidden');
-    chat_room_form.classList.add('chat_room_open');
     chat_input_form_width();
-    const close_chat_room_form = document.getElementById('close_chat_room_form')
     if(chat_screen.className.indexOf('welcome') > -1){
         close_chat_room_form.classList.add('hidden')
     }else{close_chat_room_form.classList.remove('hidden')}
 }
 // 채팅방 하단UI의 너비를 조절하는 함수
 function chat_input_form_width() {
-    const chat_input_form1 = document.getElementById('chat_input_form1')
-    if(chat_input_form1){
+    if(chat_room_form.className.indexOf('hidden') == -1){
         chat_input_form1.style.width = (chat_form.clientWidth - 30)+'px';
     }
 }
@@ -98,14 +100,19 @@ function chat_room_close(){
     trade_item_info.classList.remove('d-flex')
     chat_room_form.classList.remove('chat_room_open');
     empty_btn.classList.remove('hidden')
-    trade_item_info.classList.add('hidden')
-    back_btn.classList.add('hidden')
     back_btn.classList.remove('d-flex')
+    back_btn.classList.add('hidden')
+    trade_item_info.classList.add('hidden')
     chat_input.value = ''
     chat_input.placeholder = '매시지를 입력하세요'
     chat_room_form.classList.add('hidden')
+    trade_success_form.classList.add('hidden');
+    trade_success_btn.removeAttribute('disabled')
+    trade_success_text.style.color = '#2f363d'
     chat_screen.removeAttribute('class')
     notification_trade_state.classList.add('hidden')
+    chat_write_trade_comment.classList.add('hidden')
+    chat_view_trade_comment.classList.add('hidden')
     init_conversation();
     chat_list_opponent_nickname_width();
     chat_list_latest_message_width();
@@ -156,15 +163,13 @@ function chat_list_latest_message_width() {
 }
 // 채팅 전체 폼 닫기 함수
 function chat_form_close() {
+    if(chat_room_form.className.indexOf('hidden') == -1){chat_room_close()}
     chat_form.classList.add('chat_close')
     chat_input_form1.classList.add('chat_input_form_close')
     chat_form.classList.add('hidden');
-    //읽지않은 채팅 메시지 갯수를 보여주는 UI는 다른 함수에서 경우의 수에 따라 view처리
     chat_start_button.classList.remove('hidden');
-    if(Number(total_alm.innerText) > 0){
-        total_alm.classList.remove('hidden');
-    }
-    chat_room_close();
+    chat_form.classList.remove('chat_open')
+    chat_input_form1.classList.remove('chat_input_form_open')
     if (window.matchMedia( '( min-width:280px ) and ( max-width:414px )' ).matches) {
         const body_scroll = document.documentElement
         const body_scrollY = body_scroll.style.top
@@ -176,7 +181,7 @@ function chat_form_close() {
 //채팅방 목록에서 각 채팅방의 수신 채팅 수를 알려주는 UI의 가로에 맞게 높이를 자동 조절하는 함수
 function send_count_height() {
     const send_count = document.getElementsByClassName('send_count')
-    if(send_count){
+    if(send_count.length > 0){
         for (let i = 0; i < send_count.length; i++) {
             send_count[i].style.height = (send_count[i].clientWidth)+'px';
         }
@@ -187,6 +192,7 @@ function chat_screen_and_room_height() {
     chat_room_form.style.height = chat_screen.style.height =
         (chat_form.clientHeight - chat_header.clientHeight - notification_trade_state.clientHeight
             - chat_input_form1.clientHeight - 14)+'px';
+    chat_screen.scrollTop = chat_screen.scrollHeight
 }
 // 채팅방에서 뒤로 갈 경우 채팅방의 대화내용 초기화하는 함수
 function init_conversation() {
@@ -201,12 +207,12 @@ function get_input_day_label(year,month,day) {
     return day_of_week;
 }
 // 거래후기 작성 시 누가 누구에게 작성하는지 보여주는 함수
-function from_seller_to_consumer() {
+function from_consumer_to_seller() {
     const seller_user_id = document.getElementById('seller_user_id')
     seller_user_id.innerText = `${chat_screen.classList[3].slice(9)}`
     const nav_user_nickname = document.getElementsByClassName('nav_user_nickname')
-    input_trade_comment.placeholder = `${nav_user_nickname[0].innerText}님의 진심이 담긴 한마디가 ${chat_screen.classList[3]
-        .slice(9)}님에게 큰 도움이 될 수 있습니다. 또한 거래후기는 수정 삭제가 불가하므로 신중히 작성 부탁드립니다.`
+    input_trade_comment.placeholder = `${nav_user_nickname[0].innerText}님의 진심이 담긴 한마디가 ${seller_user_id
+        .innerText}님에게 큰 도움이 될 수 있습니다. 또한 거래후기는 수정 삭제가 불가하므로 신중히 작성 부탁드립니다.`
 }
 //채팅입력 글자수 최대 2000자로 제한하는 함수
 function limit_string() {
@@ -237,6 +243,7 @@ function time_parsing(tm) {
         if(t > 12){t = t - 12}
         return get_date = `오후 ${t}:${tm.slice(14,16)}`
     }else{
+        if(t == 0){t = 12}
         return get_date = `오전 ${t}:${tm.slice(14,16)}`
     }
 }
@@ -344,11 +351,11 @@ const chat_list_html =
     </div>`
     return chat_list_html;
 }
-// 읽지않은 전체 채팅갯수를 플로팅 버튼 위에 실시간 알람으로 렌더링하는 함수
+// 읽지않은 전체 채팅갯수를 플로팅 버튼 위에 실시간으로 렌더링하는 함수
 function unread_total_chat() {
-    if( total_alm.className.indexOf('hidden') > -1){
+    if( Number(total_alm.innerText) == 0){
+        total_alm.innerText = Number(total_alm.innerText) + 1;
         total_alm.classList.remove('hidden')
-        total_alm.innerText = '1'
     }else{
         if(Number(total_alm.innerText) <= 99){
             total_alm.innerText = Number(total_alm.innerText) + 1;
@@ -387,25 +394,93 @@ function trade_item_info_view(s_res) {
         trade_state.innerText = '[예약중]'
         trade_state.style.color = '#19ce60';
         // 고유 href 추가
-
     }
     else if(s_res.data.transaction_status_id == '2'){
         trade_state.innerText = '[판매완료]';
         trade_state.style.color = '#8b8b8b';
         // 고유 href 추가
-
     }
     else if(s_res.data.transaction_status_id == '3'){
         trade_state.innerText = '[신고처리중]'
         trade_state.style.color = 'rgb(247, 47, 51)';
         // 고유 href 추가
-
     }else{
         trade_state.innerText = '[삭제]';
         trade_state.style.color = '#8b8b8b';
         trade_item_picture.removeAttribute('href')
         trade_item_picture.classList.remove('move_onePick')
-
+    }
+}
+// 채팅방 목록 렌더링 시 상대 유저 차단여부에 따라 차단버튼의 이름을 파싱해주는 함수
+function user_block(blk,i) {
+    const opponent_block = document.getElementsByClassName('opponent_block')
+    if(blk == false){
+        opponent_block[i].innerHTML = '차단'
+    }else{
+        opponent_block[i].innerHTML = '차단해제'
+    }
+}
+//차단을 하거나 당했을 경우 채팅방의 css가 바뀌는 함수
+function state_block_effect() {
+    chat_input.setAttribute('disabled','')
+    chat_input.style.opacity = '0.8'
+    chat_submit_btn.setAttribute('disabled','')
+    chat_submit_btn.style.background = '#adb5bd'
+    send_file_btn.setAttribute('disabled','')
+    input_send_file.setAttribute('disabled','')
+    send_file_text.style.color = '#adb5bd'
+    notification_trade_state.classList.remove('hidden')
+    chat_write_trade_comment.classList.add('hidden')
+    chat_view_trade_comment.classList.add('hidden')
+}
+// 차단을 했을 경우 채팅방UI를 파싱하는 함수
+function state_block() {
+    block_text.innerText = '차단해제'
+    block_icon.className ='fas fa-unlock-alt chat_button_icon'
+    chat_input.value = ''
+    chat_input.placeholder = '차단하신 상대방과 채팅을 할 수 없습니다.'
+    notification_trade_state_text.innerText =
+        `차단하신 ${chat_screen.classList[3].slice(9)}님과 채팅을 할 수 없습니다.`
+}
+// 차단을 당했을 경우 채팅방UI를 파싱하는 함수
+function blocked_from_user() {
+    chat_input.placeholder = '상대방에게 차단되어 채팅을 할 수 없습니다.'
+    notification_trade_state_text.innerText =
+        `${chat_screen.classList[3].slice(9)}님에게 차단되어 채팅을 할 수 없습니다.`
+}
+// 차단을 해제했을 경우 채팅방UI를 파싱하는 함수
+function state_unblock() {
+    block_text.innerText = '차단'
+    block_icon.className ='fas fa-user-lock chat_button_icon'
+    unblocked_from_user()
+}
+// 차단해제받았을 경우 채팅방UI를 파싱하는 함수
+function unblocked_from_user() {
+    chat_input.removeAttribute('disabled')
+    chat_input.removeAttribute('style')
+    chat_input.placeholder = '메시지를 입력하세요'
+    chat_submit_btn.removeAttribute('disabled')
+    chat_submit_btn.removeAttribute('style')
+    send_file_btn.removeAttribute('disabled')
+    input_send_file.removeAttribute('disabled')
+    send_file_text.style.color = '#2f363d'
+}
+// 상대방 유저와의 차단 여부에 따라 채팅방UI를 파싱하는 함수
+function block_state(s_res) {
+    if(s_res.data.block_status != '3'){
+        state_block_effect();
+    }
+    if(s_res.data.block_status == '1'){
+        state_block()
+    }
+    else if(s_res.data.block_status == '2'){
+        block_text.innerText = '차단'
+        block_icon.className ='fas fa-user-lock chat_button_icon'
+        chat_input.value = ''
+        blocked_from_user()
+    }
+    else if(s_res.data.block_status == '3'){
+        state_unblock()
     }
 }
 // 채팅방에서 해당 중고물품의 거래상태가 판매완료일 경우에만 알림창 보여주는 함수
@@ -468,7 +543,7 @@ function trade_success_view() {
     trade_success_btn.setAttribute('disabled','')
     trade_success_text.style.color = '#adb5bd'
 }
-// 중고물품 거래후기 정보를 서버로부터 응답받은 후 렌더링하는 함수
+// 중고물품 거래후기를 서버로부터 응답받은 후 렌더링하는 함수
 function trade_comment(s_res) {
     const writer_trade_comment = document.getElementById('writer_trade_comment')
     const trade_comment_date = document.getElementById('trade_comment_date')
@@ -477,70 +552,4 @@ function trade_comment(s_res) {
     writer_trade_comment.innerText = `${s_res.data.review_nickname}`
     trade_comment_date.innerText = `${get_date}`
     trade_comment_content.innerText = `${s_res.data.review_comment}`
-}
-// 채팅방 목록 렌더링 시 상대 유저 차단여부에 대해 파싱해주는 함수
-function user_block(blk,i) {
-    const opponent_block = document.getElementsByClassName('opponent_block')
-    if(blk == false){
-        opponent_block[i].innerHTML = '차단'
-    }else{
-        opponent_block[i].innerHTML = '차단해제'
-    }
-}
-//차단을 했을 경우 css바뀌는 함수
-function state_block_effect() {
-    chat_input.setAttribute('disabled','')
-    chat_input.style.opacity = '0.8'
-    chat_submit_btn.setAttribute('disabled','')
-    chat_submit_btn.style.background = '#adb5bd'
-    send_file_btn.setAttribute('disabled','')
-    input_send_file.setAttribute('disabled','')
-    send_file_text.style.color = '#adb5bd'
-    if(chat_screen.className){
-        notification_trade_state.classList.remove('hidden')
-    }
-    chat_write_trade_comment.classList.add('hidden')
-    chat_view_trade_comment.classList.add('hidden')
-}
-// 차단을 했을 경우 파싱하는 함수
-function state_block() {
-    block_text.innerText = '차단해제'
-    block_icon.className ='fas fa-unlock-alt chat_button_icon'
-    chat_input.value = ''
-    chat_input.placeholder = '차단하신 상대방과 채팅을 할 수 없습니다.'
-    notification_trade_state_text.innerText =
-        `차단하신 ${chat_screen.classList[3].slice(9)}님과 채팅을 할 수 없습니다.`
-}
-// 차단을 해제했을 경우 파싱하는 함수
-function state_unblock() {
-    block_text.innerText = '차단'
-    block_icon.className ='fas fa-user-lock chat_button_icon'
-    chat_input.removeAttribute('disabled')
-    chat_input.removeAttribute('style')
-    chat_input.placeholder = '메시지를 입력하세요'
-    chat_submit_btn.removeAttribute('disabled')
-    chat_submit_btn.removeAttribute('style')
-    send_file_btn.removeAttribute('disabled')
-    input_send_file.removeAttribute('disabled')
-    send_file_text.style.color = '#2f363d'
-}
-// 상대방 유저에 대한 차단 여부에 따라 파싱하는 함수
-function block_state(s_res) {
-    if(s_res.data.block_status != '3'){
-        state_block_effect()
-    }
-    if(s_res.data.block_status == '1'){
-        state_block()
-    }
-    else if(s_res.data.block_status == '2'){
-        block_text.innerText = '차단'
-        block_icon.className ='fas fa-user-lock chat_button_icon'
-        chat_input.value = ''
-        chat_input.placeholder = '상대방에게 차단되어 채팅을 할 수 없습니다.'
-        notification_trade_state_text.innerText =
-            `${chat_screen.classList[3].slice(9)}님에게 차단되어 채팅을 할 수 없습니다.`
-    }
-    else if(s_res.data.block_status == '3'){
-        state_unblock()
-    }
 }

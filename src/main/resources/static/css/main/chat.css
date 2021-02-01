@@ -30,7 +30,7 @@
     color: rgb(82, 145, 228);
     font-size: 30px;
 }
-.chat_open,.chat_input_form{
+.chat_open,.chat_input_form_open{
     animation-duration: 0.5s;
     animation-name: slidein_open;
 }
@@ -374,7 +374,7 @@
     margin-right: 3px;
     padding-bottom: 5px;
 }
-.chat_input_form{
+.chat_input_form_open{
     position: fixed;
     bottom: 0;
     border-top: 1px solid rgba(0,0,0,0.1);

@@ -6,7 +6,7 @@
     </button>
 </div>
 <!-- 최초 채팅 전체 폼 -->
-<div id="chat_form" class="chat2 container chat_open hidden">
+<div id="chat_form" class="chat2 container chat_close hidden">
     <!-- 채팅 해더 -->
     <div id="chat_header" class="d-flex justify-content-between">
         <!-- 채팅방에서 뒤로 가기 버튼 (체팅방 목록에서 hidden 및 d-flex 삭제처리)-->
@@ -72,7 +72,7 @@
         <!-- 채팅 스크린 -->
         <div id="chat_screen"></div>
         <!-- 체팅 하단 UI -->
-        <div id="chat_input_form1" class="chat_input_form">
+        <div id="chat_input_form1" class="chat_input_form_close">
             <!--채팅 파일첨부, 채팅방 나가기, 거래완료 버튼UI -->
             <div class="form-group my-file chat_input_form2">
                 <div class="d-flex">
@@ -111,7 +111,7 @@
                         <div style="font-size: 10px" id="trade_success_text" class="text-center">거래완료</div>
                     </div>
                     <!-- 채팅 유저 차단 버튼 UI -->
-                    <div class="chat_button_form1">
+                    <div id="block_form" class="chat_button_form1">
                         <div class="chat_button_form2">
                             <button type="button" id="block_btn" class="btn btn-outline-light">
                                 <div class="d-flex flex-wrap align-content-center justify-content-center">
@@ -122,7 +122,7 @@
                         <div style="font-size: 10px" id="block_text" class="text-center">차단</div>
                     </div>
                     <!-- 채팅 유저 신고 버튼 UI -->
-                    <div class="chat_button_form1">
+                    <div id="report_form" class="chat_button_form1">
                         <div class="chat_button_form2">
                             <button type="button" id="report_btn" class="btn btn-outline-light" data-toggle="modal" data-target="#report_user">
                                 <div class="d-flex flex-wrap align-content-center justify-content-center">

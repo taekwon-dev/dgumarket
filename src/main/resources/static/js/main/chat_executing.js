@@ -18,17 +18,15 @@ document.addEventListener('click',function (event) {
                 "product_id": 10
             }
         }
-        //product_id를 class에 저장하기
         chat_screen.classList.add(`item_no${json.data.product_id}`)
-        //roomId를 class에 저장하기
-        chat_screen.classList.add(`welcome`)
-        //상대방 user_id를 class에 저장하기
+        chat_screen.classList.add('welcome')
         chat_screen.classList.add(`opponent_no${json.chatMessageUserDto.userId}`)
-        //상대방 nickname을 class에 저장하기
         chat_screen.classList.add(`nickname_${json.chatMessageUserDto.nickName}`)
 
         chat_form_view();
         chat_room_view();
+        block_form.classList.add('hidden')
+        report_form.classList.add('hidden')
         request_trade_item_info(chat_screen);
     }
     // 모바일 채팅방에서 상대방 프로필,닉네임,거래중인 물품 이미지를 클릭할 경우 채팅창이 닫히도록 하기(해당 페이지로 이동되었다는 것을 보여주기 위함)
@@ -40,11 +38,9 @@ document.addEventListener('click',function (event) {
             unsubscribe_chat_room();
         }
     }
-    // 채팅방 목록에서 해당 채팅방 삭제하기
+    // 채팅방 목록에서 해당 채팅방 나가기
     if (hasClass(event.target, 'chat_list_chat_room_out')) {
-        chat_list_space.removeChild(event.target.parentNode.parentNode.parentNode.parentNode.parentNode)
-        has_chat_list()
-        request_chat_room_out(event.target.id)
+        request_chat_room_out(event.target)
     }
     // 채탕방 목록에서 해당 채팅방의 유저를 신고하기
     if (hasClass(event.target, 'report_submit')) {
@@ -74,20 +70,23 @@ document.addEventListener('click',function (event) {
 // 채팅방 목록 클릭시 해당 채팅방 열기
 $(document).on('click','.click_chat_room',function () {
     chat_room_view()
+    // 물건번호, 룸번호, 유저번호, 유저닉네임
     chat_screen.classList.add(this.classList[0])
     chat_screen.classList.add(this.classList[1])
     chat_screen.classList.add(this.classList[2])
     chat_screen.classList.add(this.classList[3])
     request_trade_item_info(this)
     join_chat_room(this)
-    if(Number(total_alm.innerText) > 0){
-        total_alm.innerText = Number(total_alm.innerText) - Number(this.firstChild
-            .children[0].children[1].children[1].children[1].innerText)
-        if(total_alm.innerText == '0'){total_alm.classList.add('hidden')}
-        this.firstChild.children[0].children[1].children[1].children[1].innerText = ''
-        this.firstChild.children[0].children[1].children[1].children[1].classList.add('hidden')
-        this.firstChild.children[0].children[1].children[1].children[1].classList.remove('d-flex')
-    }
+    console.log('전체 읽지 않은 갯수',Number(total_alm.innerText))
+    const send_count = document.getElementsByClassName('send_count')
+    console.log('읽은 갯수를 포함하는 태그',send_count[$('.click_chat_room').index(this)].innerText)
+    total_alm.innerText =
+        Number(total_alm.innerText) - Number(send_count[$('.click_chat_room').index(this)].innerText)
+    console.log('결과',Number(total_alm.innerText))
+    if(total_alm.innerText == '0'){total_alm.classList.add('hidden')}
+    send_count[$('.click_chat_room').index(this)].innerText = '0'
+    send_count[$('.click_chat_room').index(this)].classList.add('hidden')
+    send_count[$('.click_chat_room').index(this)].classList.remove('d-flex')
 })
 // 채팅목록에서 ...을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단 후 더보기 팝엽창 열기
 $(document).on('click','.chat_list_more_view',function (event) {
@@ -135,7 +134,7 @@ close_btn.addEventListener('click',function () {
     chat_form_close();
 })
 confirm_trade_success.addEventListener('click',request_trade_success)
-chat_write_trade_comment.addEventListener('click',from_seller_to_consumer)
+chat_write_trade_comment.addEventListener('click',from_consumer_to_seller)
 comment_submit.addEventListener('click', function () {
     if(input_trade_comment.value == ''){alert('구매후기를 작성해주세요')}
     else{request_upload_trade_comment()}
@@ -149,8 +148,6 @@ document.addEventListener('keydown',function (event) {
 })
 chat_room_out.addEventListener('click', function () {
     request_chat_room_out();
-    unsubscribe_chat_room();
-    chat_room_close();
 })
 // 채팅 입력란의 내용이 공백뿐일 경우 채팅 전송 방지
 chat_input.addEventListener( 'keydown' ,function(event) {
@@ -184,8 +181,11 @@ report_submit.addEventListener('click',function () {
     }
 })
 window.addEventListener('resize',function () {
-    chat_input_form_width();chat_list_opponent_nickname_width();send_count_height();
-    chat_list_latest_message_width();chat_screen_and_room_height();
+    chat_input_form_width();
+    chat_list_opponent_nickname_width();
+    send_count_height();
+    chat_list_latest_message_width();
+    chat_screen_and_room_height();
 })
 // 브라우저를 닫았을 때 해당 채팅방에 대한 구독을 취소하는 함수
 window.addEventListener("beforeunload", function () {
