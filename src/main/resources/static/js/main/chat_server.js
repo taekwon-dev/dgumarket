@@ -55,7 +55,12 @@ function request_my_chat_list() {
         .then(data => {
             console.log(data);
             loading_chat_list_room.classList.add('hidden')
-            create_chat_list(data);
+            if(data.length > 0){
+                if(Notification.permission == 'granted'){localStorage_notification_message(data)}
+                create_chat_list(data);
+            }else{
+                chat_room_empty.classList.remove('hidden')
+            }
             websocket_connect();
         })
         .catch(error => {
@@ -80,7 +85,6 @@ function request_trade_item_info(click_chat_room) {
         .then(data => {
             console.log(data);
             trade_item_info_view(data)
-            // if(chat_screen.className.indexOf('chat_list_no') > -1){request_trade_state(click_chat_room)}
             if(chat_screen.className.indexOf('chat_list_no') > -1){request_block_state(click_chat_room)}
         })
         .catch(error => {
@@ -373,9 +377,20 @@ function websocket_connect() {
             if(JSON.parse(convo_frame.body).roomId){
                 room_id = JSON.parse(convo_frame.body).roomId
                 sub_room = stomp_client.subscribe(`/topic/room/${room_id}`, function(sub_room_frame) {
-                    console.log('sub_room_frame: ' + sub_room_frame)
                     create_new_conversation(JSON.parse(sub_room_frame.body))
                     latest_message(JSON.parse(sub_room_frame.body))
+                    if(Notification.permission == 'granted'){
+                        if (JSON.parse(sub_room_frame.body).chatMessageUserDto.userId != `${web_items_search.value}`
+                            && document.visibilityState == 'hidden'){
+                            switch (check_notification_message(JSON.parse(sub_room_frame.body))) {
+                                case 'ON' :
+                                    show_notification_message(JSON.parse(sub_room_frame.body))
+                                    break;
+                                default :
+                                    break;
+                            }
+                        }
+                    }
                     if(chat_input.hasAttribute('disabled')){
                         unblocked_from_user();
                         if(chat_screen.className){notification_trade_state.classList.add('hidden')}
@@ -384,14 +399,22 @@ function websocket_connect() {
                     }
                 },{id: `room-${room_id}`})
                 sub_room_and_user = stomp_client.subscribe(`/topic/room/${room_id}/${web_items_search.value}`,function(sub_room_and_user_frame) {
-                    console.log('sub_room_and_user_frame: ' + sub_room_and_user_frame)
                     read_message(JSON.parse(sub_room_and_user_frame.body))
                 },{id: `room-user-${room_id}-${web_items_search.value}`})
             }else{
                 create_conversation(JSON.parse(convo_frame.body))
                 chat_screen.scrollTop = chat_screen.scrollHeight
                 if(chat_screen.className.indexOf('welcome') > -1){
+                    chat_room_empty.classList.add('hidden')
                     new_create_chat_list(JSON.parse(convo_frame.body)[0])
+                    if(Notification.permission == 'granted') {
+                        localStorage_notification_message(JSON.parse(convo_frame.body))
+                        if(localStorage.getItem(`notification_list_no${web_items_search.value}`) != null){
+                            const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
+                            localStorage_new_notification_message(JSON.parse(convo_frame.body)[0], notification_list)
+                            localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+                        }
+                    }
                 }
             }
         })
@@ -403,10 +426,21 @@ function websocket_connect() {
             chat_list_latest_message_width();
             send_count_height();
             // 상대방으로부터 메시지가 올 때 채팅 플로팅 버튼 옆에 읽지 않은 메시지 갯수 렌더링
-            unread_total_chat()
+            unread_total_chat();
+            if (Notification.permission == 'granted'){
+                if(document.visibilityState == 'hidden' ||
+                    chat_screen.className && chat_screen.classList[1].slice(12) != JSON.parse(sub_frame.body).roomId){
+                    switch (check_notification_message(JSON.parse(sub_frame.body))) {
+                        case 'ON' :
+                            show_notification_message(JSON.parse(sub_frame.body))
+                            break;
+                        default :
+                            break;
+                    }
+                }
+            }
         });
         stomp_client.subscribe('/user/queue/error', function (err_msg_frame) {
-            console.log(err_msg_frame)
             chat_input.value = ''
             state_block_effect();
             chat_screen_and_room_height();
@@ -443,9 +477,20 @@ function send_message() {
 // 채팅목록에서 채팅방으로 들어갈 때 구독하는 함수
 function join_chat_room(click_chat_room) {
     sub_room = stomp_client.subscribe(`/topic/room/${click_chat_room.classList[1].slice(12)}` , function (join_sub_room_frame){
-        console.log(JSON.parse(join_sub_room_frame.body))
         create_new_conversation(JSON.parse(join_sub_room_frame.body))
         latest_message(JSON.parse(join_sub_room_frame.body))
+        if(Notification.permission == 'granted'){
+            if (JSON.parse(join_sub_room_frame.body).chatMessageUserDto.userId != `${web_items_search.value}`
+                && document.visibilityState == 'hidden'){
+                switch (check_notification_message(JSON.parse(join_sub_room_frame.body))) {
+                    case 'ON' :
+                        show_notification_message(JSON.parse(join_sub_room_frame.body))
+                        break;
+                    default :
+                        break;
+                }
+            }
+        }
         if(chat_input.hasAttribute('disabled')){
             unblocked_from_user();
             if(chat_screen.className){notification_trade_state.classList.add('hidden')}
@@ -454,7 +499,6 @@ function join_chat_room(click_chat_room) {
         }
     },{ id: `room-${click_chat_room.classList[1].slice(12)}`})
     sub_room_and_user = stomp_client.subscribe(`/topic/room/${click_chat_room.classList[1].slice(12)}/${web_items_search.value}`, function(join_sub_room_and_user_frame){
-        console.log(JSON.parse(join_sub_room_and_user_frame.body))
         read_message(JSON.parse(join_sub_room_and_user_frame.body))
     },{id: `room-user-${click_chat_room.classList[1].slice(12)}-${web_items_search.value}`})
 }

@@ -201,11 +201,11 @@
     padding: .375rem 0;
     cursor: pointer;
 }
-.chat_alarm,.opponent_block,.opponent_report,.chat_room_leave,.more_view_cancel{
+.chat_notification_message,.opponent_block,.opponent_report,.chat_room_leave,.more_view_cancel{
     margin-left: .75rem;
     margin-right: .75rem;
 }
-.chat_alarm:hover,.opponent_block:hover,.opponent_report:hover,.chat_room_leave:hover,
+.chat_notification_message:hover,.opponent_block:hover,.opponent_report:hover,.chat_room_leave:hover,
 .more_view_cancel:hover{
     background-color: rgba(0, 0, 0, 0.05);
 }
@@ -395,7 +395,7 @@
     width: 100%;
     padding-bottom: 100%;
 }
-#send_file_btn,#close_chat_room,#trade_success_btn,#block_btn,#report_btn{
+#notification_msg_btn,#send_file_btn,#close_chat_room,#trade_success_btn,#block_btn,#report_btn{
     border-radius: 50%;
     cursor: pointer;
     position: absolute;
