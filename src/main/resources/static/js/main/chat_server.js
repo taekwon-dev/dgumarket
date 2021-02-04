@@ -463,14 +463,14 @@ function websocket_disconnect() {
     console.log("Disconnected");
 }
 // 채팅 메시지 보내는 함수
-function send_message() {
+function send_message(msg,msg_type) {
     const message =
         {
             productId : `${chat_screen.classList[0].slice(7)}`,
             senderId : `${web_items_search.value}`,
             receiverId : `${chat_screen.classList[2].slice(11)}`,
-            messageType : `${0}`,
-            message : chat_input.value
+            messageType : `${msg_type}`,
+            message : `${msg}`
         }
     stomp_client.send("/message", {}, JSON.stringify(message))
 }

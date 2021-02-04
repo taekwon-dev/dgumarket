@@ -66,15 +66,12 @@ function permission_notification_message() {
 }
 // 채팅메시지 알림을 띄우는 함수
 function show_notification_message(msg) {
-    const pop_message =
-        new Notification(`동대방네: ${msg.chatMessageUserDto.nickName}님이 ${web_items_search.value}님에게`,{
+    const pop_message = new Notification(`동대방네 : ${msg.chatMessageUserDto.nickName}님이 ${web_items_search.value}님에게`,{
         body : msg.message,
-        icon : msg.chatRoomProductDto.productImgPath
+        icon : msg.chatRoomProductDto.productImgPath,
+        tag : msg.roomId
     })
-    setTimeout( () => {
-        pop_message.close();
-    },3000)
-    console.log("알림이 왔습니다.")
+    console.log('알림이 왔습니다.')
 }
 // 로컬 스토리지에 채팅방의 알림설정 정보가 저장되어 있지 않을 경우 알림설정을 모두 on으로 저장하는 함수
 function localStorage_notification_message(s_res) {
