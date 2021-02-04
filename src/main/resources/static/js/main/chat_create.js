@@ -11,7 +11,8 @@ function create_chat_list(s_res){
         chat_div.innerHTML = chat_list_js(s_res[i])
         chat_list_space.appendChild(chat_div)
         user_block(s_res[i].block,i)
-        //각 채팅방에서 미수신 메시지가 0인 경우 미수신 알람 미처리
+        if(Notification.permission == 'granted'){chat_list_notification_message(s_res[i],i)}
+        //각 채팅방에서 미수신 메시지가 0인 경우 미수신 알림 미처리
         const send_count = document.getElementsByClassName('send_count')
         send_count[i].innerText = `${s_res[i].unreadMessageCount}`
         if(s_res[i].unreadMessageCount == '0'){
@@ -53,6 +54,11 @@ function new_create_chat_list(w_res) {
     opponent_block.innerText = '차단'
     block_form.classList.remove('hidden')
     report_form.classList.remove('hidden')
+    if(Notification.permission == 'granted'){
+        const chat_notification_message = document.querySelector('.chat_notification_message')
+        chat_notification_message.innerText = '알림끄기'
+        notification_msg_form.classList.remove('hidden')
+    }
 }
 // 상대방으로부터 메시지가 올 때 해당 채팅목록에 최근 메시지 정보 및 갯수를 렌더링하는 함수
 function latest_message(w_res) {
@@ -72,15 +78,15 @@ function latest_message(w_res) {
                         send_count[i].innerText = Number(send_count[i].innerText) + 1;
                         send_count[i].classList.remove('hidden');
                         send_count[i].classList.add('d-flex');
-                        console.log('안 읽은 메시지가 1이 되었다')
+                        console.log('안 읽은 메시지가 1개다.')
                     }else{
                         if(Number(send_count[i].innerText) <= 99){
                             send_count[i].innerText =
                                 Number(send_count[i].innerText) + 1;
-                            console.log('안 읽은 메시지가 1씩 추가되고 있다.')
+                            console.log('안 읽은 메시지가 1개 추가되었다.')
                         }else{
                             send_count[i].innerText = '99+'
-                            console.log('안 읽은 메시지가 99 이상이다.')
+                            console.log('안 읽은 메시지가 99개 이상이다.')
                         }
                     }
                 }
@@ -89,7 +95,7 @@ function latest_message(w_res) {
             return toggle = true;
         }
     }
-    // 채팅방 나간 후 다시 생성될 때
+    // 새로운 거래 혹은 채팅방 나간 이후 해당 채팅방에 있는 상대방에게 메시지를 받아 채팅방이 생성되는 경우
     if(toggle == false){
         const chat_div = document.createElement('div')
         chat_div.setAttribute('class',`item_no${w_res.chatRoomProductDto.product_id} 
@@ -101,6 +107,16 @@ function latest_message(w_res) {
         opponent_block.innerText = '차단'
         const send_count = document.querySelector('.send_count')
         send_count.innerText = '1'
+        if(Notification.permission == 'granted'){
+            const chat_notification_message = document.querySelector('.chat_notification_message')
+            chat_notification_message.innerText = '알림끄기'
+            localStorage_notification_message(w_res)
+            if(localStorage.getItem(`notification_list_no${web_items_search.value}`) != null){
+                const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
+                localStorage_new_notification_message(w_res, notification_list)
+                localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+            }
+        }
     }
 }
 //채팅 입력란에 채팅 메시지를 입력 및 전송 후 채팅 말풍선을 동적 생성하여 렌더링하는 함수

@@ -22,6 +22,10 @@ const chat_submit_btn = document.getElementById('chat_submit_btn');
 const send_file_btn = document.getElementById('send_file_btn')
 const send_file_text = document.getElementById('send_file_text')
 const input_send_file = document.getElementById('send-file')
+const notification_msg_form = document.getElementById('notification_msg_form')
+const notification_msg_btn = document.getElementById('notification_msg_btn')
+const notification_msg_text = document.getElementById('notification_msg_text')
+const notification_msg_icon = document.getElementById('notification_msg_icon')
 const block_form = document.getElementById('block_form')
 const block_btn = document.getElementById('block_btn')
 const block_text = document.getElementById('block_text')
@@ -47,6 +51,103 @@ let message_state;
 const date = new Date();
 const mm =  date.getMonth() < 9 ? `0${date.getMonth()+1}` : `${date.getMonth()+1}`;
 const dd = date.getDate() < 10 ? `0${date.getDate()}` : `${date.getDate()}`
+// 홈페이지 접속 후 채팅메시지 알림 허용을 클라이언트에 요청하는 함수
+function permission_notification_message() {
+    if(!("Notification" in window)){
+        alert('채팅 메시지 알림을 지원하지 않는 환경입니다.')
+    }
+    Notification.requestPermission( result => {
+        if(result == 'denied'){
+            console.log("전체 채팅 메시지 알림 차단 상태")
+        }else{
+            console.log('전체 채팅 메시지 알림 허용 상태')
+        }
+    });
+}
+// 채팅메시지 알림을 띄우는 함수
+function show_notification_message(msg) {
+    const pop_message =
+        new Notification(`동대방네: ${msg.chatMessageUserDto.nickName}님이 ${web_items_search.value}님에게`,{
+        body : msg.message,
+        icon : msg.chatRoomProductDto.productImgPath
+    })
+    setTimeout( () => {
+        pop_message.close();
+    },3000)
+    console.log("알림이 왔습니다.")
+}
+// 로컬 스토리지에 채팅방의 알림설정 정보가 저장되어 있지 않을 경우 알림설정을 모두 on으로 저장하는 함수
+function localStorage_notification_message(s_res) {
+    if(localStorage.getItem(`notification_list_no${web_items_search.value}`) == null){
+        const notification_list = [];
+        for (let i = 0; i < s_res.length; i++) {
+            localStorage_new_notification_message(s_res[i], notification_list)
+        }
+        localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+    }
+}
+// 새롭게 생성된 채팅방의 알림설정을 on으로 하여 로컬스토리지에 저장하는 함수
+function localStorage_new_notification_message(res, notification_list) {
+    const notification_object = {}
+    notification_object.room_id = res.roomId;
+    notification_object.notification_mode = 'ON'
+    notification_list.push(notification_object)
+    console.log(notification_list)
+}
+// 채팅방 목록 렌더링 시 각 채팅방의 메시지 알림 설정 여부에 따라 알림버튼의 이름을 파싱해주는 함수
+function chat_list_notification_message(notif, i) {
+    const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
+    const mode = notification_list.filter( li => li.room_id == notif.roomId)[0].notification_mode
+    console.log(mode)
+    const chat_notification_message = document.getElementsByClassName('chat_notification_message')
+    if(mode == "ON"){
+        chat_notification_message[i].innerText = '알림끄기'
+    }
+    else if(mode == "OFF"){
+        chat_notification_message[i].innerText = '알림켜기'
+    }
+}
+// 해당 채팅방 혹은 채팅방목록에서 알림 설정을 할 경우 로컬스토리지에도 알맞게 반영되도록 하는 함수
+function switch_notification_message(room_id) {
+    const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
+    const mode = notification_list.filter( li => li.room_id == room_id)[0].notification_mode
+    console.log(mode)
+    switch (mode) {
+        case 'ON':
+            for (let i = 0; i < notification_list.length; i++) {
+                if(notification_list[i].room_id == room_id){
+                    notification_list[i].notification_mode = "OFF"
+                    break;
+                }
+            }
+            localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+            break;
+        case 'OFF':
+            for (let i = 0; i < notification_list.length; i++) {
+                if(notification_list[i].room_id == room_id){
+                    notification_list[i].notification_mode = "ON"
+                    break;
+                }
+            }
+            localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+            break;
+    }
+}
+// 메시지가 왔을 때 해당 메시지의 채팅방 알림설정 여부 확인하는 함수
+function check_notification_message(frame) {
+    const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
+    const mode = notification_list.filter( li => li.room_id == frame.roomId)[0].notification_mode
+    if(mode == "ON"){
+        return 'ON';
+    }
+    else if(mode == "OFF"){
+        return 'OFF';
+    }else{
+        localStorage_new_notification_message(frame, notification_list)
+        localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+        return 'ON';
+    }
+}
 // 동적 생성된 엘리먼트 중에서 해당 클래스를 갖고 있을 경우 이벤트 바인딩하는 함수
 function hasClass(elem, className) {
     return elem.className.split(' ').indexOf(className) > -1;
@@ -294,7 +395,7 @@ const chat_list_html =
         </div>
     </div>
     <div class="room_no${res.roomId} more_view_form hidden">
-        <div class="chat_alarm">알람 끄기</div>
+        <div class="chat_notification_message notification_no${res.roomId}"></div>
         <div class="opponent_block user_no${res.chatMessageUserDto.userId}"></div>
         <div class="opponent_report" data-toggle="modal"
             data-target="#report_no${res.roomId}">신고</div>

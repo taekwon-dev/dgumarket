@@ -1,6 +1,7 @@
 // 테스트 코드
 web_items_search.addEventListener('keyup', function () {
-    request_unread_total_chat()
+    permission_notification_message();
+    request_unread_total_chat();
 })
 chat_start_button.addEventListener('click',function () {
     chat_form_view();
@@ -25,6 +26,7 @@ document.addEventListener('click',function (event) {
 
         chat_form_view();
         chat_room_view();
+        notification_msg_form.classList.add('hidden')
         block_form.classList.add('hidden')
         report_form.classList.add('hidden')
         request_trade_item_info(chat_screen);
@@ -75,8 +77,19 @@ $(document).on('click','.click_chat_room',function () {
     chat_screen.classList.add(this.classList[1])
     chat_screen.classList.add(this.classList[2])
     chat_screen.classList.add(this.classList[3])
+    if(Notification.permission == 'granted'){
+        notification_msg_form.classList.remove('hidden')
+        const chat_notification_message = document.getElementsByClassName('chat_notification_message')
+        notification_msg_text.innerText = chat_notification_message[$('.click_chat_room').index(this)].innerText
+        if(chat_notification_message[$('.click_chat_room').index(this)].innerText == '알림끄기'){
+            notification_msg_icon.className = 'fas fa-bell-slash chat_button_icon'
+        }else{
+            notification_msg_icon.className = 'fas fa-bell chat_button_icon'
+        }
+    }
     request_trade_item_info(this)
     join_chat_room(this)
+    // 해당 채팅방의 읽지 않은 메시지 갯수를 읽지 않은 전체 메시지 갯수에서 빼기
     console.log('전체 읽지 않은 갯수',Number(total_alm.innerText))
     const send_count = document.getElementsByClassName('send_count')
     console.log('읽은 갯수를 포함하는 태그',send_count[$('.click_chat_room').index(this)].innerText)
@@ -98,12 +111,25 @@ $(document).on('click','.chat_list_more_view',function (event) {
 $(document).on('click','.more_view_form',function (event) {
     event.stopPropagation()
 })
+$(document).on('click','.chat_notification_message',function () {
+    if(Notification.permission == 'granted'){
+        if (this.innerText == '알림끄기'){
+            this.innerText = '알림켜기';
+        }else{
+            this.innerText = '알림끄기';
+        }
+        switch_notification_message(this.classList[1].slice(15))
+    }
+})
 $(document).on('click','.opponent_block',function () {
     if(this.innerText == '차단'){
         request_user_block(this.classList[1].slice(7))
     }else{
         request_user_unblock(this.classList[1].slice(7));
     }
+})
+$(document).on('click','.more_view_cancel',function () {
+    this.parentNode.classList.add('hidden')
 })
 // 채팅목록에서 채팅방 신고 모달UI의 버튼을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단하기
 $(document).on('click','.chat_report_modal',function (event) {
@@ -112,9 +138,6 @@ $(document).on('click','.chat_report_modal',function (event) {
 // 채팅목록에서 채팅방 나가기 모달UI의 버튼을 클릭할 때 채팅방으로 이동되지 않도록 이벤트 버블링 차단하기
 $(document).on('click','.chat_room_out_modal',function (event) {
     event.stopPropagation()
-})
-$(document).on('click','.more_view_cancel',function () {
-    this.parentNode.classList.add('hidden')
 })
 window.addEventListener('scroll',() => {
     document.documentElement.style.setProperty('--scroll-y',`${window.scrollY}px`)
@@ -164,6 +187,29 @@ chat_input.addEventListener('keyup',limit_string)
 chat_submit_btn.addEventListener('click',function() {
     if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") != "") {
         send_message()
+    }
+})
+notification_msg_btn.addEventListener('click',function () {
+    if(Notification.permission == 'granted'){
+        const chat_notification_message = document.getElementsByClassName('chat_notification_message')
+        if(notification_msg_text.innerText == '알림끄기'){
+            notification_msg_text.innerText = '알림켜기'
+            notification_msg_icon.className = 'fas fa-bell chat_button_icon'
+            for (let i = 0; i < chat_notification_message.length; i++) {
+                if(chat_notification_message[i].classList[1].slice(15) == chat_screen.classList[1].slice(12)){
+                    chat_notification_message[i].innerText = '알림켜기'
+                }
+            }
+        }else{
+            notification_msg_text.innerText = '알림끄기'
+            notification_msg_icon.className = 'fas fa-bell-slash chat_button_icon'
+            for (let i = 0; i < chat_notification_message.length; i++) {
+                if(chat_notification_message[i].classList[1].slice(15) == chat_screen.classList[1].slice(12)){
+                    chat_notification_message[i].innerText = '알림끄기'
+                }
+            }
+        }
+        switch_notification_message(chat_screen.classList[1].slice(12))
     }
 })
 block_btn.addEventListener('click',function () {
