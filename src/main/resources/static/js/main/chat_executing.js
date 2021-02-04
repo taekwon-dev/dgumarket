@@ -178,7 +178,7 @@ chat_input.addEventListener( 'keydown' ,function(event) {
         // 엔터 클릭 후 개행 방지
         event.preventDefault();
         if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") != "") {
-            send_message()
+            send_message(chat_input.value,0)
         }
     }
 })
@@ -186,7 +186,7 @@ chat_input.addEventListener('keyup',limit_string)
 // 채팅 입력란의 내용이 공백뿐일 경우 채팅 전송 방지
 chat_submit_btn.addEventListener('click',function() {
     if (0 < chat_input.value.length && chat_input.value.replace(/^\s+|\s+$/g,"") != "") {
-        send_message()
+        send_message(chat_input.value,0)
     }
 })
 notification_msg_btn.addEventListener('click',function () {
