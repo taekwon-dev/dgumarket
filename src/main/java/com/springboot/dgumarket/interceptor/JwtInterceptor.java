@@ -38,6 +38,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtInterceptor.class);
     private static final String API_PRODUCT_INDEX = "/api/product/index";
+    private static final String API_SHOP = "(/api/shop/\\d+/)(profile|products|reviews)"; // jwt 없을 경우도 pass 가능
 
     private CookieUtil cookieUtil;
     private JwtUtils jwtUtils;
@@ -129,6 +130,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         } else {
             if (getRequestURI.equals(API_PRODUCT_INDEX)) return true;
+            if (getRequestURI.matches(API_SHOP)) return true;
             throw new CustomJwtException(errorResponse(request));
         }
     }

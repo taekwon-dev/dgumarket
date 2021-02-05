@@ -37,10 +37,12 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     private static final int PRODUCT_STATUS_PRODUCT_DELETE = 3;
 
 
+    private static final int SOLD_BY_ANOTHER_ROOM = 2;
     private static final int SOLD = 1;
     private static final int SOLDNOT = 0;
     private static final int YES = 1;
     private static final int NO = 0;
+
 
     @Autowired
     ChatRoomRepository chatRoomRepository;
@@ -189,12 +191,13 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
     // 채팅방 물건 거래완료로 바꾸기
     @Override
-    public void changeRoomTransactionStatus(int roomId, int status) {
+    public boolean changeRoomTransactionStatus(int roomId, int status) {
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
-
+        if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 거래완료
+            return false;
+        }
         // 거래완료로 바꾸기
         chatRoom.getProduct().setTransactionStatusId(status);
-
         // 거래완료 데이터(거래리뷰 null) 추가하기
         ProductReview productReview = ProductReview.builder()
                 .consumer(chatRoom.getConsumer())
@@ -203,6 +206,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 .chatRoom(chatRoom)
                 .build();
         productReviewRepository.save(productReview);
+        return true;
     }
 
     // 채팅방 나가기
@@ -229,7 +233,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                     .build();
         }
 
-        if(productReview.isPresent()){
+        if(productReview.isPresent()){ // 판매자가 판매를 하였을 경우
 
             if ( productReview.get().getConsumer() == member){ // 구매자
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
@@ -244,11 +248,14 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 return chatRoomStatusDto;
 
             }else if( productReview.get().getSeller() == member){ // 판매자
+
+
                 String reviewerNickname  = productReview.get().getConsumer().getNickName();
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_SELLER)
                         .transactionStatus(SOLD)
                         .reviewer_nickname(reviewerNickname).build();
+
                 if(productReview.get().getReviewMessage() == null){ // 거래완료 & 구매자 후기 아직 안남김
                     chatRoomStatusDto.setIsReviewUpload(NO);
                 }else {
@@ -260,8 +267,19 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 return ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_ETC).build();
             }
-        }else{ // 판매자가 구매완료 버튼 누르지 않은 경우 ( 모두에게 공평 )
-            if(chatRoom.getSeller() == member){
+        }else{ // 판매자가 구매완료 버튼 누르지 않은 경우 ( 모두에게 공평 ) + 구매버튼을 눌러도 해당 거래완료한 해당 채팅방이 아닐경우
+
+
+
+
+            if(chatRoom.getSeller() == member){ // 물건 올린 사람
+
+                if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 다른 곳에서 판매자가 거래완료 함
+                    return ChatRoomStatusDto.builder()
+                            .productStatus(PRODUCT_STATUS_SELLER)
+                            .transactionStatus(SOLD_BY_ANOTHER_ROOM).build();
+                }
+
                 return ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_SELLER)
                         .transactionStatus(SOLDNOT).build();

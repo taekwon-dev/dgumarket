@@ -85,9 +85,6 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
         chatRoomAfterJoined.getConnectedUsers().stream().forEach((e) -> logger.info("[REDIS, [ROOM][JOIN]] after join the room {}", e.toString()));
         redisTemplate.opsForValue().set(sessionId, String.valueOf(roomId)); // 레디스에 유저 세션정보 추가
         logger.info("sessionId : {}, roomId : {}", sessionId, roomId);
-
-
-
         logger.info("[[REDIS] {} 번에 가입된 유저들 : {}]", chatRoomAfterJoined.getRoomId(), chatRoomAfterJoined.getConnectedUsers().toString());
         // 읽지 않은 메시지 읽음 상태로 바꾸기(사용자 입장날짜 기준 뒤로)
         int num = chatMessageRepository.updateReadstatus(roomId, senderId);

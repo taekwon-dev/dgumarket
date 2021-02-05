@@ -4,6 +4,7 @@ import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -46,6 +47,16 @@ public class ControllerExceptionHandler {
                 request.getDescription(false));
 
         return message;
+    }
+    @ExceptionHandler(CustomControllerExecption.class)
+    public ResponseEntity<?> exceptionHandler(CustomControllerExecption ex, WebRequest request) {
+        ErrorMessage message = new ErrorMessage(
+                ex.getHttpStatus().value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, ex.getHttpStatus());
     }
 }
 

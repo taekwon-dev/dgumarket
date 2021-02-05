@@ -7,19 +7,20 @@ import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
+import com.springboot.dgumarket.dto.shop.ShopProductListDto;
+import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.modelmapper.*;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,11 +37,13 @@ public class ProductServiceImpl implements ProductService {
     private ProductCategoryRepository productCategoryRepository;
     private ModelMapper modelMapper;
     private ProductListIndex productListIndex;
+    private MemberRepository memberRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ModelMapper modelMapper) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ModelMapper modelMapper, MemberRepository memberRepository) {
         this.productRepository = productRepository;
         this.productCategoryRepository = productCategoryRepository;
         this.modelMapper = modelMapper;
+        this.memberRepository = memberRepository;
     }
 
     @Override
@@ -213,5 +216,119 @@ public class ProductServiceImpl implements ProductService {
                 });
 
         return productListIndexList;
+    }
+    // 유저의 판매물품 조회
+    @Override
+    public ShopProductListDto getUserProducts(int userId, String productSet, Pageable pageable) {
+        Member member = memberRepository.findById(userId);
+
+        modelMapper = new ModelMapper();
+       // User -> UserDTO 매핑설정
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
+            @Override
+            protected void configure() {
+                // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
+                map().setThumbnailImg(source.getImgDirectory());
+                map().setTitle(source.getTitle());
+                map().setPrice(source.getPrice());
+                map().setId(source.getId());
+                map().setChatroomNums(source.getChatroomNums());
+                map().setLikeNums(source.getLikeNums());
+                map().setUploadDatetime(source.getCreateDatetime());
+                map().setTransaction_status_id(source.getTransactionStatusId());
+                when(Conditions.isNull()).skip().setLastUpdatedDatetime(source.getUpdateDatetime());
+            }
+        };
+        modelMapper.addMappings(listDtoPropertyMap);
+
+
+
+        List<ProductReadListDto> productReadListDtos;
+        ShopProductListDto shopProductListDto;
+        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
+        boolean isPriceDesc; // 가격 내림차순(고가순)
+        boolean isPriceAsc; // 가격 오름차순(저가순)
+        switch (productSet)
+        {
+            case "total": // 전체
+                productReadListDtos = productRepository.findAllByMember(member, pageable)
+                        .stream()
+                        .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                        .collect(Collectors.toList());
+                log.info("1");
+
+                isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+                isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+                checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+                shopProductListDto = ShopProductListDto.builder()
+                        .page_size(productReadListDtos.size())
+                        .total_size((int) member.getProducts()
+                                .stream()
+                                .filter(e->e.getProductStatus() == 0)
+                                .count())
+                        .productsList(productReadListDtos).build();
+
+                break;
+            case "sale": // 판매중
+                productReadListDtos = productRepository.findAllByMemberWithSort(member,0, pageable)
+                        .stream()
+                        .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                        .collect(Collectors.toList());
+
+                isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+                isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+                checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+
+                shopProductListDto = ShopProductListDto.builder()
+                        .page_size(productReadListDtos.size())
+                        .total_size(
+                                (int) member.getProducts()
+                                        .stream()
+                                        .filter(e -> (e.getTransactionStatusId() == 0 && e.getProductStatus() == 0))
+                                        .count()
+                        )
+                        .productsList(productReadListDtos).build();
+                break;
+            case "sold": // 거래완료
+                productReadListDtos = productRepository.findAllByMemberWithSort(member,2, pageable)
+                        .stream()
+                        .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                        .collect(Collectors.toList());
+
+                isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+                isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+                checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+
+                shopProductListDto = ShopProductListDto.builder()
+                        .page_size(productReadListDtos.size())
+                        .total_size(
+                                (int) member.getProducts()
+                                        .stream()
+                                        .filter(e -> (e.getTransactionStatusId() == 2 && e.getProductStatus() == 0))
+                                        .count()
+                        )
+                        .productsList(productReadListDtos).build();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + productSet);
+        }
+
+        return shopProductListDto;
+    }
+
+    private void checkPriceDescAsc(List<ProductReadListDto> productReadListDtos, Comparator<ProductReadListDto> readListDtosComparator, boolean isPriceDesc, boolean isPriceAsc) {
+        if(isPriceAsc){ // 저가순
+            productReadListDtos.sort(readListDtosComparator);
+            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
+        }else if(isPriceDesc){ // 고가순
+            productReadListDtos.sort(readListDtosComparator.reversed());
+            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
+        }
+    }
+
+
+    public static int parseStringToInt(String priceString){
+        priceString = priceString.replaceAll("￦|,", ""); //remove commas
+        return (int)Math.round(Double.parseDouble(priceString)); //return rounded double cast to int
     }
 }

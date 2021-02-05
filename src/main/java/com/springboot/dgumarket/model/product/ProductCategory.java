@@ -35,7 +35,6 @@ public class ProductCategory {
     @Column(name = "category_type")
     private int categoryType;
 
-
     @OneToMany(mappedBy = "productCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<Product> products;

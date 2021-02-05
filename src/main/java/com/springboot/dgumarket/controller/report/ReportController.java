@@ -32,5 +32,4 @@ public class ReportController {
     /**
      * TODO : ADMIN 용 신고내용보기, 신고내용처리하기 controller (나중, 아직 중요X)
      */
-
 }

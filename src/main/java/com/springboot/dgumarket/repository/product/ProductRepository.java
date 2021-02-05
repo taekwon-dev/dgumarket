@@ -1,9 +1,14 @@
 package com.springboot.dgumarket.repository.product;
 
+import com.drew.lang.annotations.Nullable;
+import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -18,4 +23,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query(value = "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY category_id ORDER BY id ASC)rank_id FROM product WHERE category_id IN (:categories)) ranked WHERE rank_id <= 4", nativeQuery = true)
     List<Product> apiProductIndex(@Param("categories") List<ProductCategory> categories);
 
+    @Query("select p from Product p where p.member =:member and p.productStatus = 0")
+    List<Product> findAllByMember(Member member, @Nullable Pageable pageable); // shop, 유저 전체 판매물건 조회
+
+    @Query("select p from Product p where p.member =:member and p.productStatus = 0 and p.transactionStatusId =:transactionStatusId")
+    List<Product> findAllByMemberWithSort(Member member, int transactionStatusId, Pageable pageable); // shop, 유저 특정상태 판매물건 조회
 }
