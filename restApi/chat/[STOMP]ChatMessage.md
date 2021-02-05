@@ -13,7 +13,6 @@ app2.js 에 변경된 샘플 클라이언트 코드 참조
 1.`[SUBSCRIBE] /user/queue/error` 
 2.`[SUBSCRIBE] /user/queue/room/event`
 
----
 
 수정사항
 21-01-29(ms)
@@ -21,6 +20,7 @@ app2.js 에 변경된 샘플 클라이언트 코드 참조
 채팅방의 메시지들 정보 가져올 때 roomId 필드 추가
 기존 messageType 필드 -> message_type 로 바뀜
 
+---
 
 ### 1. `[SUBSCRIBE] /user/queue/error`
 에러메시지를 담고 있는 MESSAGE 프레임을 받기위함 (가령 차단된상대에게 메시지를 보내면, sub 콜벡부분에 서버가 에러코드와 메시지를 던달한다.)
@@ -131,7 +131,7 @@ content-length:83
 [
   {
     "roomId": 1,
-    "messageType": 0,
+    "message_type": 0,
     "messageStatus": 1,
     "message": "minshik2233",
     "messageDate": "2021-01-12T17:22:23",
@@ -143,7 +143,7 @@ content-length:83
   },
   {
     "roomId": 1,
-    "messageType": 0,
+    "message_type": 0,
     "messageStatus": 1,
     "message": "minshik2233",
     "messageDate": "2021-01-12T17:22:23",
@@ -155,7 +155,7 @@ content-length:83
   },
   {
     "roomId": 1,
-    "messageType": 0,
+    "message_type": 0,
     "messageStatus": 1,
     "message": "minshik2233",
     "messageDate": "2021-01-12T17:22:23",
@@ -167,7 +167,7 @@ content-length:83
   },
   {
     "roomId": 1,
-    "messageType": 0,
+    "message_type": 0,
     "messageStatus": 1,
     "message": "minshik2233",
     "messageDate": "2021-01-12T17:22:22",
@@ -216,7 +216,7 @@ content-length:83
 
 `roomId`: 채팅메시지가 속한 채팅방 고유 ID (채팅방 고유아이디는 생성되는 채팅목록 DOM 들의 고유한 이름으로 사용한다. )
 
-`messageType` : 메시지의 타입(0: 텍스트, 1: 이미지)
+`message_type` : 메시지의 타입(0: 텍스트, 1: 이미지)
 
 `message` : 메시지 내용 
 
@@ -240,7 +240,7 @@ content-length:83
 ```json
    {
      "roomId": 101,
-     "messageType": 0,
+     "message_type": 0,
      "messageStatus": 0,
      "message": "minshik",
      "messageDate": "2021-01-12T21:22:52.3008765",
@@ -280,7 +280,7 @@ content-length:83
 
 #### 수신되는 메시지 형태(1가지 이다) :
 
-`messageType` : 메시지의 타입(0: 텍스트, 1: 이미지)
+`message_type` : 메시지의 타입(0: 텍스트, 1: 이미지)
 
 `messageStatus` : 메시지 읽음여부(0: 읽지않음, 1:읽음)
 
@@ -307,7 +307,7 @@ content-length:83
 ```json
    {
      "roomId": 101,
-     "messageType": 0,
+     "message_type": 0,
      "messageStatus": 0,
      "message": "minshik",
      "messageDate": "2021-01-12T21:22:52.3008765",
@@ -389,7 +389,8 @@ content-length:83
 {
     "productId" : {product-id}, // 채팅방에서의 물건 고유 ID
     "receiverId" :  {receiver-id}, // 메시지 받을 상대방 고유 ID
-    "messageType" : {message-type}. // 메시지 타입
+    "senderId" : {sender-id}, // 메시지 보내는 이 고유 ID
+    "messageType" : {message-type}, // 메시지 타입
     "message" : {message} // 메시지 내용
 } 
 
