@@ -1,5 +1,8 @@
 package com.springboot.dgumarket.dto.product;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,8 +36,13 @@ public class ProductReadListDto {
     private int chatroomNums;
 
     // 상품 카테고리 고유 아이디
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private int category_id;
 
     // 상품 업로드 또는 마지막 수정 시간
     private LocalDateTime lastUpdatedDatetime;
+
+    private LocalDateTime uploadDatetime;
+
+    private int transaction_status_id;
 }

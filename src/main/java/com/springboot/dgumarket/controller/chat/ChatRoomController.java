@@ -1,6 +1,7 @@
 package com.springboot.dgumarket.controller.chat;
 
 import com.springboot.dgumarket.dto.chat.*;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.request.chat.ChatRoomLeaveRequest;
 import com.springboot.dgumarket.payload.request.product.ProductStatusChangeRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
@@ -110,12 +111,14 @@ public class ChatRoomController {
 
     // 채팅방에서 거래완료 요청 보내기 ( API 문서작성 완료 & 피드백 완료 )
     @PatchMapping("/room/{room-id}/product")
-    public ResponseEntity<?> updateProductStatus(
+    public ResponseEntity<?> updateProductStatus (
             @RequestBody ProductStatusChangeRequest statusChangeRequest,
-        @PathVariable("room-id") int roomId) {
+        @PathVariable("room-id") int roomId) throws CustomControllerExecption {
 
-        chatRoomService.changeRoomTransactionStatus(roomId, statusChangeRequest.getTransaction_status_id());
-
+        boolean result = chatRoomService.changeRoomTransactionStatus(roomId, statusChangeRequest.getTransaction_status_id());
+        if(!result){
+            throw new CustomControllerExecption("product status already updated", HttpStatus.ACCEPTED);
+        }
         return ResponseEntity.ok("product status updated");
     }
 

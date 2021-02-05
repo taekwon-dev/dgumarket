@@ -9,6 +9,20 @@ REST API - Chat created by MS (21-01-08)
 설명 : 해당 필드는 채팅방의 상대방을 내가 차단했는 지 차단하지 안했는 지에 대한 차단유무를 알려준다. 
 
 
+21-02-02
+채팅방 상태조회 API 에서 경우의 수가 하나더 추가 되었다.
+"[판매자]이미 거래완료를 한 물건에 대해서, 해당 이미 판 물건의 다른 채팅방(거래완료 버튼을 누르지 않은)에 들어갔을 경우" 가 추가되었음
+8번케이스 추가됨
+
+```json
+
+{
+    "productStatus": 2,
+    "transactionStatus": 2
+}
+
+```
+
 ---
 
 # 채팅방 목록들 조회하기 
@@ -28,7 +42,7 @@ REST API - Chat created by MS (21-01-08)
  여기서 응답되는 값들의 필드 중 눈여겨 봐야 할 부분은 다음과 같다.
  1. `roomId` (채팅방 고유 ID)  
  2. `chatRoomRecentMessageDto` 의 `message_type` (최근 메시지의 메시지 타입)
- 3. `chatRoomRecentMessageDto` 의 `message_date`(최근 메시지의 메시지 보낸 시간) 
+ 3. `chatRoomRecentMessageDto` 의 `message_date`(최근 메시지의 메시지 보낸 시간) ~~~~
  4. `chatRoomProductDto` 의 `product_deleted` (채팅방 물건의 삭제여부)
  5. `block` 차단 유무(내가 상대방을 차단했는지 에대한 유무)
  
@@ -338,7 +352,19 @@ ___
 
 **Status** : 200
 
-`product status updated` : 정상적으로 물건거래상태가 거래완료로 바뀌었을 경우 다음과 같은 텍스트를 반환한다. 
+`product status updated` : 정상적으로 물건거래상태가 거래완료로 바뀌었을 경우 다음과 같은 텍스트를 반환한다.
+
+
+## Accepted Responses
+
+**Status** : 202 Accepted
+
+`product status already updated` : 이미 거래완료를 한 물건에 대해서 또 다시 거래완료 요청을 시도하려고 할 때, 다음와 같은 텍스트를 반환한다.
+
+
+
+
+ 
 
 
 # 채팅방 상태 조회하기
@@ -372,7 +398,7 @@ ___
 2: 판매자가 채팅방에 들어갈 경우
 3: 아예 채팅방의 물건자체가 삭제된 경우
 
-​		`transactionStatus`(optional) : 해당 물건에 대해서 거래완료 를 했는지에 대한 유무( 1: 거래완료 됨)
+​		`transactionStatus`(optional) : 해당 물건에 대해서 거래완료 를 했는지에 대한 유무( 1: 거래완료 됨, 2: [판매자입장]이미 다른 곳에서 거래가 완료됨)
 
 ​		`isReviewUpload`(optional) : 실제 구매자가 리뷰를 올렸는 지에 대한 유무 ( 1: 리뷰작성함 )
 
@@ -486,6 +512,18 @@ ___
 
 {
     "productStatus": 3
+}
+
+```
+
+8. 
+**example** 
+
+```json
+
+{
+    "productStatus": 2,
+    "transactionStatus": 2
 }
 
 ```

@@ -53,7 +53,11 @@ public class ProductReview {
     @JoinColumn(name = "room_id", referencedColumnName = "id")
     private ChatRoom chatRoom;
 
-    // 수정 시간
+    // 리뷰 등록 시각
     @Column(name = "review_datetime")
     private LocalDateTime ReviewRegistrationDate;
+
+    // 거래 완료 일
+    @Column(name = "created_datetime")
+    private LocalDateTime createdDate;
 }

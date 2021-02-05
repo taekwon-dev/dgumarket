@@ -4,12 +4,15 @@ import com.springboot.dgumarket.interceptor.JwtExceptionResolver;
 import com.springboot.dgumarket.interceptor.JwtInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.util.List;
 
 /**
@@ -33,8 +36,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+
+
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/product/**")
+                .addPathPatterns("/api/shop/*/**")
                 .addPathPatterns("/user/auth/*")
                 .addPathPatterns("/user/block/**")
                 .addPathPatterns("/report")
@@ -78,5 +84,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addViewController("/shop/item/myItem").setViewName("shop/item/myItem");
         registry.addViewController("/shop/item/onePick").setViewName("shop/item/onePick");
         registry.addViewController("/shop/item/upLoad").setViewName("shop/item/upLoad");
+        registry.addViewController("/shop/{userId:\\d+}/products").setViewName("shop/item/myItem"); // 본격적으로 추가되는 view url
+        registry.addViewController("/shop/{userId:\\d+}/reviews").setViewName("shop/item/myItem");
+        registry.addViewController("/shop/{userId:\\d+}/purchase").setViewName("shop/item/myItem");
+        registry.addViewController("/shop/product/{productId:\\d+}").setViewName("shop/item/onePick");
     }
 }

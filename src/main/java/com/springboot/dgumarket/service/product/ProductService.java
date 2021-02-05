@@ -1,8 +1,10 @@
 package com.springboot.dgumarket.service.product;
 
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
+import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.service.UserDetailsImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -22,4 +24,6 @@ public interface ProductService {
     // 로그인 상태 -> /api/product/index 요청, userDetails : '유저'의 관심 카테고리를 출력하기 위함, lastCategoryId -> 페이징 시 가장 마지막으로 응답했던 카테고리 id
     List<ProductListIndex> indexLoggedIn(UserDetailsImpl userDetails, int lastCategoryId);
 
+    // 사용자 판매물품 조회 -> /api/shop/{userId}/products 요청
+    ShopProductListDto getUserProducts(int userId, String productSet, Pageable pageable);
 }

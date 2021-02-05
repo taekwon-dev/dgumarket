@@ -1,16 +1,24 @@
 package com.springboot.dgumarket.dto.product;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 @Builder
 public class ProductReviewDto {
-    String review_nickname;
-    String review_comment;
-    LocalDateTime review_date;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private int review_user_id;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String review_user_icon;
+    private String review_nickname;
+    private String review_comment;
+    private LocalDateTime review_date;
 }
