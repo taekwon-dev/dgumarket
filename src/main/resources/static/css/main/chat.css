@@ -346,7 +346,7 @@
 .receiving_time,.outgoing_time{
     color: #8b8b8b;
 }
-.opponent_speech_bubble,.my_speech_bubble{
+.speech_bubble{
     border-radius: 8px;
     font-size: 14px;
     padding: 5px;
@@ -361,6 +361,11 @@
 .my_speech_bubble{
     color: #ffffff;
     background-color: rgb(29, 161, 242);
+}
+.convo_img{
+    border-radius: 8px;
+    max-width: 100%;
+    cursor: pointer;
 }
 .my_chat{
     margin-top: 15px;

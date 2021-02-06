@@ -149,13 +149,15 @@ document.addEventListener('DOMContentLoaded',function(){
 
 document.addEventListener('change',function (event) {
     if(event.target.id == 'upLoad_picture_file'){
-        image_extension_filter(event)
         for (let i = 0; i < event.target.files.length; i++){
-            const reader = new FileReader();
-            reader.readAsDataURL(event.target.files[i])
-            reader.onload = function(event){
-                upload_picture_limit(event)
-                upload_picture_delete()
+            console.log(event.target.files[i])
+            if(image_extension_filter(event,event.target.files[i])){
+                const reader = new FileReader();
+                reader.readAsDataURL(event.target.files[i])
+                reader.onload = function(event){
+                    upload_picture_limit(event)
+                    upload_picture_delete()
+                }
             }
         }
     }

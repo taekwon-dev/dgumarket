@@ -68,6 +68,10 @@ document.addEventListener('click',function (event) {
     if(event.target.id == "chat_scroll_btn_form" || event.target.id == "chat_scroll_btn_icon"){
         chat_screen.scrollTop = chat_screen.scrollHeight;
     }
+    // 채팅방에서 이미지 메시지를 클릭할 경우 새로운 창으로 원본사이즈의 이미지 보여주기
+    if(hasClass(event.target, 'convo_img')){
+        window.open(event.target.src)
+    }
 })
 // 채팅방 목록 클릭시 해당 채팅방 열기
 $(document).on('click','.click_chat_room',function () {

@@ -54,7 +54,7 @@ const dd = date.getDate() < 10 ? `0${date.getDate()}` : `${date.getDate()}`
 // 홈페이지 접속 후 채팅메시지 알림 허용을 클라이언트에 요청하는 함수
 function permission_notification_message() {
     if(!("Notification" in window)){
-        alert('채팅 메시지 알림을 지원하지 않는 환경입니다.')
+        alert('ios의 경우 채팅 메시지 알림을 지원하지 않는 환경입니다.')
     }
     Notification.requestPermission( result => {
         if(result == 'denied'){
@@ -66,21 +66,29 @@ function permission_notification_message() {
 }
 // 채팅메시지 알림을 띄우는 함수
 function show_notification_message(msg) {
-    const pop_message = new Notification(`동대방네 : ${msg.chatMessageUserDto.nickName}님이 ${web_items_search.value}님에게`,{
+    const pop_message = new Notification(`동대방네 : ${msg.chatMessageUserDto.nickName}님의 메시지`,{
         body : msg.message,
         icon : msg.chatRoomProductDto.productImgPath,
         tag : msg.roomId
     })
     console.log('알림이 왔습니다.')
 }
-// 로컬 스토리지에 채팅방의 알림설정 정보가 저장되어 있지 않을 경우 알림설정을 모두 on으로 저장하는 함수
-function localStorage_notification_message(s_res) {
+// 로컬 스토리지에 채팅방의 알림설정 정보가 저장되어 있지 않을 경우 알림설정을 on으로 설정하여 새롭게 저장하는 함수
+function localStorage_notification_message(res) {
     if(localStorage.getItem(`notification_list_no${web_items_search.value}`) == null){
+        console.log('key가 없다.')
         const notification_list = [];
-        for (let i = 0; i < s_res.length; i++) {
-            localStorage_new_notification_message(s_res[i], notification_list)
-        }
+        localStorage_new_notification_message(res, notification_list)
         localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+    }
+    else{
+        const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
+        const mode = notification_list.filter( li => li.room_id == res.roomId)
+        if(mode.length == 0){
+            console.log('key가 존재하지만 해당 채팅방의 알림설정 정보가 없다.')
+            localStorage_new_notification_message(res, notification_list)
+            localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
+        }
     }
 }
 // 새롭게 생성된 채팅방의 알림설정을 on으로 하여 로컬스토리지에 저장하는 함수
@@ -134,20 +142,13 @@ function switch_notification_message(room_id) {
 function check_notification_message(frame) {
     const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
     const mode = notification_list.filter( li => li.room_id == frame.roomId)[0].notification_mode
+    console.log(mode)
     if(mode == "ON"){
         return 'ON';
     }
     else if(mode == "OFF"){
         return 'OFF';
-    }else{
-        localStorage_new_notification_message(frame, notification_list)
-        localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
-        return 'ON';
     }
-}
-// 동적 생성된 엘리먼트 중에서 해당 클래스를 갖고 있을 경우 이벤트 바인딩하는 함수
-function hasClass(elem, className) {
-    return elem.className.split(' ').indexOf(className) > -1;
 }
 // 채팅UI를 여는 함수
 function chat_form_view() {
@@ -345,12 +346,49 @@ function time_parsing(tm) {
         return get_date = `오전 ${t}:${tm.slice(14,16)}`
     }
 }
-// 메시지의 종류별로 내용을 파싱하는 함수
+// 메시지의 종류별로 각 채팅방목록의 최신메시지 내용을 파싱하는 함수
 function message_parsing(msg) {
     if(msg.message_type == '0'){
         return get_message = msg.message
     }else{
         return get_message = '사진을 보냈습니다.'
+    }
+}
+// 메시지의 종류별로 채팅말풍선의 내용을 파싱하는 함수
+function conversation_parsing(msg) {
+    if(msg.message_type == '0'){
+        return msg.message;
+    }else{
+        const image_conversation_html = `
+            <img src="${msg.message}"  class="convo_img" alt="">`
+        return image_conversation_html;
+    }
+}
+// 메시지가 이미지이며 높이가 다소 길 경우 최대 길이를 400px로 하고 나머지는 자르는 함수
+function image_conversation_resize(msg) {
+    if(msg.message_type == '1'){
+        const speech_bubble = document.getElementsByClassName('speech_bubble')
+        speech_bubble[speech_bubble.length-1].style.padding = '0px'
+        speech_bubble[speech_bubble.length-1].style.maxHeight = '400px'
+        speech_bubble[speech_bubble.length-1].style.overflow = 'hidden'
+        console.log('이미지 자르기 성공')
+    }
+}
+// 메시지가 높이 400px이상의 이미지일 경우 포커싱을 가운데로 맞추는 함수
+function image_conversation_focus() {
+    const convo_img = document.getElementsByClassName('convo_img')
+    if(convo_img.length > 0){
+        for (let i = 0; i < convo_img.length; i++) {
+            convo_img[i].onload = function(){
+                console.log(convo_img[i].clientHeight)
+                if(convo_img[i].clientHeight > 400){
+                    convo_img[i].style.marginTop
+                        = -(convo_img[i].clientHeight-400)/2+'px'
+                    console.log('이미지 포커싱 성공')
+                }
+                chat_screen.scrollTop = chat_screen.scrollHeight
+            }
+        }
     }
 }
 //중고물품 삭제여부에 따른 중고물품 이미지 파싱하는 함수
@@ -650,4 +688,22 @@ function trade_comment(s_res) {
     writer_trade_comment.innerText = `${s_res.data.review_nickname}`
     trade_comment_date.innerText = `${get_date}`
     trade_comment_content.innerText = `${s_res.data.review_comment}`
+}
+// 동적 생성된 엘리먼트 중에서 해당 클래스를 갖고 있을 경우 이벤트 바인딩하는 함수(중복)
+function hasClass(elem, className) {
+    return elem.className.split(' ').indexOf(className) > -1;
+}
+//이미지 파일만 필터링하는 함수(중복)
+function image_extension_filter(event) {
+    const pathpoint = event.target.value.lastIndexOf('.');
+    const filepoint = event.target.value.substring(pathpoint+1);
+    const filetype = filepoint.toLowerCase();
+    if (filetype !== 'jpg' && filetype !== 'gif' && filetype !== 'png' &&
+        filetype !== 'jpeg') {
+        alert('bmp를 제외한 이미지 파일만 업로드할 수 있습니다.');
+        event.target.value = ""
+        return false;
+    }else{
+        return true;
+    }
 }

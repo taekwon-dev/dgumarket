@@ -105,9 +105,9 @@ export function interested_category() {
 }
 
 // 프로필 사진 업로드 시 이미지 확장자만을 필터링하는 함수
-export function image_extension_filter(event) {
-    const pathpoint = event.target.value.lastIndexOf('.');
-    const filepoint = event.target.value.substring(pathpoint+1);
+export function image_extension_filter(event,img) {
+    const pathpoint = img.name.lastIndexOf('.');
+    const filepoint = img.name.substring(pathpoint+1);
     const filetype = filepoint.toLowerCase();
     if (filetype !== 'jpg' && filetype !== 'gif' && filetype !== 'png' &&
         filetype !== 'jpeg') {

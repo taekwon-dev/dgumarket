@@ -56,7 +56,9 @@ function request_my_chat_list() {
             console.log(data);
             loading_chat_list_room.classList.add('hidden')
             if(data.length > 0){
-                if(Notification.permission == 'granted'){localStorage_notification_message(data)}
+                if(Notification.permission == 'granted'){
+                    for (let i = 0; i < data.length; i++) {localStorage_notification_message(data[i])}
+                }
                 create_chat_list(data);
             }else{
                 chat_room_empty.classList.remove('hidden')
@@ -91,7 +93,7 @@ function request_trade_item_info(click_chat_room) {
             console.log(error)
         })
 }
-// 채팅방 입장 시 채팅 상대와의 차단 여부 요청하는 함수
+// 채팅방 입장 시 채팅 상대와의 차단 여부 조회를 요청하는 함수
 function request_block_state(click_chat_room) {
     const reqPromise = fetch(`/user/block/${click_chat_room.classList[2].slice(11)}`, {
         method: 'GET',
@@ -378,6 +380,7 @@ function websocket_connect() {
                 room_id = JSON.parse(convo_frame.body).roomId
                 sub_room = stomp_client.subscribe(`/topic/room/${room_id}`, function(sub_room_frame) {
                     create_new_conversation(JSON.parse(sub_room_frame.body))
+                    image_conversation_focus()
                     latest_message(JSON.parse(sub_room_frame.body))
                     if(Notification.permission == 'granted'){
                         if (JSON.parse(sub_room_frame.body).chatMessageUserDto.userId != `${web_items_search.value}`
@@ -404,16 +407,12 @@ function websocket_connect() {
             }else{
                 create_conversation(JSON.parse(convo_frame.body))
                 chat_screen.scrollTop = chat_screen.scrollHeight
+                image_conversation_focus()
                 if(chat_screen.className.indexOf('welcome') > -1){
                     chat_room_empty.classList.add('hidden')
                     new_create_chat_list(JSON.parse(convo_frame.body)[0])
                     if(Notification.permission == 'granted') {
-                        localStorage_notification_message(JSON.parse(convo_frame.body))
-                        if(localStorage.getItem(`notification_list_no${web_items_search.value}`) != null){
-                            const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
-                            localStorage_new_notification_message(JSON.parse(convo_frame.body)[0], notification_list)
-                            localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
-                        }
+                        localStorage_notification_message(JSON.parse(convo_frame.body)[0])
                     }
                 }
             }
@@ -478,6 +477,7 @@ function send_message(msg,msg_type) {
 function join_chat_room(click_chat_room) {
     sub_room = stomp_client.subscribe(`/topic/room/${click_chat_room.classList[1].slice(12)}` , function (join_sub_room_frame){
         create_new_conversation(JSON.parse(join_sub_room_frame.body))
+        image_conversation_focus()
         latest_message(JSON.parse(join_sub_room_frame.body))
         if(Notification.permission == 'granted'){
             if (JSON.parse(join_sub_room_frame.body).chatMessageUserDto.userId != `${web_items_search.value}`

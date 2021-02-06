@@ -111,11 +111,6 @@ function latest_message(w_res) {
             const chat_notification_message = document.querySelector('.chat_notification_message')
             chat_notification_message.innerText = '알림끄기'
             localStorage_notification_message(w_res)
-            if(localStorage.getItem(`notification_list_no${web_items_search.value}`) != null){
-                const notification_list = JSON.parse(localStorage.getItem(`notification_list_no${web_items_search.value}`))
-                localStorage_new_notification_message(w_res, notification_list)
-                localStorage.setItem(`notification_list_no${web_items_search.value}`,JSON.stringify(notification_list))
-            }
         }
     }
 }
@@ -157,7 +152,7 @@ function create_new_conversation(w_res) {
             chat_bundle_div.setAttribute('class',`conversation_form ${w_res.messageDate} 
                 ${w_res.chatMessageUserDto.userId} d-flex`)
             chat_bundle_div.innerHTML =
-                `<div class="opponent_speech_bubble">${w_res.message}</div>
+                `<div class="speech_bubble opponent_speech_bubble">${conversation_parsing(w_res)}</div>
                 <div class="time_send_alm d-flex flex-wrap align-content-end">
                     <div class="receiving_time">${get_date}</div>
                 </div>`
@@ -175,7 +170,7 @@ function create_new_conversation(w_res) {
                         <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                     </div>
                 </div>
-                <div class="my_speech_bubble">${w_res.message}</div>`
+                <div class="speech_bubble my_speech_bubble">${conversation_parsing(w_res)}</div>`
             const conversation_info = document.getElementsByClassName('conversation_info')
             const outgoing_time = document.getElementsByClassName('outgoing_time')
             conversation_info[conversation_info.length-1].removeChild(outgoing_time[outgoing_time.length-1])
@@ -196,7 +191,7 @@ function create_new_conversation(w_res) {
                 <div href="/shop/item/myItem" class="d-flex align-items-center move_myItem opponent_nickname">${w_res.chatMessageUserDto.nickName}</div>
             </div>
             <div class="conversation_form ${w_res.messageDate} ${w_res.chatMessageUserDto.userId} d-flex">
-                <div class="opponent_speech_bubble">${w_res.message}</div>
+                <div class="speech_bubble opponent_speech_bubble">${conversation_parsing(w_res)}</div>
                 <div class="time_send_alm d-flex flex-wrap align-content-end">
                     <div class="receiving_time">${get_date}</div>
                 </div>
@@ -215,12 +210,12 @@ function create_new_conversation(w_res) {
                     <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                 </div>
             </div>
-            <div class="my_speech_bubble">${w_res.message}</div>
+            <div class="speech_bubble my_speech_bubble">${conversation_parsing(w_res)}</div>
         </div>`
         chat_screen.appendChild(chat_new_my_div);
         chat_input.value = "";
     }
-    chat_screen.scrollTop = chat_screen.scrollHeight
+    image_conversation_resize(w_res)
 }
 // 현재까지 상대방과 대화한 메시지를 동적생성하여 불러오는 함수
 function create_conversation(w_res) {
@@ -262,7 +257,7 @@ function create_conversation(w_res) {
                 chat_bundle_div.setAttribute('class',`conversation_form ${w_res[i].messageDate} 
                 ${w_res[i].chatMessageUserDto.userId} d-flex`)
                 chat_bundle_div.innerHTML =
-                    `<div class="opponent_speech_bubble">${w_res[i].message}</div>
+                    `<div class="speech_bubble opponent_speech_bubble">${conversation_parsing(w_res[i])}</div>
                 <div class="time_send_alm d-flex flex-wrap align-content-end">
                     <div class="receiving_time">${get_date}</div>
                 </div>`
@@ -280,7 +275,7 @@ function create_conversation(w_res) {
                         <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                     </div>
                 </div>
-                <div class="my_speech_bubble">${w_res[i].message}</div>`
+                <div class="speech_bubble my_speech_bubble">${conversation_parsing(w_res[i])}</div>`
                 const conversation_info = document.getElementsByClassName('conversation_info')
                 const outgoing_time = document.getElementsByClassName('outgoing_time')
                 conversation_info[conversation_info.length-1].removeChild(outgoing_time[outgoing_time.length-1])
@@ -301,7 +296,7 @@ function create_conversation(w_res) {
                     <div href="/shop/item/myItem" class="d-flex align-items-center move_myItem opponent_nickname">${w_res[i].chatMessageUserDto.nickName}</div>
                 </div>
                 <div class="conversation_form ${w_res[i].messageDate} ${w_res[i].chatMessageUserDto.userId} d-flex">
-                    <div class="opponent_speech_bubble">${w_res[i].message}</div>
+                    <div class="speech_bubble opponent_speech_bubble">${conversation_parsing(w_res[i])}</div>
                     <div class="time_send_alm d-flex flex-wrap align-content-end">
                         <div class="receiving_time">${get_date}</div>
                     </div>
@@ -320,11 +315,12 @@ function create_conversation(w_res) {
                             <div class="outgoing_time d-flex justify-content-end">${get_date}</div>
                         </div>
                     </div>
-                    <div class="my_speech_bubble">${w_res[i].message}</div>
+                    <div class="speech_bubble my_speech_bubble">${conversation_parsing(w_res[i])}</div>
                 </div>`
             chat_screen.appendChild(chat_my_div);
             chat_input.value = "";
         }
+        image_conversation_resize(w_res[i])
     }
 }
 // 채팅방의 스크롤을 움직일 경우 스크롤을 채팅방의 최하단으로 이동시키는 버튼 생성하는 함수
