@@ -183,8 +183,7 @@ function request_update_profile(server_response) {
 }
 
 document.addEventListener('change',function (event) {
-    if(event.target.id == 'InputFile'){
-        image_extension_filter(event)
+    if(event.target.id == 'InputFile' && image_extension_filter(event,event.target.files[0])){
         existing_image_delete(event)
         image_preview(event)
     }
