@@ -99,7 +99,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         };
         modelMapper.addMappings(dtoPropertyMap);
         List<ProductReviewDto> productReadListDtos;
-        int totalNumber = productReviewRepository.countAllByConsumerAndReviewMessageIsNotNull(member); // 총 메시지 개수
+        int totalNumber = productReviewRepository.countAllBySellerAndReviewMessageIsNotNull(member); // 총 메시지 개수
          productReadListDtos = productReviewRepository.findCompletedReviews(member, pageable)
                 .stream()
                 .map(productReview -> modelMapper.map(productReview, ProductReviewDto.class))
@@ -155,7 +155,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
                 shopPurchaseListDto = ShopPurchaseListDto.builder()
                         .page_size(productPurchaseDtos.size())
-                        .total_size(productReviewRepository.countAllByConsumerAndReviewMessageIsNotNull(member))
+                        .total_size(productReviewRepository.countAllByConsumerAndReviewMessageIsNull(member))
                         .purchase_product_list(productPurchaseDtos).build();
                 break;
 
