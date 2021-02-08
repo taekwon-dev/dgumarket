@@ -21,15 +21,15 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, In
     List<ProductReview> findAllByConsumerId(int userId, Pageable pageable);
 
     // 작성 리뷰 조회
-    @Query("select r from ProductReview r where r.consumer = :user and r.reviewMessage is not null")
+    @Query("select r from ProductReview r where r.seller = :user and r.reviewMessage is not null")
     List<ProductReview> findCompletedReviews(@Param("user") Member member, Pageable pageable);
 
     // 미작성 리뷰 조회
-    @Query("select r from ProductReview r where r.consumer = :user and r.reviewMessage is null")
+    @Query("select r from ProductReview r where r.seller = :user and r.reviewMessage is null")
     List<ProductReview> findUnCompletedReviews(@Param("user") Member member, Pageable pageable);
 
     // 유저에게 남겨진 거래리뷰 개수 조회(거래리뷰 남긴 것들)
-    int countAllByConsumerAndReviewMessageIsNotNull(Member member);
+    int countAllBySellerAndReviewMessageIsNotNull(Member member);
 
     // 아직 작성하지 않은 구매물품의 개수(=미작성인 리뷰의 개수)
     int countAllByConsumerAndReviewMessageIsNull(Member member);
