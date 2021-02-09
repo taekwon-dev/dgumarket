@@ -121,6 +121,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         PropertyMap<ProductReview, ProductPurchaseDto> purchaseProductListPropertyMap = new PropertyMap<ProductReview, ProductPurchaseDto>() {
             @Override
             protected void configure() {
+                map().setPurchase_seller_nickname(source.getSeller().getNickName());
                 map().setPurchase_product_id(source.getId());
                 map().setPurchase_title(source.getProduct().getTitle());
                 map().setPurchase_price(source.getProduct().getPrice());

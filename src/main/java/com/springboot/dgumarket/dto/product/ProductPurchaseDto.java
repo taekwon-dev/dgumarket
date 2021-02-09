@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class ProductPurchaseDto {
+    String purchase_seller_nickname;
     int purchase_product_id;
     String purchase_title;
     String purchase_price;
