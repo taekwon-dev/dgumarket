@@ -100,7 +100,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         modelMapper.addMappings(dtoPropertyMap);
         List<ProductReviewDto> productReadListDtos;
         int totalNumber = productReviewRepository.countAllBySellerAndReviewMessageIsNotNull(member); // 총 메시지 개수
-         productReadListDtos = productReviewRepository.findCompletedReviews(member, pageable)
+         productReadListDtos = productReviewRepository.findReviews(member, pageable)
                 .stream()
                 .map(productReview -> modelMapper.map(productReview, ProductReviewDto.class))
                 .collect(Collectors.toList());
@@ -122,7 +122,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
             @Override
             protected void configure() {
                 map().setPurchase_seller_nickname(source.getSeller().getNickName());
-                map().setPurchase_product_id(source.getId());
+                map().setPurchase_product_id(source.getProduct().getId());
                 map().setPurchase_title(source.getProduct().getTitle());
                 map().setPurchase_price(source.getProduct().getPrice());
                 map().setPurchase_date(source.getCreatedDate());
@@ -149,19 +149,19 @@ public class ProductReviewServiceImpl implements ProductReviewService{
                         .purchase_product_list(productPurchaseDtos).build();
                 break;
             case "write" :
-                productPurchaseDtos = productReviewRepository.findCompletedReviews(member, pageable)
+                productPurchaseDtos = productReviewRepository.findWritedReviewsPurchase(member, pageable)
                         .stream()
                         .map(productReview -> modelMapper.map(productReview, ProductPurchaseDto.class))
                         .collect(Collectors.toList());
 
                 shopPurchaseListDto = ShopPurchaseListDto.builder()
                         .page_size(productPurchaseDtos.size())
-                        .total_size(productReviewRepository.countAllByConsumerAndReviewMessageIsNull(member))
+                        .total_size(productReviewRepository.countAllByConsumerAndReviewMessageIsNotNull(member))
                         .purchase_product_list(productPurchaseDtos).build();
                 break;
 
             case "nowrite" :
-                productPurchaseDtos = productReviewRepository.findUnCompletedReviews(member, pageable)
+                productPurchaseDtos = productReviewRepository.findNoWritedReviewsPurchase(member, pageable)
                         .stream()
                         .map(productReview -> modelMapper.map(productReview, ProductPurchaseDto.class))
                         .collect(Collectors.toList());
