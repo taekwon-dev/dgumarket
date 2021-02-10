@@ -24,14 +24,14 @@ import java.io.IOException;
  */
 
 @RestController
-@RequestMapping("/user/auth")
+@RequestMapping("/user/profile")
 public class MemberAuthController {
 
     @Autowired
     private MemberService memberService;
 
     // [회원정보 불러오기 : 프로필 사진, 닉네임, 관심 카테고리]
-    @GetMapping("/profile")
+    @GetMapping("/read")
     public ResponseEntity<ApiResponseEntity> getMemberInfo(Authentication authentication) {
 
         if (authentication != null) {
@@ -45,14 +45,14 @@ public class MemberAuthController {
                     .build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         } else {
-
+            // Exceptions (auth)
         }
 
         return null;
     }
 
     // 회원 정보 (프로필 사진, 닉네임, 관심카테고리) 수정
-    @PostMapping("/profile-update")
+    @PostMapping("/update")
     @Transactional
     public ResponseEntity<ApiResponseEntity> updateInfo(@Valid @RequestBody MemberUpdateDto memberUpdateInfoDto, Authentication authentication) {
 
@@ -75,7 +75,7 @@ public class MemberAuthController {
     }
 
     // [프로필 사진 업로드]
-    @PostMapping("/profileimg-upload")
+    @PostMapping("/imgupload")
     public ResponseEntity<ApiResponseEntity> uploadProfileImage(@RequestParam("image") MultipartFile multipartFile, Authentication authentication)
             throws IOException, ImageProcessingException {
 
