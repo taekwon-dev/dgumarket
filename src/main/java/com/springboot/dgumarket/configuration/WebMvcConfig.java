@@ -3,6 +3,7 @@ package com.springboot.dgumarket.configuration;
 import com.springboot.dgumarket.interceptor.JwtExceptionResolver;
 import com.springboot.dgumarket.interceptor.JwtInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -37,15 +38,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/product/**")
                 .addPathPatterns("/api/shop/*/**")
-                .addPathPatterns("/user/auth/*")
                 .addPathPatterns("/user/block/**")
                 .addPathPatterns("/report")
-                .addPathPatterns("/chat/**");
-
+                .addPathPatterns("/chat/**")
+                .addPathPatterns("/user/profile/**");
     }
 
     // https://trello.com/c/iNlacAg7/148-dgumarket-restapi-http-exception-handling

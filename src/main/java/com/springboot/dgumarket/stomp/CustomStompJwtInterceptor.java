@@ -62,11 +62,11 @@ public class CustomStompJwtInterceptor implements ChannelInterceptor {
             log.info("[STOMP] userName : {}", userName);
             UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
 
-            if (!jwtUtils.validateToken(jwtAccessToken, userDetails)) {
+            if (!jwtUtils.validateToken(jwtAccessToken)) {
                 log.info("[STOMP] Access Token is not validated, Check Refresh Token");
                 if (jwtRefreshToken == null) throw new CustomJwtException(errorResponse());
 
-                if (!jwtUtils.validateToken(jwtRefreshToken, userDetails)) {
+                if (!jwtUtils.validateToken(jwtRefreshToken)) {
                     log.info("[STOMP] Access, Refresh Token are all not valildated, throw Exception!");
                     loggedLoginRepository.addBlacklist(loggedLoginRepository.findMemberIdbyRefreshToken(jwtRefreshToken), jwtRefreshToken);
                     throw new CustomJwtException(errorResponse());
