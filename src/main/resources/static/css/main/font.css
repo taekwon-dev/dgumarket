@@ -11,7 +11,7 @@ body,h3,.btn,.form-control{
 }
 #trade_item_title,#trade_item_price,.opponent_speech_bubble,.my_speech_bubble,
 .notification_item_status,.footer_text,#trade_comment_content,
-.more_view_form{
+.more_view_form,.sort_text{
     font-family: initial;
     font-weight: 600;
 }
