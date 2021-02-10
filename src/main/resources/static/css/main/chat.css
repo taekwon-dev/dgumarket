@@ -437,7 +437,7 @@
     padding-left: 5px;
     padding-right: 5px;
 }
-#input_trade_comment{
+#input_trade_comment,#after_trade_comment{
     resize: none;
 }
 #input_trade_comment::placeholder{

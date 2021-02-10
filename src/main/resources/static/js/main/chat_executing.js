@@ -162,11 +162,15 @@ close_btn.addEventListener('click',function () {
 })
 confirm_trade_success.addEventListener('click',request_trade_success)
 chat_write_trade_comment.addEventListener('click',from_consumer_to_seller)
-comment_submit.addEventListener('click', function () {
+comment_submit.addEventListener('click', function (event) {
     if(input_trade_comment.value == ''){alert('구매후기를 작성해주세요')}
-    else{request_upload_trade_comment()}
+    else{
+        request_upload_trade_comment(input_trade_comment.value,chat_screen.classList[0].slice(7),event)
+    }
 })
-chat_view_trade_comment.addEventListener('click',request_view_trade_comment)
+chat_view_trade_comment.addEventListener('click',function (event) {
+    request_view_trade_comment(chat_screen.classList[0].slice(7), event)
+})
 document.addEventListener('keydown',function (event) {
     if (event.keyCode == 27){
         if(chat_list_form.className == 'hidden' && chat_screen.className.indexOf('chat_list_no') > -1){unsubscribe_chat_room();}

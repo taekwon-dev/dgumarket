@@ -28,7 +28,9 @@
         width: 20%;
     }
 }
-
+.badge-primary{
+    background-color: rgb(29, 161, 242);;
+}
 #my_picture_form2{
     position: relative;
     width: 100%;
@@ -48,12 +50,15 @@
 #my_nickname{
     font-size: 20px;
 }
-#my_reputation_text{
+.my_category_text{
+    margin-right: 10px;
+}
+#my_rank_text,#my_rank_name{
     color: #868e96;
     font-size: 14px;
 }
-#my_reputation_img{
-    color: #007bff;
+#my_rank_img{
+    color: rgb(29, 161, 242);
 }
 
 .my_menu_form{
@@ -78,39 +83,59 @@
 #my_menu_line{
     margin-top: 5px;
 }
+#my_items{
+    color: rgb(29, 161, 242);
+    border-bottom: 3px solid rgb(29, 161, 242);
+}
+.selected_sort{
+    color: rgb(29, 161, 242);
+}
 #my_items,#trade_comment,#my_purchased_items{
     cursor: pointer;
-    color: #868e96;
 }
 #trade_comment,#my_purchased_items{
     color: #868e96;
 }
 #my_items:hover,#trade_comment:hover,#my_purchased_items:hover{
-    color: #007bff;
-    border-bottom: 3px solid #007bff;
+    color: rgb(29, 161, 242);
+    border-bottom: 3px solid rgb(29, 161, 242);
 }
 #my_items_form{
     margin-top: 10px;
 }
-#my_items_select{
+#my_items_select,#my_comment_select,#my_purchase_select{
     border-radius: 10rem;
 }
+
+@media (min-width: 280px) and (max-width: 324px) {
+    .sort_form span{
+        font-size: 10px;
+        padding: 0 3px;
+    }
+}
+@media (min-width: 325px){
+    .sort_form span{
+        font-size: 12px;
+        padding: 0 5px;
+    }
+}
+.sort_text{
+    cursor: pointer;
+    border-right: 1px solid rgba(0,0,0,.2);
+}
+.sort_text_right{
+    border-right: 1px solid transparent;
+}
+.sort_text:hover,.sort_text_active{
+    color: rgb(29, 161, 242);
+}
 /*거래 후기UI와 나의 구매물품UI */
-.other_user_picture_form1, .my_purchased_item_picture_form1{
-    width: 10%;
-}
-.other_user_picture_form2, .my_purchased_item_picture_form2{
-    position: relative;
-    width: 100%;
-    padding-bottom: 100%;
-}
 .other_user_picture, .my_purchased_item_picture{
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 50px;
+    height: 50px;
 }
 #trade_comment_count,#my_item_count,#my_purchased_items_count{
-    color: #007bff;
+    color: rgb(29, 161, 242);
 }
 .other_user_info, .my_purchased_item_info{
     margin-left: 10px;
@@ -125,8 +150,11 @@
     font-size: 12px;
 }
 
-.my_purchased_item_price,.my_purchased_item_comment_status{
+.my_purchased_item_price,.my_purchased_item_comment_status,.my_purchased_item_comment{
     font-size: 14px;
+}
+.my_purchased_item_comment{
+    cursor: pointer;
 }
 .other_user_picture,.other_user_nickname,.my_purchased_item_picture,.my_purchased_item_title{
     cursor: pointer;
@@ -141,25 +169,24 @@
         font-size: 14px;
     }
 }
-.write_trade_comment{
-    color: #007bff;
-    font-size: 12px;
-    padding: 1.5px 6px;
-}
-.chat_good_font{
-    color: #868e96;
+.big_divice_right_info{
     font-size: 12px;
 }
-@media (min-width:280px) and (max-width: 499px){
+@media (min-width:280px) and (max-width: 519px){
     .big_divice_right_info{
         display: none;
     }
     .small_divice_right_info{
-        display: inline;
+        font-size: 12px;
     }
 }
-@media (min-width:500px){
+@media (min-width:520px){
     .small_divice_right_info{
         display: none;
     }
+}
+.not_upload{
+    margin: 100px 0;
+    display: flex;
+    justify-content: center;
 }

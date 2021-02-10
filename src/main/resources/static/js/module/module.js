@@ -2,7 +2,11 @@
 export function hasClass(elem, className) {
     return elem.className.split(' ').indexOf(className) > -1;
 }
-
+// 현재 위치하는 url을 확인하는 함수
+export function url_point(my_url) {
+    const url = location.href.split('/')
+    return url.indexOf(my_url) > -1
+}
 // 닉네임 유효검사하는 함수
 export function nickname_check() {
     const nickname = document.getElementById('UserNickname');

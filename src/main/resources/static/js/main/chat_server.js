@@ -245,9 +245,9 @@ function request_user_unblock(user_id) {
         })
 }
 //채팅방에서 해당 중고물품의 거래후기 작성 후 업로드를 요청하는 함수
-function request_upload_trade_comment() {
-    const param = {product_comment : input_trade_comment.value}
-    const reqPromise = fetch(`/api/product/${chat_screen.classList[0].slice(7)}/comment`, {
+function request_upload_trade_comment(input, point, event) {
+    const param = {product_comment : input}
+    const reqPromise = fetch(`/api/product/${point}/comment`, {
         method: 'POST',
         body: JSON.stringify(param),
         headers : {'Content-Type' : 'application/json'}
@@ -259,21 +259,30 @@ function request_upload_trade_comment() {
             return res.text();
         }else{
             console.log('채팅방 해당 중고물품 거래후기 업로드 요청 실패')
+            event.target.classList.remove(event.target.classList[2])
             return Promise.reject(new Error(res.status))
         }
     })
         .then(data => {
             console.log(data);
-            chat_write_trade_comment.classList.add('hidden')
-            chat_view_trade_comment.classList.remove('hidden')
+            if(event.target.id == 'comment_submit'){
+                chat_write_trade_comment.classList.add('hidden')
+                chat_view_trade_comment.classList.remove('hidden')
+            }else{
+                const submit_success = document.getElementById(`${event.target.classList[2]}`)
+                submit_success.innerText = '후기보기'
+                event.target.classList.remove(event.target.classList[2])
+                alert('작성하신 거래후기가 정상적으로 업로드되었습니다.')
+            }
+            input = '';
         })
         .catch(error => {
             console.log(error)
         })
 }
 // 채팅방에서 해당 중고물품의 거래후기 조회 요청하는 함수
-function request_view_trade_comment() {
-    const reqPromise = fetch(`/api/product/${chat_screen.classList[0].slice(7)}/comment`, {
+function request_view_trade_comment(point, event) {
+    const reqPromise = fetch(`/api/product/${point}/comment`, {
         method: 'GET',
         headers : {Accept : 'application/json'}
     })
@@ -288,7 +297,15 @@ function request_view_trade_comment() {
     })
         .then(data => {
             console.log(data);
-            trade_comment(data)
+            if(event.target.id == 'chat_view_trade_comment'){
+                trade_comment(data)
+            }else{
+                const purchased_comment_date = document.getElementById('purchased_comment_date')
+                const purchased_comment_content = document.getElementById('purchased_comment_content')
+                date_parsing(data.data.review_date)
+                purchased_comment_date.innerText = `${get_date}`
+                purchased_comment_content.innerText = `${data.data.review_comment}`
+            }
         })
         .catch(error => {
             console.log(error)
