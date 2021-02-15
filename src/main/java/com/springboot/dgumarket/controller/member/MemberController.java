@@ -68,7 +68,7 @@ public class MemberController {
         /* LoginLoggedService -> doLogLogin() -> DB에 로그 정보 저장, 로그인 성공 시 토큰 발행, 쿠키 생성 처리 */
         loginLoggedService.doLogLogin(loginRequest, response);
 
-        return null;
+        return new ResponseEntity<>("Successful", HttpStatus.OK);
     }
 
     @PostMapping("/send-webmail")

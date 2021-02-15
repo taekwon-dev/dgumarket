@@ -13,9 +13,11 @@ import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import com.springboot.dgumarket.exception.CustomJwtException;
 import com.springboot.dgumarket.model.Role;
 import com.springboot.dgumarket.model.member.Member;
+import com.springboot.dgumarket.model.member.User;
 import com.springboot.dgumarket.model.product.ProductCategory;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.member.RoleRepository;
+import com.springboot.dgumarket.repository.member.UserRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
 import com.springboot.dgumarket.utils.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,9 @@ public class MemeberServiceImpl implements MemberService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ProductCategoryRepository productCategoryRepository;
@@ -228,7 +233,8 @@ public class MemeberServiceImpl implements MemberService {
             productCategorySet.add(productCategory);
         });
 
-        Member member = new Member().builder()
+        Member member = new Member()
+                .builder()
                 .webMail(signUpDto.getWebMail())
                 .phoneNumber(signUpDto.getPhoneNumber())
                 .nickName(signUpDto.getNickName())
@@ -238,6 +244,19 @@ public class MemeberServiceImpl implements MemberService {
                 .isWithdrawn(0)                                      // 회원 탈퇴 여부(0 : 회원, 1: 회원 탈퇴)
                 .isEnabled(0)                                        // 회원 이용 제한 여부 (0 : 이용 가능, 1 : 이용 제한)
                 .build();
+
+        User user = User
+                .builder()
+                .webMail(signUpDto.getWebMail())
+                .phoneNumber(signUpDto.getPhoneNumber())
+                .password(encoder.encode(signUpDto.getPassword()))
+                .nickName(signUpDto.getNickName())
+                .roles(role.getName()) // String (두 개 이상인 경우 리스트 to String)
+                .isWithdrawn(0)
+                .isEnabled(0)
+                .build();
+
+        userRepository.save(user);
 
         return member;
     }

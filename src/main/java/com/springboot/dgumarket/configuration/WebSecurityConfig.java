@@ -1,12 +1,15 @@
 package com.springboot.dgumarket.configuration;
 
+import com.springboot.dgumarket.filter.JwtAuthenticationFilter;
 import com.springboot.dgumarket.security.authentication.AuthEntryPointJwt;
 import com.springboot.dgumarket.security.authentication.CustomAuthenticationProvider;
 import com.springboot.dgumarket.security.logout.CustomLogoutSuccessHandler;
+import com.springboot.dgumarket.service.UserDetailsServiceImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,6 +20,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.sql.DataSource;
 
 /**
  * Created by TK YOUN (2020-10-20 오전 8:15)
@@ -31,8 +37,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthEntryPointJwt unauthorizedHanler;
 
-    @Autowired
-    private CustomLogoutSuccessHandler customLogoutSuccessHandler;
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter();
+    }
 
     @Bean
     @Override
@@ -55,6 +63,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
+    // 필요한 지 모르겠음 (개념상은 불필요해 보임)
+    // 로그인 로직에서 이미 AuthenticationManager 활용하면서 SecurityContextHolder에 authentication 객체 주입하므로.
+    // 테스트 필요해 보임.
     @Autowired
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(authenticationProvider());
@@ -76,14 +87,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and().csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHanler)
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET,"/shop/main/index").hasAuthority("ROLE_ADMIN")
+                .anyRequest().permitAll();
 
-        http.logout()
-                .logoutSuccessHandler(customLogoutSuccessHandler)
-                .logoutUrl("/api/auth/logout")
-                .deleteCookies("accessToken", "refreshToken");
+        // https://www.baeldung.com/spring-security-session
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-
+        // Add custom JWT Authentication Filter
+//        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
 }
