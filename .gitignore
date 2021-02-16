@@ -16,5 +16,5 @@ dguproject.iml
 /target/
 
 # application properties
-application.properties
+*.properties
 application.yml

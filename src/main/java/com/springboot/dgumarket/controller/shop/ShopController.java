@@ -153,17 +153,15 @@ public class ShopController {
     }
 
     // 유저의 구매물품 조회하기
-    @GetMapping("/{userId}/purchase")
+    @GetMapping("/purchase")
     public ResponseEntity<?> getUserPurchase(
-            @PathVariable int userId,
             Authentication authentication,
             @RequestParam(value = "purchase_set", defaultValue = "total", required = false) String purchase_set,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault(sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            if(userDetails.getId() != userId){ throw new CustomControllerExecption("403 Forbidden, Wrong access", HttpStatus.FORBIDDEN);}
-            ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userId, purchase_set, pageable);
+            ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userDetails.getId(), purchase_set, pageable);
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message("purchase products")
                     .status(200)

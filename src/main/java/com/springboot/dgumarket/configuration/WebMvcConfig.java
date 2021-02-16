@@ -82,7 +82,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addViewController("/shop/item/upLoad").setViewName("shop/item/upLoad");
         registry.addViewController("/shop/{userId:\\d+}/products").setViewName("shop/item/myItem"); // 본격적으로 추가되는 view url
         registry.addViewController("/shop/{userId:\\d+}/reviews").setViewName("shop/item/myItem");
-        registry.addViewController("/shop/{userId:\\d+}/purchase").setViewName("shop/item/myItem");
+        registry.addViewController("/shop/purchase").setViewName("shop/item/myItem");
         registry.addViewController("/shop/product/{productId:\\d+}").setViewName("shop/item/onePick");
     }
 }
