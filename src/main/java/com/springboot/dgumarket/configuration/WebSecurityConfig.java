@@ -1,10 +1,7 @@
 package com.springboot.dgumarket.configuration;
 
-import com.springboot.dgumarket.filter.JwtAuthenticationFilter;
 import com.springboot.dgumarket.security.authentication.AuthEntryPointJwt;
 import com.springboot.dgumarket.security.authentication.CustomAuthenticationProvider;
-import com.springboot.dgumarket.security.logout.CustomLogoutSuccessHandler;
-import com.springboot.dgumarket.service.UserDetailsServiceImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -36,11 +33,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHanler;
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter();
-    }
 
     @Bean
     @Override
@@ -93,9 +85,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // https://www.baeldung.com/spring-security-session
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-        // Add custom JWT Authentication Filter
-//        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
 }
