@@ -42,6 +42,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     // 아래 경로 ; 인증 여부에 따른 다른 프로세스 (인증 없이도 인터셉터 통과 가능)
     private static final String API_PRODUCT_INDEX = "/api/product/index";
     private static final String API_SHOP = "(/user/\\d+/)(shop-profile|products|reviews)";
+    private static final String API_PRODUCT_CATEGORY = "/category/\\d+";
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -64,10 +65,11 @@ public class JwtInterceptor implements HandlerInterceptor {
             accessToken = accessToken.split(" ")[1];
             log.info("accessToken : " + accessToken);
         } else {
-            // 인증되지 않은 상태에서 요청 (API_PRODUCT_INDEX, API_SHOP)
+            // 인증되지 않은 상태에서 요청 (API_PRODUCT_INDEX, API_SHOP, API_PRODUCT_CATEGORY)
             // 인터셉터 통과
             if (getRequestURI.equals(API_PRODUCT_INDEX)) return true;
             if (getRequestURI.matches(API_SHOP)) return true;
+            if (getRequestURI.matches(API_PRODUCT_CATEGORY)) return true;
             // 특정 경로 외, 예외
             throw new CustomJwtException(errorResponse(request, "There is no access token for authentication"));
         }

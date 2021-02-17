@@ -29,11 +29,11 @@ public class UserBlockServiceImpl implements UserBlockService{
         Member targetMember = memberRepository.findById(blockUserId);
         List<ProductReview> productReviewList = productReviewRepository.checkTradeHistory(member, targetMember);
         // 거래내역중에 상대방과 거래한 내역이 없을 경우 차단가능
-        if (productReviewList.size() != 0){
+        if (productReviewList.size() == 0){
             member.blockUser(targetMember);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     // 유저차단 해제하기

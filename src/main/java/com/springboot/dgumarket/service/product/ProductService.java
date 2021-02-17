@@ -26,4 +26,10 @@ public interface ProductService {
 
     // 사용자 판매물품 조회 -> /api/shop/{userId}/products 요청
     ShopProductListDto getUserProducts(int userId, String productSet, Pageable pageable);
+
+    // 카테고리별 상품 불러오기(비로그인)
+    ShopProductListDto getCategoryProductsNotLoggedIn(int categoryId, Pageable pageable);
+
+    // 카테고리별 상품 불러오기(로그인)
+    ShopProductListDto getCategoryProductsLoggedIn(UserDetailsImpl userDetails, int categoryId, Pageable pageable);
 }
