@@ -22,7 +22,7 @@ public class ProductReviewController {
     ProductReviewService productReviewService;
 
     // 구매후기 남기기
-    @PostMapping("/comment/{productId}")
+    @PostMapping("/{productId}/comment")
     public ResponseEntity<?> writeComment(
             @PathVariable("productId") int productId,
             @RequestBody ProductCommentRequset commentRequest,
@@ -44,7 +44,7 @@ public class ProductReviewController {
 
 
     // 구매후기 보기
-    @GetMapping("/comment/{productId}")
+    @GetMapping("/{productId}/comment")
     public ResponseEntity<?> getProductComment(@PathVariable("productId") int productId, Authentication authentication){
 
         if (authentication != null){

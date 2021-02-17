@@ -316,6 +316,55 @@ public class ProductServiceImpl implements ProductService {
         return shopProductListDto;
     }
 
+    // 카테고리별 물품 조회하기 (비로그인)
+    @Override
+    public ShopProductListDto getCategoryProductsNotLoggedIn(int categoryId, Pageable pageable) {
+        ModelMapper modelMapper = new ModelMapper();
+        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
+
+        // Product -> ProductReadListDto
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
+            @Override
+            protected void configure() {
+                // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
+                map().setThumbnailImg(source.getImgDirectory());
+                map().setTitle(source.getTitle());
+                map().setPrice(source.getPrice());
+                map().setId(source.getId());
+                map().setChatroomNums(source.getChatroomNums());
+                map().setLikeNums(source.getLikeNums());
+                map().setUploadDatetime(source.getCreateDatetime());
+                map().setTransaction_status_id(source.getTransactionStatusId());
+                when(Conditions.isNull()).skip().setLastUpdatedDatetime(source.getUpdateDatetime());
+            }
+        };
+        modelMapper.addMappings(listDtoPropertyMap);
+
+
+        List<ProductReadListDto> productReadListDtos = productRepository.getProductsByCategoryId(categoryId, pageable)
+                .stream()
+                .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                .collect(Collectors.toList());
+
+        // 정렬 중 price 가 있을 경우
+        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
+            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+        };
+
+        return ShopProductListDto.builder()
+                .page_size(productReadListDtos.size())
+                .productsList(productReadListDtos).build();
+    }
+
+    // 카테고리별 물품 조회하기 (로그인)
+    @Override
+    public ShopProductListDto getCategoryProductsLoggedIn(UserDetailsImpl userDetails, int categoryId, Pageable pageable) {
+        return null;
+    }
+
+    // sort 중 price 가 있을 경우 정렬함 (price string + 원화 가 포함되어있어 어쩔 수 없다)
     private void checkPriceDescAsc(List<ProductReadListDto> productReadListDtos, Comparator<ProductReadListDto> readListDtosComparator, boolean isPriceDesc, boolean isPriceAsc) {
         if(isPriceAsc){ // 저가순
             productReadListDtos.sort(readListDtosComparator);

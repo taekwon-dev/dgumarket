@@ -29,6 +29,7 @@ public class MemberBlockController {
                 throw new CustomControllerExecption("You can't block it because you have a transaction history with the other person", HttpStatus.ACCEPTED);
             }
             return "block success"; // 유저차단 성공
+
         }
 
         return null;

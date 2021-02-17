@@ -27,4 +27,5 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
     Page<ProductCategory> findByMembersAndIdGreaterThanOrderByIdAsc(Member member, int last_id, Pageable pageable);
 
     Set<ProductCategory> findByMembers(Member member);
+
 }
