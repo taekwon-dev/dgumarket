@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/shop")
+@RequestMapping("/user")
 @RequiredArgsConstructor
 public class ShopController {
     private static final int DEFAULT_PAGE_SIZE = 20; // 기본사이즈
@@ -35,7 +35,7 @@ public class ShopController {
     private final ProductService productService;
     private final ProductReviewService productReviewService;
 
-    @GetMapping("/{userId}/profile")
+    @GetMapping("/{userId}/shop-profile")
     public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption {
         MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userId);
         if(authentication != null){ // 로그인 상태
@@ -153,7 +153,7 @@ public class ShopController {
     }
 
     // 유저의 구매물품 조회하기
-    @GetMapping("/purchase")
+    @GetMapping("/purchase/products")
     public ResponseEntity<?> getUserPurchase(
             Authentication authentication,
             @RequestParam(value = "purchase_set", defaultValue = "total", required = false) String purchase_set,

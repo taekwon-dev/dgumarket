@@ -26,7 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/chatroom")
 public class ChatRoomController {
     private static Logger logger = LoggerFactory.getLogger(ChatMessageController.class);
 
@@ -44,7 +44,7 @@ public class ChatRoomController {
 
 
     // 채팅방 목록들을 가져옵니다. (  API 문서작성 완료 & 피드백 완료  )
-    @GetMapping("/rooms")
+    @GetMapping("/lists")
     public ResponseEntity<List<ChatRoomListDto>> GetRoomList(Authentication authentication){
         logger.info("룸리스트 요청");
         if (authentication != null) {
@@ -81,16 +81,15 @@ public class ChatRoomController {
                 .status(200)
                 .message("채팅방 유무 확인")
                 .data(chatRoomCheckExistedDto).build();
-
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
 
     // 채팅방상단 물건의 대략적인 정보 + 채팅방이 내것인지 확인 가져옴 ( 기존 채팅방 ), 1.13 완료 ( API 문서작성 완료 & 피드백 완료 ) -> 수정
-    @GetMapping("/room/section/product/{id}")
+    @GetMapping("/product/{productId}")
     public ResponseEntity getChatRoomProductInfo(
             Authentication authentication,
-            @PathVariable("id") int productId){
+            @PathVariable("productId") int productId){
 
         if (authentication != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -110,10 +109,10 @@ public class ChatRoomController {
     }
 
     // 채팅방에서 거래완료 요청 보내기 ( API 문서작성 완료 & 피드백 완료 )
-    @PatchMapping("/room/{room-id}/product")
+    @PatchMapping("/{roomId}/trade-done")
     public ResponseEntity<?> updateProductStatus (
             @RequestBody ProductStatusChangeRequest statusChangeRequest,
-        @PathVariable("room-id") int roomId) throws CustomControllerExecption {
+        @PathVariable("roomId") int roomId) throws CustomControllerExecption {
 
         boolean result = chatRoomService.changeRoomTransactionStatus(roomId, statusChangeRequest.getTransaction_status_id());
         if(!result){
@@ -123,8 +122,8 @@ public class ChatRoomController {
     }
 
     // 채팅방 상태 확인하기
-    @GetMapping("/room/{room-id}/status")
-    public ChatRoomStatusDto checkRoom(@PathVariable("room-id") int roomId, Authentication authentication){
+    @GetMapping("/{roomId}/status")
+    public ChatRoomStatusDto checkRoom(@PathVariable("roomId") int roomId, Authentication authentication){
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             ChatRoomStatusDto chatRoomStatusDto = chatRoomService.getChatRoomStatus(roomId, userDetails.getId());
@@ -134,9 +133,9 @@ public class ChatRoomController {
     }
 
     // 채팅방 나가기
-    @PatchMapping("/room/{room-id}")
+    @PatchMapping("/leave/{roomId}")
     public ResponseEntity<?> leaveChatRoom(
-            @PathVariable("room-id") int roomId,
+            @PathVariable("roomId") int roomId,
             @RequestBody ChatRoomLeaveRequest roomLeaveRequest,
             Authentication authentication){
         if(authentication != null & roomLeaveRequest != null){

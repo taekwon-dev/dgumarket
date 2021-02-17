@@ -21,6 +21,9 @@ import java.util.List;
 @Slf4j
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+    private final static String[] patterns =
+            {"/api/product/**", "/product/**", "/user/*/**", "/user/purchase/**", "/block/**", "/unblock/*", "/report",
+            "/chat/**", "/chatroom/**", "/user/profile/**"};
 
     private JwtInterceptor jwtInterceptor;
     private JwtExceptionResolver jwtExceptionResolver;
@@ -34,14 +37,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-
         registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/api/product/**")
-                .addPathPatterns("/api/shop/*/**")
-                .addPathPatterns("/user/block/**")
-                .addPathPatterns("/report")
-                .addPathPatterns("/chat/**")
-                .addPathPatterns("/user/profile/**");
+                .addPathPatterns(patterns);
     }
 
     // https://trello.com/c/iNlacAg7/148-dgumarket-restapi-http-exception-handling
@@ -75,14 +72,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addViewController("/shop/account/change_Pwd").setViewName("shop/account/change_Pwd");
         registry.addViewController("/shop/account/change_smartPhone_number").setViewName("shop/account/change_smartPhone_number");
         registry.addViewController("/shop/account/select_userInfo").setViewName("shop/account/select_userInfo");
-        registry.addViewController("/shop/item/category").setViewName("shop/item/category");
-        registry.addViewController("/shop/item/ListbyCondition").setViewName("shop/item/ListbyCondition");
         registry.addViewController("/shop/item/myItem").setViewName("shop/item/myItem");
         registry.addViewController("/shop/item/onePick").setViewName("shop/item/onePick");
         registry.addViewController("/shop/item/upLoad").setViewName("shop/item/upLoad");
-        registry.addViewController("/shop/{userId:\\d+}/products").setViewName("shop/item/myItem"); // 본격적으로 추가되는 view url
-        registry.addViewController("/shop/{userId:\\d+}/reviews").setViewName("shop/item/myItem");
-        registry.addViewController("/shop/purchase").setViewName("shop/item/myItem");
-        registry.addViewController("/shop/product/{productId:\\d+}").setViewName("shop/item/onePick");
+        registry.addViewController("/shop/{userId:\\d+}/products").setViewName("shop/item/myItem"); // 유저 판매물건 페이지
+        registry.addViewController("/shop/{userId:\\d+}/reviews").setViewName("shop/item/myItem"); // 유저 리뷰보기 페이지(유저에게 남긴 리뷰들)
+        registry.addViewController("/shop/purchase").setViewName("shop/item/myItem"); // 유저 구매물건 페이지 (인증필)
+        registry.addViewController("/product/{productId:\\d+}").setViewName("shop/item/onePick"); // 개별 물건페이지
+        registry.addViewController("/category/{categoryId}").setViewName("shop/item/ListbyCondition"); // 카테고리 페이지
     }
 }
