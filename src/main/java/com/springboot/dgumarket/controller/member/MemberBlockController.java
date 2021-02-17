@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.controller.member;
 
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.request.block.BlockUserRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.service.UserDetailsImpl;
@@ -11,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user/block")
 public class MemberBlockController {
 
 
@@ -19,14 +19,14 @@ public class MemberBlockController {
     UserBlockService userBlockService;
 
     // 유저차단하기
-    @PostMapping
-    public String blockUser(Authentication authentication, @RequestBody BlockUserRequest blockUserRequest){
+    @PostMapping("/block")
+    public String blockUser(Authentication authentication, @RequestBody BlockUserRequest blockUserRequest) throws CustomControllerExecption {
 
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             boolean isBlock = userBlockService.blockUser(userDetails.getId(), blockUserRequest.getBlock_user());
             if(!isBlock){
-                return "block fail"; // 유저차단 실패
+                throw new CustomControllerExecption("You can't block it because you have a transaction history with the other person", HttpStatus.ACCEPTED);
             }
             return "block success"; // 유저차단 성공
         }
@@ -35,8 +35,8 @@ public class MemberBlockController {
     }
 
     // 유저차단 해제하기
-    @DeleteMapping("/{id}")
-    public String unblockUser(Authentication authentication, @PathVariable("id") int unblockUserId){
+    @DeleteMapping("/unblock/{userId}")
+    public String unblockUser(Authentication authentication, @PathVariable("userId") int unblockUserId){
         if(authentication != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             userBlockService.unBlockUser(userDetails.getId(), unblockUserId);
@@ -46,8 +46,8 @@ public class MemberBlockController {
     }
 
     // 차단유무 확인하기(내가상대방차단 , 상대방이나를 :2 , 그외 경우 :3)
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseEntity> checkBlockStatusByUser(Authentication authentication, @PathVariable("id") int targetUserId){
+    @GetMapping("/block/read/{userId}")
+    public ResponseEntity<ApiResponseEntity> checkBlockStatusByUser(Authentication authentication, @PathVariable("userId") int targetUserId){
 
         if(authentication != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();

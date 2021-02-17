@@ -15,16 +15,16 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/product")
+@RequestMapping("/product")
 public class ProductReviewController {
 
     @Autowired
     ProductReviewService productReviewService;
 
     // 구매후기 남기기
-    @PostMapping("/{product-id}/comment")
+    @PostMapping("/comment/{productId}")
     public ResponseEntity<?> writeComment(
-            @PathVariable("product-id") int productId,
+            @PathVariable("productId") int productId,
             @RequestBody ProductCommentRequset commentRequest,
             Authentication authentication){
 
@@ -33,7 +33,7 @@ public class ProductReviewController {
             productReviewService.addProductComment(productId, userDetails.getId(), commentRequest);
 
             // location 업데이트된 자원의 위치를 알려준다.
-            URI location = URI.create("/api/product/" + productId + "/comment");
+            URI location = URI.create("/product/comment/" + productId);
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setLocation(location);
             return new ResponseEntity<>("Posted successfully", responseHeaders, HttpStatus.CREATED);
@@ -44,8 +44,8 @@ public class ProductReviewController {
 
 
     // 구매후기 보기
-    @GetMapping("/{product-id}/comment")
-    public ResponseEntity<?> getProductComment(@PathVariable("product-id") int productId, Authentication authentication){
+    @GetMapping("/comment/{productId}")
+    public ResponseEntity<?> getProductComment(@PathVariable("productId") int productId, Authentication authentication){
 
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();

@@ -115,6 +115,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
     // 유저가 구매한 물건 조회하기
     @Override
     public ShopPurchaseListDto getPurchaseProducts(int userId, String purchaseSet, Pageable pageable) {
+        log.info("purchaseSet : {}", purchaseSet);
         Member member = memberRepository.findById(userId);
         ModelMapper modelMapper = new ModelMapper();
         Converter<Object, Boolean> BooleanConverter = context -> (context.getSource() != null); // boolean 컨버터

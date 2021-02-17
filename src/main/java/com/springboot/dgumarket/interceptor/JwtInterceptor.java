@@ -41,7 +41,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     // 아래 경로 ; 인증 여부에 따른 다른 프로세스 (인증 없이도 인터셉터 통과 가능)
     private static final String API_PRODUCT_INDEX = "/api/product/index";
-    private static final String API_SHOP = "(/api/shop/\\d+/)(profile|products|reviews)";
+    private static final String API_SHOP = "(/user/\\d+/)(shop-profile|products|reviews)";
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;

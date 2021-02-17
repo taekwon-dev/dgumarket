@@ -42,10 +42,6 @@ public class ChatMessageController {
     // [STOMP] SEND Frame 메시지 받는 곳
     @MessageMapping("/message")
     public void handleSendMessage(SendMessage sendMessage, SimpMessageHeaderAccessor accessor) throws StompErrorException {
-
-
-
-
         BlockStatusDto blockStatus = userBlockService.checkBlockStatus(sendMessage.getSenderId(), sendMessage.getReceiverId());
 
         switch (blockStatus.getBlock_status()){
@@ -60,7 +56,7 @@ public class ChatMessageController {
     }
 
     // 유저의 전체 읽지 않은 메시지 개수
-    @GetMapping("/user/unread/messages")
+    @GetMapping("/unread/messages")
     public ResponseEntity<?> getUnReadMessages(Authentication authentication){
 
         logger.info("getUnReadMessages 의 요청들어옴");
