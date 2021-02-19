@@ -32,4 +32,11 @@ public interface ProductService {
 
     // 카테고리별 상품 불러오기(로그인)
     ShopProductListDto getCategoryProductsLoggedIn(UserDetailsImpl userDetails, int categoryId, Pageable pageable);
+
+
+    // 물건 전체보기 (로그인)
+    ShopProductListDto getAllProducts(UserDetailsImpl userDetails, Pageable pageable);
+
+    // 물건 전체보기 (비로그인)
+    ShopProductListDto getAllProducts(Pageable pageable);
 }
