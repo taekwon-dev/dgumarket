@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.service.product;
 
+import com.springboot.dgumarket.controller.product.LogExecutionTime;
 import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
 import com.springboot.dgumarket.dto.product.ProductReadListDto;
@@ -316,6 +317,9 @@ public class ProductServiceImpl implements ProductService {
         return shopProductListDto;
     }
 
+    //***************************************************************************************************************************
+
+
     // 카테고리별 물품 조회하기 (비로그인)
     @Override
     public ShopProductListDto getCategoryProductsNotLoggedIn(int categoryId, Pageable pageable) {
@@ -361,7 +365,137 @@ public class ProductServiceImpl implements ProductService {
     // 카테고리별 물품 조회하기 (로그인)
     @Override
     public ShopProductListDto getCategoryProductsLoggedIn(UserDetailsImpl userDetails, int categoryId, Pageable pageable) {
-        return null;
+        Member member = memberRepository.findById(userDetails.getId());
+        ModelMapper modelMapper = new ModelMapper();
+        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
+
+        // Product -> ProductReadListDto
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
+            @Override
+            protected void configure() {
+                // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
+                map().setThumbnailImg(source.getImgDirectory());
+                map().setTitle(source.getTitle());
+                map().setPrice(source.getPrice());
+                map().setId(source.getId());
+                map().setChatroomNums(source.getChatroomNums());
+                map().setLikeNums(source.getLikeNums());
+                map().setUploadDatetime(source.getCreateDatetime());
+                map().setTransaction_status_id(source.getTransactionStatusId());
+                when(Conditions.isNull()).skip().setLastUpdatedDatetime(source.getUpdateDatetime());
+            }
+        };
+        modelMapper.addMappings(listDtoPropertyMap);
+
+
+        // 차단한 유저(or 나를 차단한 유저)의 물건을 보여주지 않는다.
+        List<ProductReadListDto> productReadListDtos = productRepository.getProductsByCategoryId(categoryId, pageable)
+                .stream()
+                .filter(product -> !(member.getBlockUsers().contains(product.getMember())))
+                .filter(product -> !(member.getUserBlockedMe().contains(product.getMember())))
+                .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                .collect(Collectors.toList());
+
+        // 정렬 중 price 가 있을 경우
+        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
+            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+        };
+
+        return ShopProductListDto.builder()
+                .page_size(productReadListDtos.size())
+                .productsList(productReadListDtos).build();
+    }
+
+    // 물건 전체보기 (비로그인)
+    @Override
+    public ShopProductListDto getAllProducts(Pageable pageable) {
+        ModelMapper modelMapper = new ModelMapper();
+        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
+
+        // Product -> ProductReadListDto
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
+            @Override
+            protected void configure() {
+                // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
+                map().setThumbnailImg(source.getImgDirectory());
+                map().setTitle(source.getTitle());
+                map().setPrice(source.getPrice());
+                map().setId(source.getId());
+                map().setChatroomNums(source.getChatroomNums());
+                map().setLikeNums(source.getLikeNums());
+                map().setUploadDatetime(source.getCreateDatetime());
+                map().setTransaction_status_id(source.getTransactionStatusId());
+                when(Conditions.isNull()).skip().setLastUpdatedDatetime(source.getUpdateDatetime());
+            }
+        };
+        modelMapper.addMappings(listDtoPropertyMap);
+
+
+        List<ProductReadListDto> productReadListDtos = productRepository.getAllByTransactionStatusIdEquals(0, pageable)
+                .stream()
+                .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                .collect(Collectors.toList());
+
+        // 정렬 중 price 가 있을 경우
+        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
+            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+        };
+
+        return ShopProductListDto.builder()
+                .page_size(productReadListDtos.size())
+                .productsList(productReadListDtos)
+                .build();
+    }
+
+    // 물건 전체보기 (로그인)
+    @Override
+    public ShopProductListDto getAllProducts(UserDetailsImpl userDetails, Pageable pageable) {
+        Member member = memberRepository.findById(userDetails.getId());
+        log.info("유저아이디 : {}", member.getId());
+        ModelMapper modelMapper = new ModelMapper();
+        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
+
+        // Product -> ProductReadListDto
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
+            @Override
+            protected void configure() {
+                // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
+                map().setThumbnailImg(source.getImgDirectory());
+                map().setTitle(source.getTitle());
+                map().setPrice(source.getPrice());
+                map().setId(source.getId());
+                map().setChatroomNums(source.getChatroomNums());
+                map().setLikeNums(source.getLikeNums());
+                map().setUploadDatetime(source.getCreateDatetime());
+                map().setTransaction_status_id(source.getTransactionStatusId());
+                when(Conditions.isNull()).skip().setLastUpdatedDatetime(source.getUpdateDatetime());
+            }
+        };
+        modelMapper.addMappings(listDtoPropertyMap);
+
+        // 차단한 유저(or 나를 차단한 유저)의 물건을 보여주지 않는다.
+        List<ProductReadListDto> productReadListDtos = productRepository.getAllByTransactionStatusIdEquals(0, pageable)
+                .stream()
+                .filter(product -> !(member.getBlockUsers().contains(product.getMember())))
+                .filter(product -> !(member.getUserBlockedMe().contains(product.getMember())))
+                .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                .collect(Collectors.toList());
+
+        // 정렬 중 price 가 있을 경우
+        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
+            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
+            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
+            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
+        };
+
+        return ShopProductListDto.builder()
+                .page_size(productReadListDtos.size())
+                .productsList(productReadListDtos)
+                .build();
     }
 
     // sort 중 price 가 있을 경우 정렬함 (price string + 원화 가 포함되어있어 어쩔 수 없다)
