@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.service.product;
 
-import com.springboot.dgumarket.controller.product.LogExecutionTime;
+
 import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
 import com.springboot.dgumarket.dto.product.ProductReadListDto;
@@ -115,6 +115,9 @@ public class ProductServiceImpl implements ProductService {
 
                 // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
+                // 메인 페이지 물건리스트 업로드 시간 (업로드 시간 기준으로 정렬)
+                // 2021-02-21
+                map().setUploadDatetime(source.getUpdateDatetime());
                 map().setThumbnailImg(source.getImgDirectory());
                 map().setCategory_id(source.getProductCategory().getId());
             }
@@ -184,6 +187,9 @@ public class ProductServiceImpl implements ProductService {
 
                 // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
+                // 메인 페이지 물건리스트 업로드 시간 (업로드 시간 기준으로 정렬)
+                // 2021-02-21
+                map().setUploadDatetime(source.getUpdateDatetime());
                 map().setThumbnailImg(source.getImgDirectory());
                 map().setCategory_id(source.getProductCategory().getId());
             }
