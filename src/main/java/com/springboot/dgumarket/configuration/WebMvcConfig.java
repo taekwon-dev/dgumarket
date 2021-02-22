@@ -32,6 +32,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/chatroom/**", // 채팅방 관련 API [인증 필요]
                     "/user/profile/**", // 유저 API [인증 필요]
                     "/product/*/info ", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
+                    "/product-like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
                     "/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
                     "/products", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
                     "/category/*", // 카테고리별 물건조회 [ 인증선택, jwt interceptor 예외 추가 ]

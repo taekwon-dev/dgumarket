@@ -25,11 +25,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> apiProductIndex(@Param("categories") List<ProductCategory> categories);
 
 
-    // shop, 유저 전체 판매물건 조회
+    // shop, 유저 전체 판매물건 조회 ( p.productStatus = 0 => 삭제가 안된 물건들 )
     @Query("select p from Product p where p.member =:member and p.productStatus = 0")
     List<Product> findAllByMember(Member member, @Nullable Pageable pageable);
 
-    // shop, 유저 특정상태 판매물건 조회
+    // shop, 유저 특정상태 판매물건 조회 ( p.productStatus = 0 => 삭제가 안된 물건들 )
     @Query("select p from Product p where p.member =:member and p.productStatus = 0 and p.transactionStatusId =:transactionStatusId")
     List<Product> findAllByMemberWithSort(Member member, int transactionStatusId, Pageable pageable);
 

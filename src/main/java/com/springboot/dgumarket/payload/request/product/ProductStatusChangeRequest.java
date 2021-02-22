@@ -4,6 +4,8 @@ import com.springboot.dgumarket.payload.request.report.ReportRequest;
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
 
+import javax.validation.constraints.NotBlank;
+
 
 /**
  * created by ms, 2021-01-25

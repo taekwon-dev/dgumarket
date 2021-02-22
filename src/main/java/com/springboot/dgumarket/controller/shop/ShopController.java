@@ -2,6 +2,7 @@ package com.springboot.dgumarket.controller.shop;
 
 import com.springboot.dgumarket.dto.block.BlockStatusDto;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
+import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
 import com.springboot.dgumarket.dto.shop.ShopReviewListDto;
 import com.springboot.dgumarket.dto.shop.ShopPurchaseListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
@@ -169,5 +170,27 @@ public class ShopController {
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
         throw new CustomControllerExecption("403 Forbidden, Wrong access", HttpStatus.FORBIDDEN);
+    }
+
+    // 유저 관심물건 조회하기
+    @GetMapping("/favorites")
+    public ResponseEntity<?> getUserFavorites(
+            Authentication authentication,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE)
+            @SortDefault(sort = "likedTime") Pageable pageable){
+
+        if (authentication != null){
+            log.info("로그인성공");
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            log.info("로그인성공  아이디 {}",userDetails.getId());
+            ShopFavoriteListDto shopFavoriteListDto = productService.getFavoriteProducts(userDetails, pageable);
+            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                    .message("favorites products")
+                    .status(200)
+                    .data(shopFavoriteListDto).build();
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        }
+
+        return null;
     }
 }

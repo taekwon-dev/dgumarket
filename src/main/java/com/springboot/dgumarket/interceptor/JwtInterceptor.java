@@ -44,7 +44,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     private static final String API_SHOP = "(/user/\\d+/)(shop-profile|products|reviews)"; // 유저샵프로필/유저샵판매물건/유저샵리뷰
     private static final String API_PRODUCT_CATEGORY = "/category/\\d+"; // 카테고리별 물건보여주기
     private static final String API_PRODUCT_TOTAL = "/products"; // 전체물건보여주기
-    private static final String API_PRODUCT_INFO = "/product/\\d+/info"; // 개별물건정보 보여주기
+    private static final String API_PRODUCT_INFO = "/api/product/\\d+/info"; // 개별물건보여주기 (선택)
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;

@@ -3,6 +3,8 @@ package com.springboot.dgumarket.payload.request.block;
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
 
+import javax.validation.constraints.NotBlank;
+
 /**
   * created by ms, 2021-01-23
  *  사용자 차단시 요청 BODY 에 차단할 사용자 ID 를 포함하여 요청

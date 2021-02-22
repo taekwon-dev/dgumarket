@@ -10,6 +10,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.WhereJoinTable;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -76,7 +77,7 @@ public class Member {
     @UpdateTimestamp
     private LocalDateTime updateDatetime;
 
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
             name = "member_roles",
             joinColumns = { @JoinColumn(name = "member_id")},
@@ -84,7 +85,7 @@ public class Member {
     @JsonIgnore
     private Set<Role> roles;
 
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
             name = "member_categories",
             joinColumns = { @JoinColumn(name = "member_id")},
@@ -92,11 +93,11 @@ public class Member {
     @JsonIgnore
     private Set<ProductCategory> productCategories;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<LoggedLogin> loggedLogins = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<Product> products;
 
@@ -154,6 +155,26 @@ public class Member {
             inverseJoinColumns = {@JoinColumn(name = "user_id")})
     @JsonIgnore
     private Set<Member> UserBlockedMe; // 나를 차단한 유저들 ( 나를 차단한 유저들의 물건들은 보여서는 안된다 )
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+            name = "product_like",
+            joinColumns = { @JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "product_id")})
+    @JsonIgnore
+    private Set<Product> likeProducts; // 좋아요한 물건들
+
+    // 좋아요 누르기
+    public void like(Product product){
+        this.getLikeProducts().add(product); // 좋아요 물건 추가
+        product.setLikeNums(product.getLikeNums()+1); // 해당 물건에 좋아요 +1
+    }
+
+    // 좋아요 취소하기
+    public void unlike(Product product){
+        this.getLikeProducts().remove(product); // 좋아요 했던 물건 취소하기
+        product.setLikeNums(product.getLikeNums()-1); // 해당 물건에 좋아요 -1
+    }
 
     // 유저 차단하기
     public void blockUser(Member blockUser){

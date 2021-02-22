@@ -60,8 +60,6 @@ public class ChatRoomController {
             logger.info("userDetails.getId() : {}", userDetails.getId());
             System.out.println("chatRoomListDtos = " + chatRoomListDtos);
             return new ResponseEntity<>(chatRoomListDtos, HttpStatus.OK);
-        } else {
-
         }
 
         return null;
