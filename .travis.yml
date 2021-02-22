@@ -1,0 +1,65 @@
+language: java
+jdk:
+  - openjdk8 # 어떤 버전으로 빌드할 지는 생각해봐야겠다. java 피셜에서는 jdk11을 권장한다.(알고리즘 개선으로 속도가 개선되었다고..)
+
+# 빌드 브랜치 지정 ( 현재는 work 로 지정 )
+branches:
+  only:
+    - work
+
+# Travis CI 서버의 Home
+# 여기있는 모든 것들을 환경변수로 지정할 수 있다. private 한 사항들을 travis 의 환경변수로 지정한다면 상관없을 듯 하다.
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+    - '$HOME/.mvnw'
+
+# 실행 권한
+before_install:
+  - chmod +x ./mvnw # 메이븐 설치없이 필브할 수 있도록 자동화한 프로그램
+
+# maven 이용 , 기존 target 폴더 clean (기존 만들어진 build 결과물 지우고) 다시 빌드(package) 한다.
+script: "./mvnw clean package"
+
+
+before_deploy:
+  - mkdir -p before-deploy # zip 에 포함시킬 파일들을 담을 디렉토리 생성
+  - cp scripts/*.sh before-deploy # script 파일들 ( 어차피 비밀스러운 내용은 없다 )
+  - cp appspec.yml before-deploy # CodeDeploy 설정 파일 ( 없어도 되긴하는데, 같이 따라나니게 하자 )
+  - cp /home/travis/build/taekwon-dev/dgumarket/target/*.jar before-deploy # 빌드후 jar 파일만 옮기기
+  - cd before-deploy && zip -r before-deploy * # before-deploy 이동 후 전체 압축( *.sh, appspec.yml , *.jar )
+  - cd ../ && mkdir -p deploy # 상위 디렉토리 이동 후 deploy 디렉토리 생성
+  - mv before-deploy/before-deploy.zip deploy/dgumarket-main.zip # deploy로 zip 파일 이동 (실제로 버전관리를 한다면 dgumarket-main.zip 과 *.jar 파일이름을 다르게 만들어야한다. 그렇게 해야 기존의 빌드 결과물이 안겹쳐지고 남음)
+
+deploy: # S3 로 파일업로드 혹은 CodeDeploy로 배포 등 외부서비스와 연동될 행위들을 선언한다.
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY # Travis repo setting 에서 설정된 값
+    secret_access_key: $AWS_SECRET_KEY # Travis repo setting 에서 설정된 값
+    bucket: $S3_BUCKET_NAME
+    region: $S3_REGION
+    skip_cleanup: true # Travis ci 가 만들어진 build 결과물을 못지우도록 함
+    acl: private # zip 파일 접근을 private ( 외부에서 build 파일을 받게해서는 안되기 때문 )
+    local_dir: deploy # travis 의 어떤 디렉토리에 있는 파일들을 올릴것인지 지정 ( 여기에 스크립트파일, appspec.yml, *.jar 가 모두 있다 )
+    wait-until-deployed: true # 이게 먼저 되어야 code deploy 부분 진행!
+    on:
+      branch: work
+
+# Travis CI는 AWS region ap-northeast-2 의 dgumarket-webservice 라는 기존 CodeDeploy Application 에 배포를 시도함
+  - provider: codedeploy
+    access_key_id: $AWS_ACCESS_KEY # Travis repo settings 에서 설정된 값
+    secret_access_key: $AWS_SECRET_KEY # Travis repo settings 에서 설정된 값
+    bucket: $S3_BUCKET_NAME # S3 버킷
+    key: dgumarket-main.zip # 빌드파일을 압축해서 전달 s3의 object key
+    bundle_type: zip
+    application: dgumarket-webservice # 웹 콘솔에서 등록한 CodeDeploy 애플리케이션
+    deployment_group: dgumarket-webservice-group # 웹 콘솔에서 등록한 CodeDeploy 배포 그룹
+    region: ap-northeast-2
+    wait-until-deployed: true
+    on:
+      branch: work
+
+# CI 실행완료시 메일로 알람 [ 실패 or 성공 ]
+notifications:
+  email:
+    recipients:
+      - kmss69052@naver.com
