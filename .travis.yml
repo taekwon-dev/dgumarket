@@ -53,7 +53,7 @@ deploy: # S3 로 파일업로드 혹은 CodeDeploy로 배포 등 외부서비스
     bundle_type: zip
     application: dgumarket-webservice # 웹 콘솔에서 등록한 CodeDeploy 애플리케이션
     deployment_group: dgumarket-webservice-group # 웹 콘솔에서 등록한 CodeDeploy 배포 그룹
-    region: ap-northeast-2
+    region: ap-northeast-1 # codedeploy 는 리전이 명확하다.. (도쿄)
     wait-until-deployed: true
     on:
       branch: work

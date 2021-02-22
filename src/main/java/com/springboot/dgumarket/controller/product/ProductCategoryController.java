@@ -43,6 +43,7 @@ public class ProductCategoryController {
     @Autowired
     ProductService productService;
 
+    // 카테고리별 물건들 조회
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<?> getCategoryProducts(
             Authentication authentication,
@@ -52,8 +53,7 @@ public class ProductCategoryController {
 
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            log.info("유저아이디 : {}", userDetails.getId());
-            ShopProductListDto categoryProducts  = productService.getCategoryProductsLoggedIn(userDetails, categoryId, pageable);
+            ShopProductListDto categoryProducts  = productService.getProductsByCategory(userDetails, categoryId, pageable);
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message(categoryName[categoryId-1] + " 조회")
                     .status(200)
@@ -61,7 +61,7 @@ public class ProductCategoryController {
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
 
-        ShopProductListDto categoryProducts = productService.getCategoryProductsNotLoggedIn(categoryId, pageable);
+        ShopProductListDto categoryProducts = productService.getProductsByCategory(null, categoryId, pageable);
         ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                 .message(categoryName[categoryId-1] + " 조회")
                 .status(200)
@@ -69,17 +69,15 @@ public class ProductCategoryController {
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
-
+    // 전체 물건 조회
     @GetMapping("/products")
     public ResponseEntity<?> getAllProducts(
             Authentication authentication,
-//            @PageableDefault(size = DEFAULT_PAGE_SIZE)
+            @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable){
 
         if(authentication != null){
-            log.info("로그인성공");
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            log.info("유저아이디 : {}", userDetails.getId());
             ShopProductListDto shopProductListDto = productService.getAllProducts(userDetails, pageable);
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message("전체 물건 조회")
@@ -87,8 +85,7 @@ public class ProductCategoryController {
                     .data(shopProductListDto).build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
-        log.info("로그인실패");
-        ShopProductListDto shopProductListDto = productService.getAllProducts(pageable);
+        ShopProductListDto shopProductListDto = productService.getAllProducts(null, pageable);
         ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                 .message("전체 물건 조회")
                 .status(200)

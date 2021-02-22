@@ -7,6 +7,7 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.security.core.Authentication;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.Set;
 
 /**
@@ -18,8 +19,10 @@ import java.util.Set;
 @Setter
 public class ReportRequest {
 
+    @NotEmpty(message = "require report_category_id")
     private int report_category_id; // 신고 카테고리
 
+    @NotBlank(message = "require etc_reason")
     private String report_etc_reason; // 기타 이유
 
     @NotBlank

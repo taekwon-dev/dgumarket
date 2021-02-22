@@ -39,6 +39,10 @@ public class ProductReadListDto {
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private int category_id;
 
+    // 내가 좋아요 했는지에 대한 유무
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private String likeStatus;
+
     // 상품 업로드 또는 마지막 수정 시간
     private LocalDateTime lastUpdatedDatetime;
 

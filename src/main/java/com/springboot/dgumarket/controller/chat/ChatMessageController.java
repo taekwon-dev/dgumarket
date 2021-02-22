@@ -87,7 +87,7 @@ public class ChatMessageController {
 
     // [STOMP] 메시지 예외처리
     @MessageExceptionHandler(StompErrorException.class)
-    @SendToUser(destinations="/queue/error")
+    @SendToUser(destinations="/queue/error", broadcast = false)
     public StompErrorResponseMessage handleException(StompErrorException exception) {
 
         return StompErrorResponseMessage.builder()

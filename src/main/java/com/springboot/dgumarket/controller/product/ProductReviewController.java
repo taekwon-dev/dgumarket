@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.controller.product;
 
 import com.springboot.dgumarket.dto.product.ProductReviewDto;
-import com.springboot.dgumarket.payload.request.review.ProductCommentRequset;
+import com.springboot.dgumarket.payload.request.review.ProductCommentRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.product.ProductReviewService;
@@ -25,7 +25,7 @@ public class ProductReviewController {
     @PostMapping("/{productId}/comment")
     public ResponseEntity<?> writeComment(
             @PathVariable("productId") int productId,
-            @RequestBody ProductCommentRequset commentRequest,
+            @RequestBody ProductCommentRequest commentRequest,
             Authentication authentication){
 
         if (authentication != null){

@@ -8,7 +8,7 @@ import com.springboot.dgumarket.dto.shop.ShopPurchaseListDto;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductReview;
-import com.springboot.dgumarket.payload.request.review.ProductCommentRequset;
+import com.springboot.dgumarket.payload.request.review.ProductCommentRequest;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
@@ -47,7 +47,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
     // 거래후기 남기기
     @Override
     @Transactional
-    public void addProductComment(int productId, int userId, ProductCommentRequset productCommentRequset) {
+    public void addProductComment(int productId, int userId, ProductCommentRequest productCommentRequest) {
 
         Member member = memberRepository.getOne(userId);
         Product product = productRepository.getOne(productId);
@@ -56,8 +56,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         if(productReview.isPresent()){
             if(productReview.get().getConsumer() == member){ // 정말 리뷰어 자격인지 확인
                 LocalDateTime currentDate = LocalDateTime.now();
-
-                productReview.get().setReviewMessage(productCommentRequset.getProduct_comment()); // 리뷰 추가
+                productReview.get().setReviewMessage(productCommentRequest.getProduct_comment()); // 리뷰 추가
                 productReview.get().setReviewRegistrationDate(currentDate.plusHours(9L));
             }
         }

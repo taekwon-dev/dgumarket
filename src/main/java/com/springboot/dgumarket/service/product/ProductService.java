@@ -1,10 +1,15 @@
 package com.springboot.dgumarket.service.product;
 
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
+import com.springboot.dgumarket.dto.product.ProductReadOneDto;
+import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
+import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 
@@ -24,19 +29,22 @@ public interface ProductService {
     // 로그인 상태 -> /api/product/index 요청, userDetails : '유저'의 관심 카테고리를 출력하기 위함, lastCategoryId -> 페이징 시 가장 마지막으로 응답했던 카테고리 id
     List<ProductListIndex> indexLoggedIn(UserDetailsImpl userDetails, int lastCategoryId);
 
-    // 사용자 판매물품 조회 -> /api/shop/{userId}/products 요청
+    // 사용자 판매물품 조회 -> /user/{userId}/products 요청
     ShopProductListDto getUserProducts(int userId, String productSet, Pageable pageable);
 
-    // 카테고리별 상품 불러오기(비로그인)
-    ShopProductListDto getCategoryProductsNotLoggedIn(int categoryId, Pageable pageable);
+    // 사용자 관심물건 조회 -> /user/favorites
+    ShopFavoriteListDto getFavoriteProducts(UserDetailsImpl userDetails, Pageable pageable);
 
-    // 카테고리별 상품 불러오기(로그인)
-    ShopProductListDto getCategoryProductsLoggedIn(UserDetailsImpl userDetails, int categoryId, Pageable pageable);
+    // 카테고리별 상품 불러오기
+    ShopProductListDto getProductsByCategory(@Nullable UserDetailsImpl userDetails, int categoryId, Pageable pageable);
 
+    // 물건 전체보기
+    ShopProductListDto getAllProducts(@Nullable UserDetailsImpl userDetails, Pageable pageable);
 
-    // 물건 전체보기 (로그인)
-    ShopProductListDto getAllProducts(UserDetailsImpl userDetails, Pageable pageable);
+    // 물건 개별 정보 보기
+    ProductReadOneDto getProductInfo(@Nullable UserDetailsImpl userDetails, int productId) throws CustomControllerExecption;
 
-    // 물건 전체보기 (비로그인)
-    ShopProductListDto getAllProducts(Pageable pageable);
+    // 물건 좋아요 & 취소하기
+    String changeLikeProduct(UserDetailsImpl userDetails, LikeRequest likeRequest) throws CustomControllerExecption;
+
 }

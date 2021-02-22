@@ -88,11 +88,8 @@ function connect(userid) {
 
 
                 sub_room_and_user = stompClient.subscribe('/topic/room/' + _room_id + '/' + userid, function (f) {
-
-                    console.log(JSON.parse(f.body))
-
+                    console.log(JSON.parse(f.body));
                 },{ id: "room-user-" + _room_id + "-" + userid}); // header
-
 
 
 
@@ -195,7 +192,6 @@ function showGreeting(message) {
 
 // [채팅방 목록 -> 채팅방 화면]
 function join(room_id, userid){
-
 
     if(toggle === false){
         toggle = true
