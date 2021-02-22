@@ -186,11 +186,9 @@ public class ProductServiceImpl implements ProductService {
                 .stream()
                 .map(productCategory -> modelMapper.map(productCategory, ProductCategoryDto.class))
                 .collect(Collectors.toList());
-
         org.modelmapper.PropertyMap<Product, ProductReadListDto> map = new PropertyMap<Product, ProductReadListDto>() {
             @Override
             protected void configure() {
-
                 // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 // 메인 페이지 물건리스트 업로드 시간 (업로드 시간 기준으로 정렬)
@@ -251,8 +249,8 @@ public class ProductServiceImpl implements ProductService {
                 map().setChatroomNums(source.getChatroomNums());
                 map().setLikeNums(source.getLikeNums());
                 map().setUploadDatetime(source.getCreateDatetime());
+                map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 map().setTransaction_status_id(source.getTransactionStatusId());
-                map().setUploadDatetime(source.getUpdateDatetime());
             }
         };
         modelMapper.addMappings(listDtoPropertyMap);
@@ -457,8 +455,8 @@ public class ProductServiceImpl implements ProductService {
                 map().setChatroomNums(source.getChatroomNums());
                 map().setLikeNums(source.getLikeNums());
                 map().setUploadDatetime(source.getCreateDatetime());
+                map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 map().setTransaction_status_id(source.getTransactionStatusId());
-                when(Conditions.isNull()).skip().setLastUpdatedDatetime(source.getUpdateDatetime());
             }
         };
         modelMapper.addMappings(listDtoPropertyMap);
