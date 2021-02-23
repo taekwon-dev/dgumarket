@@ -125,10 +125,10 @@ public class ShopController {
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-            if(userDetails.getId() != userId){//로그인
-                BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
-                if (blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 경우
-                    ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userId, pageable);
+                    if(userDetails.getId() != userId){//로그인
+                        BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
+                        if (blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 경우
+                            ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userId, pageable);
                     ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                             .message("review_messages")
                             .status(200)

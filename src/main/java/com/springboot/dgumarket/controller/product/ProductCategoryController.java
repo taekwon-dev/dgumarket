@@ -1,7 +1,9 @@
 package com.springboot.dgumarket.controller.product;
 
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
+import com.springboot.dgumarket.payload.request.PagingIndexRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.product.ProductService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,12 +15,14 @@ import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
+import java.util.List;
+
+
 @Slf4j
+@RestController()
+@RequestMapping("/category")
 public class ProductCategoryController {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
@@ -43,8 +47,23 @@ public class ProductCategoryController {
     @Autowired
     ProductService productService;
 
+    @PostMapping("/index")
+    public ResponseEntity<List<ProductListIndex>> findIndexTest(Authentication authentication, @RequestBody PagingIndexRequest lastCategoryId) {
+
+        if (authentication != null) {
+            // 로그인 상태 (-> '유저의 관심' 카테고리)
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<ProductListIndex> productCategorySet = productService.indexLoggedIn(userDetails, lastCategoryId.getLastCategoryId());
+            return new ResponseEntity<>(productCategorySet, HttpStatus.OK);
+        } else {
+            // 비로그인 상태 (-> '인기' 카테고리)
+            List<ProductListIndex>  products = productService.indexNotLoggedIn(lastCategoryId.getLastCategoryId());
+            return new ResponseEntity<>(products, HttpStatus.OK);
+        }
+    }
+
     // 카테고리별 물건들 조회
-    @GetMapping("/category/{categoryId}")
+    @GetMapping("/{categoryId}/products")
     public ResponseEntity<?> getCategoryProducts(
             Authentication authentication,
             @PathVariable(value = "categoryId", required = false) int categoryId,
@@ -66,30 +85,6 @@ public class ProductCategoryController {
                 .message(categoryName[categoryId-1] + " 조회")
                 .status(200)
                 .data(categoryProducts).build();
-        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-    }
-
-    // 전체 물건 조회
-    @GetMapping("/products")
-    public ResponseEntity<?> getAllProducts(
-            Authentication authentication,
-            @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable){
-
-        if(authentication != null){
-            UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            ShopProductListDto shopProductListDto = productService.getAllProducts(userDetails, pageable);
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                    .message("전체 물건 조회")
-                    .status(200)
-                    .data(shopProductListDto).build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
-        ShopProductListDto shopProductListDto = productService.getAllProducts(null, pageable);
-        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                .message("전체 물건 조회")
-                .status(200)
-                .data(shopProductListDto).build();
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 }
