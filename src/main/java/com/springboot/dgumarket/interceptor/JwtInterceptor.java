@@ -40,11 +40,15 @@ import java.util.Date;
 public class JwtInterceptor implements HandlerInterceptor {
 
     // 아래 경로 ; 인증 여부에 따른 다른 프로세스 (인증 없이도 인터셉터 통과 가능)
-    private static final String API_PRODUCT_INDEX = "/api/product/index";
+
+    // 카테고리
+    private static final String API_PRODUCT_INDEX = "/category/index"; // 인기,관심 카테고리 물건들 조회
+    private static final String API_PRODUCT_CATEGORY = "/category/\\d+/products"; // 카테고리 별 물건들 조회
+    // 물건
+    private static final String API_PRODUCT_INFO = "/product/\\d+/info"; // 물건 조회
+    private static final String API_PRODUCT_TOTAL = "/product/all"; // 물건들 조회
+    // 유저 샵
     private static final String API_SHOP = "(/user/\\d+/)(shop-profile|products|reviews)"; // 유저샵프로필/유저샵판매물건/유저샵리뷰
-    private static final String API_PRODUCT_CATEGORY = "/category/\\d+"; // 카테고리별 물건보여주기
-    private static final String API_PRODUCT_TOTAL = "/products"; // 전체물건보여주기
-    private static final String API_PRODUCT_INFO = "/api/product/\\d+/info"; // 개별물건보여주기 (선택)
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;

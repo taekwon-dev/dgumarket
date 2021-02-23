@@ -23,7 +23,17 @@ import java.util.List;
 public class WebMvcConfig implements WebMvcConfigurer {
     private final static String[] patterns =
             {
-                    "/api/product/**", // index, 인기카테고리 별 물건보여주기 [ 인증선택, jwt interceptor 예외 추가 ]
+                    // 카테고리
+                    "/category/index", // 인기카테고리 별 물건보여주기 [ 인증선택, jwt interceptor 예외 추가 ]
+                    "/category/*/products", // 카테고리별 물건조회 [ 인증선택, jwt interceptor 예외 추가 ]
+
+                    // 물건
+                    "/product/*/info ", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
+                    "/product/all", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
+                    "/product/like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
+                    "/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
+
+
                     "/block/**", // 유저 차단하기 [인증 필요]
                     "/unblock/*", // 유저 차단해제하기 [인증 필요]
                     "/user/purchase/**", // 유저샾 구매물건 보기 [인증 필요]
@@ -31,11 +41,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/chat/**", // 채팅 관련 API [인증 필요]
                     "/chatroom/**", // 채팅방 관련 API [인증 필요]
                     "/user/profile/**", // 유저 API [인증 필요]
-                    "/product/*/info ", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
-                    "/product-like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
-                    "/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
-                    "/products", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
-                    "/category/*", // 카테고리별 물건조회 [ 인증선택, jwt interceptor 예외 추가 ]
                     "/user/*/**", // 유저 차단하기(user/1/shop-profile), 판매물건(/user/1/product), 리뷰 조회(/user/1/reviews) [ 인증선택 jwt interceptor 예외 추가 ]
                     "/user/"};
 
@@ -86,12 +91,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addViewController("/shop/account/change_Pwd").setViewName("shop/account/change_Pwd");
         registry.addViewController("/shop/account/change_smartPhone_number").setViewName("shop/account/change_smartPhone_number");
         registry.addViewController("/shop/account/select_userInfo").setViewName("shop/account/select_userInfo");
-        registry.addViewController("/shop/item/myItem").setViewName("shop/item/myItem");
         registry.addViewController("/shop/item/onePick").setViewName("shop/item/onePick");
         registry.addViewController("/shop/item/upLoad").setViewName("shop/item/upLoad");
         registry.addViewController("/shop/{userId:\\d+}/products").setViewName("shop/item/myItem"); // 유저 판매물건 페이지
         registry.addViewController("/shop/{userId:\\d+}/reviews").setViewName("shop/item/myItem"); // 유저 리뷰보기 페이지(유저에게 남긴 리뷰들)
         registry.addViewController("/shop/purchase").setViewName("shop/item/myItem"); // 유저 구매물건 페이지 (인증필)
+        registry.addViewController("/shop/favorites").setViewName("shop/item/myItem"); // 유저 관심물건 페이지 (인증필)
         registry.addViewController("/product/{productId:\\d+}").setViewName("shop/item/onePick"); // 개별 물건페이지
         registry.addViewController("/category/{categoryId}").setViewName("shop/item/ListbyCondition"); // 카테고리 페이지
         registry.addViewController("/products").setViewName("shop/item/ListbyCondition"); // 전체 물건 페이지
