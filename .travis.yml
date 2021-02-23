@@ -48,7 +48,7 @@ deploy: # S3 로 파일업로드 혹은 CodeDeploy로 배포 등 외부서비스
   - provider: codedeploy
     access_key_id: $AWS_ACCESS_KEY # Travis repo settings 에서 설정된 값
     secret_access_key: $AWS_SECRET_KEY # Travis repo settings 에서 설정된 값
-    bucket: dgumarket-build # S3 버킷
+    bucket: dgumarket-main-build # S3 버킷
     key: dgumarket-main.zip # 빌드파일을 압축해서 전달 s3의 object key
     bundle_type: zip
     application: dgumarket-webservice # 웹 콘솔에서 등록한 CodeDeploy 애플리케이션
