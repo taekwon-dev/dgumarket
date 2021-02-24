@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/product")
 public class ProductReviewController {
 
     @Autowired

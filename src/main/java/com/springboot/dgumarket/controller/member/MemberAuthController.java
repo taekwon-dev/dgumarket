@@ -24,7 +24,7 @@ import java.io.IOException;
  */
 
 @RestController
-@RequestMapping("/user/profile")
+@RequestMapping("/api/user/profile")
 public class MemberAuthController {
 
     @Autowired

@@ -25,7 +25,7 @@ import org.springframework.security.core.Authentication;
 
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/api/chat")
 public class ChatMessageController {
     private static final Logger logger = LoggerFactory.getLogger(ChatMessageController.class);
 

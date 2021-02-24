@@ -34,7 +34,7 @@ import javax.validation.Valid;
  */
 
 @RestController
-@RequestMapping("/user/")
+@RequestMapping("/api/user/")
 public class MemberController {
 
     @Autowired

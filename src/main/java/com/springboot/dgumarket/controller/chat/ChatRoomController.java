@@ -26,7 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chatroom")
+@RequestMapping("/api/chatroom")
 public class ChatRoomController {
     private static Logger logger = LoggerFactory.getLogger(ChatMessageController.class);
 
