@@ -6,6 +6,7 @@ import com.springboot.dgumarket.exception.stomp.StompErrorException;
 import com.springboot.dgumarket.payload.request.chat.SendMessage;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.stomp.error.StompErrorResponseMessage;
+import com.springboot.dgumarket.service.StorageService;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.block.UserBlockService;
 import com.springboot.dgumarket.service.chat.ChatMessageService;
@@ -22,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -37,6 +39,22 @@ public class ChatMessageController {
 
     @Autowired
     SimpMessagingTemplate template;
+
+    @Autowired
+    StorageService storageService;
+
+    @PostMapping("/upload")
+    public String postImages(@RequestParam("file") MultipartFile[] multipartFile, Authentication authentication) {
+        if(authentication != null){
+            UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
+            boolean result = storageService.chatUploadImages(multipartFile, userDetails.getId());
+            if(result){
+                return "success";
+            }
+        }
+
+        return null;
+    }
 
 
     // [STOMP] SEND Frame 메시지 받는 곳
