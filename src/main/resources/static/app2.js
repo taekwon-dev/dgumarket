@@ -18,6 +18,10 @@ var test_result = null;
 let alarm_list = null;
 
 
+// for image result
+var imageResult = null;
+
+
 window.addEventListener("beforeunload", function (e) {
     return sub_room_and_user.unsubscribe("room-user");
 });
@@ -55,7 +59,7 @@ function connect(userid) {
 
         // 채팅방구독시 채팅방의 메시지들을 받을 구독
         sub_room_event = stompClient.subscribe('/user/queue/room/event', function (frame) { // 추가-2 SUB
-            console.log(JSON.parse(frame.body)) // 채팅메시지들을 받게되는 부분
+            console.log(JSON.parse(frame.body)) // 채팅메시지들을 받게되는 부분.
 
 
             // 물건 페이지에서 [채팅으로 거래하기] 누른 후 채팅방에서 메시지를 보냈을 떄(`SEND /message`) 받게 되는 메시지 형태
@@ -88,8 +92,11 @@ function connect(userid) {
 
 
                 sub_room_and_user = stompClient.subscribe('/topic/room/' + _room_id + '/' + userid, function (f) {
-                    console.log(JSON.parse(f.body));
+
+                    console.log(JSON.parse(f.body))
+
                 },{ id: "room-user-" + _room_id + "-" + userid}); // header
+
 
 
 
@@ -104,7 +111,7 @@ function connect(userid) {
         });
 
 
-        // getUnreadMessages() // 유저의 읽지 않은 메시지 개수 가져오기 (HTTP REST API, 오로지 ws 관련 테스트를 진행하고 싶다면 주석처리 하면됨// )
+        // getUnreadMessages() // 유저의 읽지 않은 메시지 개수 가져오기 (HTTP REST API)
 
 
         setConnected(true);
@@ -193,6 +200,7 @@ function showGreeting(message) {
 // [채팅방 목록 -> 채팅방 화면]
 function join(room_id, userid){
 
+
     if(toggle === false){
         toggle = true
         _room_id = room_id;
@@ -252,7 +260,7 @@ $(function () {
     $( "#chat_floating_btn" ).click(function() { getRoomAndMessages($("#userid").val())});
     $("#join_btn").click(function () { join($("#room-id").val(), $("#userid").val(), true); });
     $("#leave_btn").click(function (){ leaveRoom(true)});
-    $("#upload_button").click( function () { upload(document.getElementById('upload'))});
+    $("#upload_button").click( function () { uploadImage(document.getElementById('upload'))});
     $("#alarm_button").click(function (){alarm_onoff(document.getElementById('alarm_input').value)});
 });
 
@@ -262,14 +270,9 @@ function getRoomAndMessages(userId){
     var result = "";
     $.ajax({
         cache : false,
-        // gateway -> 통과해서 테스트한다면 포트번호를 바꿔야할 것이다.
-        url : "http://localhost:8080/chatroom/lists",
+        url : "http://localhost:8081/api/chatroom/lists",
         type : 'GET',
         async : false,
-        // header 에 token 추가
-        headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0YWVrd29uQGRvbmdndWsuZWR1IiwiaWF0IjoxNjE0MDQ2NTQ3LCJleHAiOjE2MTQxNjY1NDd9.CWqdFKY4u-dSgiwueZJZGFnMEHmVDClrjSumc25cTLewnr-CX-Y_5eEQhkoDdYlA6rRN1DkU1eT4LwRWSF34oA'
-        },
         success : function(data) {
             // console.log('get rooms and messages : ' ,data)
             result = data
@@ -307,14 +310,9 @@ function getUnreadMessages(){
     var result = "";
     $.ajax({
         cache : false,
-        // gateway -> 통과해서 테스트한다면 포트번호를 바꿔야할 것이다.
-        url : "http://localhost:8080/chat/unread/messages", // 요기에
+        url : "http://localhost:8080/api/chat/unread/messages", // 요기에
         type : 'GET',
         async : false,
-        // header 에 token 추가
-        headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0YWVrd29uQGRvbmdndWsuZWR1IiwiaWF0IjoxNjE0MDQ2NTQ3LCJleHAiOjE2MTQxNjY1NDd9.CWqdFKY4u-dSgiwueZJZGFnMEHmVDClrjSumc25cTLewnr-CX-Y_5eEQhkoDdYlA6rRN1DkU1eT4LwRWSF34oA'
-        },
         success : function(data) {
             result = data;
             console.log('get unread messages : ', result)
@@ -324,6 +322,7 @@ function getUnreadMessages(){
             alert(xhr + " : " + status);
         }
     });
+
     return result;
 }
 
@@ -336,6 +335,21 @@ function showNotification(message){ // topic/chat/{user-id} 로 오는 유저 �
         icon: msgBody.chatRoomProductDto.productImgPath,
         tag: msgBody.roomId
     });
+
+
+    // 타이머 용
+    // var i = 0;
+    // // 어떤 브라우저(파이어폭스 등)는 일정 시간 동안 알림이 너무 많은 경우 차단하기 때문에 인터벌 사용.
+    // var interval = window.setInterval(function () {
+    //     // 태그 덕분에 "안녕! 9" 알림만 보여야 함
+    //     console.log('일정시간마다 실행!!')
+    //     var n = new Notification(" 동국마켓 : " + msgBody.chatMessageUserDto.nickName, {
+    //         body: msgBody.message,
+    //         icon: msgBody.chatRoomProductDto.productImgPath,
+    //         tag : '알림너무많음'
+    //     });
+    //     window.clearInterval(interval);
+    // }, 200);
 }
 
 
@@ -393,4 +407,29 @@ function is_alarm(frame) {
         localStorage.setItem("alarm_list", JSON.stringify(alarm_list));
         return 3;
     }
+}
+
+async function uploadImage(e) {
+    result = e;
+    console.log("result : ", e);
+    var formData = new FormData();
+    for (var i = 0; i < e.files.length; i++) {
+        formData.append('file', e.files[i]);
+    }
+
+    var url = '/api/chat/upload';
+    console.log("formdata : ", formData)
+    // header 넣으면 안됨.. google 알아서 해준다.
+    // https://stackoverflow.com/questions/36005436/the-request-was-rejected-because-no-multipart-boundary-was-found-in-springboot
+    console.time("이미지업로드시간측정");
+    await fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .catch(error => console.error('Error:', error))
+        .then((response) => {
+            console.log('Success:', JSON.stringify(response));
+            console.timeEnd("이미지업로드시간측정");
+        });
 }
