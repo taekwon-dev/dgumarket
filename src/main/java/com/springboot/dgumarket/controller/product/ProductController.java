@@ -33,7 +33,7 @@ import java.util.Objects;
  */
 @Slf4j
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/product")
 public class ProductController {
 
     private static final int DEFAULT_PAGE_SIZE = 20;

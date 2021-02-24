@@ -23,26 +23,31 @@ import java.util.List;
 public class WebMvcConfig implements WebMvcConfigurer {
     private final static String[] patterns =
             {
-                    // 카테고리
-                    "/category/index", // 인기카테고리 별 물건보여주기 [ 인증선택, jwt interceptor 예외 추가 ]
-                    "/category/*/products", // 카테고리별 물건조회 [ 인증선택, jwt interceptor 예외 추가 ]
+                    // 카테고리 별 물건 정보
+                    "/api/category/index", // 인기/관심 카테고리 별 물건보여주기 [ 인증선택, jwt interceptor 예외 추가 ]
+                    "/api/category/*/products", // 카테고리별 물건조회 [ 인증선택, jwt interceptor 예외 추가 ]
 
-                    // 물건
-                    "/product/*/info ", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
-                    "/product/all", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
-                    "/product/like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
-                    "/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
+                    // 물건 상세
+                    "/api/product/*/info ", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
+                    "/api/product/all", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
+                    "/api/product/like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
+                    "/api/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
 
+                    // 채팅
+                    "/api/chat/**", // 채팅 관련 API [인증 필요]
+                    "/api/chatroom/**", // 채팅방 관련 API [인증 필요]
 
-                    "/block/**", // 유저 차단하기 [인증 필요]
-                    "/unblock/*", // 유저 차단해제하기 [인증 필요]
-                    "/user/purchase/**", // 유저샾 구매물건 보기 [인증 필요]
-                    "/report", // 유저 신고하기 [인증 필요]
-                    "/chat/**", // 채팅 관련 API [인증 필요]
-                    "/chatroom/**", // 채팅방 관련 API [인증 필요]
-                    "/user/profile/**", // 유저 API [인증 필요]
-                    "/user/*/**", // 유저 차단하기(user/1/shop-profile), 판매물건(/user/1/product), 리뷰 조회(/user/1/reviews) [ 인증선택 jwt interceptor 예외 추가 ]
-                    "/user/"};
+                    // 내 거래정보
+                    "/api/user/profile/**", // 유저 API [인증 필요]
+                    "/api/user/purchase/**", // 유저샾 구매물건 보기 [인증 필요]
+                    "/api/user/*/**", // 유저 차단하기(user/1/shop-profile), 판매물건(/user/1/product), 리뷰 조회(/user/1/reviews) [ 인증선택 jwt interceptor 예외 추가 ]
+
+                    // 기타 기능
+                    "/api/block/**", // 유저 차단하기 [인증 필요]
+                    "/api/unblock/*", // 유저 차단해제하기 [인증 필요]
+                    "/api/report", // 유저 신고하기 [인증 필요]
+
+                    "/api/user/"};
 
     private JwtInterceptor jwtInterceptor;
     private JwtExceptionResolver jwtExceptionResolver;

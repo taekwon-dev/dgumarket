@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class ShopController {
     private static final int DEFAULT_PAGE_SIZE = 20; // 기본사이즈
