@@ -17,10 +17,6 @@ import java.util.Set;
 @Setter
 public class MemberInfoDto {
     private String profileImageDir;
-
-    @NotBlank
     private String nickName;
-
-    @NotBlank
     private Set<ProductCategoryDto> productCategories = new HashSet<>();
 }

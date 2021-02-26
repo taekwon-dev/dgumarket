@@ -21,11 +21,7 @@ import java.util.Set;
 public class MemberUpdateDto {
 
     private JsonNullable<String> profileImageDir = JsonNullable.undefined();
-
-    @NotBlank
     private JsonNullable<String> nickName = JsonNullable.undefined();
-
-    @NotBlank
     private JsonNullable<Set<ProductCategoryDto>> productCategories = JsonNullable.undefined();
 
 }
