@@ -26,8 +26,13 @@ public interface MemberService {
     // 회원정보 수정 - 프로필 사진 디렉토리, 닉네임, 관심 카테고리s
     void updateMemberInfo(int user_id, MemberUpdateDto memberUpdateInfoDto);
 
-    // 이미지 업로드 완료 후 파일명 + 확장자를 리턴
-    String uploadImageAndResize(MultipartFile multipartFile, int user_id) throws IOException, ImageProcessingException;
+    // 회원 프로필 사진 DELETE
+    boolean uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) throws Exception;
+
+    // 회원 프로필 사진 DELETE
+    boolean deleteProfileImgInS3(String deleteName);
+
+    // 회원 탈퇴
 
 
 

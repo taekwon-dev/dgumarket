@@ -1,11 +1,15 @@
 package com.springboot.dgumarket.service.member;
 
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifIFD0Directory;
+
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.s3.transfer.Upload;
+import org.springframework.beans.factory.annotation.Value;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
@@ -27,21 +31,17 @@ import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +55,8 @@ import java.util.stream.Collectors;
 public class MemeberServiceImpl implements MemberService {
 
     private static final Logger logger = LoggerFactory.getLogger(MemeberServiceImpl.class);
+
+    private static final String S3_SAVED_DIR = "origin/user-profile/";
 
     @Autowired
     private ModelMapper modelMapper;
@@ -71,11 +73,14 @@ public class MemeberServiceImpl implements MemberService {
     @Autowired
     private ProductCategoryRepository productCategoryRepository;
 
-    @Autowired
-    private BCryptPasswordEncoder encoder;
+    @Value("${application.bucket.name}")
+    private String bucketName;
 
     @Autowired
-    private ImageUtils imageUtils;
+    private AmazonS3 s3Client;
+
+    @Autowired
+    private BCryptPasswordEncoder encoder;
 
     @Override
     public SignUpDto doSignUp(SignUpDto signUpDto) {
@@ -161,60 +166,72 @@ public class MemeberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
-    // 프로필 이미지 업로드 & 리사이즈 처리 & 저장
+    @Override
+    public boolean uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) throws Exception {
+
+
+
+        try {
+            // https://docs.aws.amazon.com/ko_kr/AmazonS3/latest/userguide/UsingMetadata.html#object-metadata502
+            ObjectMetadata metadata  = new ObjectMetadata();
+            metadata.setContentType(multipartFile.getContentType());
+            metadata.setContentLength(multipartFile.getSize());
+            metadata.setHeader("filename", multipartFile.getOriginalFilename());
+
+
+
+            // s3 multipart upload
+            TransferManager transferManager = TransferManagerBuilder.standard()
+                    .withS3Client(s3Client)
+                    .build();
+
+
+            // S3 저장 위치 디렉토리 + 파일명 (고유값)
+            String uploadFileName = S3_SAVED_DIR+uploadName;
+
+            // TransferManager processes all transfers asynchronously,
+            // so this call returns immediately.
+            Upload upload = transferManager.upload(bucketName, uploadFileName, multipartFile.getInputStream(), metadata);
+            // Optionally, wait for the upload to finish before continuing.
+            upload.waitForCompletion();
+
+
+
+        } catch (AmazonServiceException e) {
+            // The call was transmitted successfully, but Amazon S3 couldn't process
+            // it, so it returned an error response.
+            e.printStackTrace();
+            return false;
+        } catch (SdkClientException e) {
+            // Amazon S3 couldn't be contacted for a response, or the client
+            // couldn't parse the response from Amazon S3.
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
 
     @Override
-    public String uploadImageAndResize(MultipartFile multipartFile, int user_id) throws IOException, ImageProcessingException {
-        int orientation = 1;
-        String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-        String perfixDir = "src\\main\\resources\\static\\images\\user-profile\\" + user_id;
-        String uploadDir = "\\280\\..\\770\\..\\1430";
+    public boolean deleteProfileImgInS3(String deleteName) {
 
-        Path path = Paths.get(perfixDir+uploadDir);
-        if (!Files.exists(path)) {
-            Files.createDirectories(path); // Prefix 디렉토리 생성
+        // 프로필 사진의 삭제 경우 -> 원본 사진 삭제 -> (Trigger) -> AWS Lambda로 리사이즈된 사진 삭제
+        // origin/user-profile/파일명
+        String originFileKey = "origin/user-profile/" + deleteName;
+
+        // DeleteObjetctRequest 활용
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, originFileKey);
+
+        try {
+            // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
+            s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
+        } catch (AmazonServiceException e) {
+            log.error("프로필 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+            return false;
         }
 
-        String realFileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
-        BufferedImage image = ImageIO.read(multipartFile.getInputStream());
-
-        //
-        Metadata metadata = ImageMetadataReader.readMetadata(multipartFile.getInputStream());
-        Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-
-        if (directory != null) {
-            try {
-                orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-            } catch (MetadataException e) {
-                e.fillInStackTrace();
-            }
-        }
-
-        //
-        switch (orientation) {
-            case 1 :
-                break;
-            case 3 :
-                image = Scalr.rotate(image, Scalr.Rotation.CW_180, null);
-                break;
-            case 6 :
-                image = Scalr.rotate(image, Scalr.Rotation.CW_90, null);
-                break;
-            case 8 :
-                image = Scalr.rotate(image, Scalr.Rotation.CW_270, null);
-                break;
-        }
-        //
-
-        BufferedImage bufferedImage_280 = imageUtils.resizeImage(image, 280, 280);
-        BufferedImage bufferedImage_770 = imageUtils.resizeImage(image, 770, 770);
-        BufferedImage bufferedImage_1430 = imageUtils.resizeImage(image, 1430, 1430);
-
-        ImageIO.write(bufferedImage_280, realFileExtension, new File(perfixDir + "\\280\\" + user_id + "." + realFileExtension));
-        ImageIO.write(bufferedImage_770, realFileExtension, new File(perfixDir + "\\770\\" + user_id + "." + realFileExtension));
-        ImageIO.write(bufferedImage_1430, realFileExtension, new File(perfixDir + "\\1430\\" + user_id + "." + realFileExtension));
-
-        return user_id+"."+realFileExtension;
+        // 예외 없이 이미지 삭제가 된 경우
+        return true;
     }
 
     private Member mapDtoToEntityDoSignup(SignUpDto signUpDto) {
@@ -260,5 +277,4 @@ public class MemeberServiceImpl implements MemberService {
 
         return member;
     }
-
 }
