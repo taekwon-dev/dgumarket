@@ -37,6 +37,7 @@ public class ShopController {
     private final ProductReviewService productReviewService;
 
     @GetMapping("/{userId}/shop-profile")
+    @CheckUserIsWithDrawn
     public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption {
         MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userId);
         if(authentication != null){ // 로그인 상태
@@ -72,9 +73,10 @@ public class ShopController {
     }
 
     @GetMapping("/{userId}/products")
+    @CheckUserIsWithDrawn
     public ResponseEntity<?> getUserProducts (
-            Authentication authentication,
             @PathVariable("userId") int userId,
+            Authentication authentication,
             @RequestParam(value = "product_set", defaultValue = "total", required = false) String productSet,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault.SortDefaults({
@@ -116,6 +118,7 @@ public class ShopController {
 
     // 유저에게 남긴 리뷰 조회하기
     @GetMapping("/{userId}/reviews")
+    @CheckUserIsWithDrawn
     public ResponseEntity<?> getUserReviews(
             @PathVariable int userId,
             Authentication authentication,
@@ -177,7 +180,7 @@ public class ShopController {
     public ResponseEntity<?> getUserFavorites(
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "likedTime") Pageable pageable){
+            @SortDefault(sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
         if (authentication != null){
             log.info("로그인성공");

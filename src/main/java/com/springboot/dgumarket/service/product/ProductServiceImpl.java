@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -334,10 +335,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ShopFavoriteListDto getFavoriteProducts(UserDetailsImpl userDetails, Pageable pageable) {
+
         Member member = memberRepository.findById(userDetails.getId());
         // 좋아요 물건의 유저가 나를 차단했다면 제외
         int totalSize = (int) member.getLikeProducts().stream() // 총관심물건수
-                .filter(product -> product.getProductStatus() != 1) // 삭제 제외
+                .filter(product -> product.getMember().getIsWithdrawn() != 1) // 탈퇴유저 제외
+                .filter(product -> product.getProductStatus() != 1) // 물건 삭제 제외
                 .filter(product -> !(member.getBlockUsers().contains(product.getMember()))) // 좋아요 물건에 차단한 유저의 물품이 있다면 제외
                 .filter(product -> !(member.getUserBlockedMe().contains(product.getMember()))).count();
 
@@ -354,29 +357,55 @@ public class ProductServiceImpl implements ProductService {
                 map().setUploadDatetime(source.getUpdateDatetime());
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 map().setTransaction_status_id(source.getTransactionStatusId());
-                map().setLikeStatus("nolike");
+                map().setLikeStatus("like");
             }
         };
         modelMapper = new ModelMapper();
         modelMapper.addMappings(listDtoPropertyMap);
 
+        Pageable productPageable = null;
+
+        if(pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("createdDate"))){
+            if(pageable.getSort().getOrderFor("createdDate").getDirection().isAscending()){
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.createDatetime").ascending());
+            }else{
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.createDatetime").descending());
+            }
+        }
+
+        if(pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("chatroomNums"))){
+            if(pageable.getSort().getOrderFor("chatroomNums").getDirection().isAscending()){
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.chatroomNums").ascending());
+            }else{
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.chatroomNums").descending());
+            }
+        }
+
+        if(pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("likeNums"))){
+            if(pageable.getSort().getOrderFor("likeNums").getDirection().isAscending()){
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.likeNums").ascending());
+            }else{
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.likeNums").descending());
+            }
+        }
+
+        if(pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price"))){
+            if(pageable.getSort().getOrderFor("price").getDirection().isAscending()){
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.price").ascending());
+            }else{
+                productPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("product.price").descending());
+            }
+        }
+        if (productPageable == null){ // 아무런 조건을 주지 않았을 경우
+            productPageable = pageable;
+        }
+
         // 차단 유저물건 조회 X
-        // 삭제 X
-        List<ProductReadListDto> productReadListDtos = productLikeRepository.findAllByMember(member, pageable).stream()
-                .filter(productLike -> productLike.getProduct().getProductStatus() == 0) // 삭제 제외
-                .filter(productLike -> !(member.getBlockUsers().contains(productLike.getProduct().getMember()))) // 좋아요 물건에 차단한 유저의 물품이 있다면 제외
-                .filter(productLike -> !(member.getUserBlockedMe().contains(productLike.getProduct().getMember()))) // 좋아요 물건의 유저가 나를 차단했다면 제외
+        // 여기사 사이즈가 0이 나온다? => 이 부분만 테스트 해보자
+        List<ProductReadListDto> productReadListDtos =
+                productLikeRepository.findAllByMember(member, member.getBlockUsers(), member.getUserBlockedMe(), productPageable).stream()
                 .map(productLike -> modelMapper.map(productLike.getProduct(), ProductReadListDto.class))
                 .collect(Collectors.toList());
-
-        productReadListDtos.forEach(
-                e -> {
-                    for (Product product : member.getLikeProducts()){
-                        if(e.getId() == product.getId()){
-                            e.setLikeStatus("like");
-                        }
-                    }
-                });
 
         // 정렬 중 price 가 있을 경우
         if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
@@ -388,11 +417,15 @@ public class ProductServiceImpl implements ProductService {
         return ShopFavoriteListDto.builder()
                 .productsList(productReadListDtos)
                 .page_size(productReadListDtos.size())
-                .total_size(totalSize).build();
+                .total_size(totalSize).build(); // 최종 사이즈
     }
+
+
+
     //***************************************************************************************************************************
 
     // 카테고리별 물품 조회하기
+    // 회원 탈퇴 적용(21.02.26)
     @Override
     public ShopProductListDto getProductsByCategory(UserDetailsImpl userDetails, int categoryId, Pageable pageable) {
         ModelMapper modelMapper = new ModelMapper();
@@ -439,10 +472,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // 전체 물건 보기
+    // 회원 탈퇴 적용(21.02.26)
     @Override
     public ShopProductListDto getAllProducts(UserDetailsImpl userDetails, Pageable pageable) {
         ModelMapper modelMapper = new ModelMapper();
         Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
+
         // Product -> ProductReadListDto
         org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
             @Override
@@ -460,21 +495,19 @@ public class ProductServiceImpl implements ProductService {
             }
         };
         modelMapper.addMappings(listDtoPropertyMap);
-        List<ProductReadListDto> productReadListDtos;
+
+        List<Product> products = productRepository.getAllByTransactionStatusIdEquals(0, pageable);
         if(userDetails != null) { // 로그인
             Member member = memberRepository.findById(userDetails.getId());
-            productReadListDtos = productRepository.getAllByTransactionStatusIdEquals(0, pageable)
+            products = products
                     .stream()
                     .filter(product -> !(member.getBlockUsers().contains(product.getMember())))
-                    .filter(product -> !(member.getUserBlockedMe().contains(product.getMember())))
-                    .map(product -> modelMapper.map(product, ProductReadListDto.class))
-                    .collect(Collectors.toList());
-        }else{ // 비로그인
-            productReadListDtos = productRepository.getAllByTransactionStatusIdEquals(0, pageable)
+                    .filter(product -> !(member.getUserBlockedMe().contains(product.getMember()))).collect(Collectors.toList());
+        }
+        List<ProductReadListDto> productReadListDtos = products
                     .stream()
                     .map(product -> modelMapper.map(product, ProductReadListDto.class))
                     .collect(Collectors.toList());
-        }
 
         // 정렬 중 price 가 있을 경우
         if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
@@ -492,12 +525,11 @@ public class ProductServiceImpl implements ProductService {
     // 물건 정보 보기
     @Override
     public ProductReadOneDto getProductInfo(UserDetailsImpl userDetails, int productId) throws CustomControllerExecption {
-        Product product = productRepository.findById(productId).orElse(null);
-        assert product != null;
-
-        if(product.getProductStatus() == 1){ // 삭제
-            throw new CustomControllerExecption("요청하신 물건은 삭제되었습니다.", HttpStatus.NOT_FOUND);
+        Product product = productRepository.findById(productId).orElseThrow(() -> new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND));
+        if(product.getProductStatus() == 1){
+            throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND);
         }
+
         PropertyMap<Product, ProductReadOneDto> propertyMap = new PropertyMap<Product, ProductReadOneDto>() {
             @Override
             protected void configure() {
@@ -519,6 +551,7 @@ public class ProductServiceImpl implements ProductService {
         };
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addMappings(propertyMap);
+
         if(userDetails != null){
             // 차단된 사용자의 물건에 접속시 예외처리
             Member member = memberRepository.findById(userDetails.getId());
@@ -543,11 +576,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public String changeLikeProduct(UserDetailsImpl userDetails, LikeRequest likeRequest) throws CustomControllerExecption{
         Member member = memberRepository.findById(userDetails.getId());
-        Product product = productRepository.findById(likeRequest.getProduct_id()).orElseThrow(() -> new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND)); // 좋음! noSuch
+        Product product = productRepository.findById(likeRequest.getProduct_id()).orElseThrow(() -> new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND)); // 좋음! noSuch 디테일 구분 ?
 
-        // 삭제된 물건 예외
-        if(product.getProductStatus() == 1){
-            throw new CustomControllerExecption("요청하신 물건은 삭제되었습니다.", HttpStatus.NOT_FOUND);
+        if(product.getProductStatus() == 1){ // 삭제 예외
+            throw new CustomControllerExecption("해당 게시물은 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
         // 차단된 사용자의 물건에 좋아요 할경우 예외처리
@@ -579,5 +611,19 @@ public class ProductServiceImpl implements ProductService {
     public static int parseStringToInt(String priceString){
         priceString = priceString.replaceAll("￦|,", ""); //remove commas
         return (int)Math.round(Double.parseDouble(priceString)); //return rounded double cast to int
+    }
+    // 유저 탈퇴 / 물건 삭제 체크
+    public static void globalCheck(Product product) throws CustomControllerExecption {
+
+        // 탈퇴체크
+        if(product.getMember().getIsWithdrawn() == 1){
+            throw new CustomControllerExecption("탈퇴한 유저의 물건은 조회할 수 없습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        // 삭제된 물건
+        if(product.getProductStatus() == 1){
+            throw new CustomControllerExecption("해당 물건은 삭제되었습니다.", HttpStatus.NOT_FOUND);
+        }
+
     }
 }
