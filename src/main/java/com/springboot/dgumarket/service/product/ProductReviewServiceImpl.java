@@ -1,10 +1,12 @@
 package com.springboot.dgumarket.service.product;
 
 
+import com.springboot.dgumarket.controller.shop.CheckUserIsWithDrawn;
 import com.springboot.dgumarket.dto.product.ProductPurchaseDto;
 import com.springboot.dgumarket.dto.product.ProductReviewDto;
 import com.springboot.dgumarket.dto.shop.ShopReviewListDto;
 import com.springboot.dgumarket.dto.shop.ShopPurchaseListDto;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductReview;
@@ -14,6 +16,7 @@ import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -113,11 +116,23 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
     // 유저가 구매한 물건 조회하기
     @Override
+    @CheckUserIsWithDrawn
     public ShopPurchaseListDto getPurchaseProducts(int userId, String purchaseSet, Pageable pageable) {
         log.info("purchaseSet : {}", purchaseSet);
         Member member = memberRepository.findById(userId);
         ModelMapper modelMapper = new ModelMapper();
         Converter<Object, Boolean> BooleanConverter = context -> (context.getSource() != null); // boolean 컨버터
+
+//        Converter<String, String> withDrawnConverter = context -> { // 삭제유저 컨버터
+//            if((ProductReview)context.getSource(). == 1){ // 해당 물건이 삭제된 경우
+//                d.setPurchase_seller_nickname("알 수 없음");
+//            }else{
+//                d.setPurchase_seller_nickname(s.getSeller().getNickName());
+//            }
+//            return d;
+//        };
+
+
         PropertyMap<ProductReview, ProductPurchaseDto> purchaseProductListPropertyMap = new PropertyMap<ProductReview, ProductPurchaseDto>() {
             @Override
             protected void configure() {
@@ -134,6 +149,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
             }
         };
         modelMapper.addMappings(purchaseProductListPropertyMap);
+//        modelMapper.addConverter(withDrawnConverter);
         List<ProductPurchaseDto> productPurchaseDtos = new ArrayList<>();
         ShopPurchaseListDto shopPurchaseListDto = null;
         switch (purchaseSet){

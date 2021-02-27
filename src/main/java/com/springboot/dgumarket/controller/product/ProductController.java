@@ -23,6 +23,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Null;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,6 +52,7 @@ public class ProductController {
 
     // 개별 물건 조회하기
     @GetMapping("/{productId}/info")
+    @CheckProductDeleted
     public ResponseEntity<?> getProductInfo(
             Authentication authentication,
             @PathVariable("productId") int productId) throws CustomControllerExecption {
@@ -123,6 +125,13 @@ public class ProductController {
         }
 
         return null;
+    }
+
+    @GetMapping
+    public void searchProduct(
+            Authentication authentication,
+            @RequestParam String q,
+            @RequestParam(required = false) int category_id){
     }
 
 }
