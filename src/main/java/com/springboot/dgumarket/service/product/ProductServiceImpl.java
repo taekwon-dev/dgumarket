@@ -354,7 +354,7 @@ public class ProductServiceImpl implements ProductService {
                 map().setThumbnailImg(source.getImgDirectory());
                 map().setChatroomNums(source.getChatroomNums());
                 map().setLikeNums(source.getLikeNums());
-                map().setUploadDatetime(source.getUpdateDatetime());
+                map().setUploadDatetime(source.getCreateDatetime());
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 map().setTransaction_status_id(source.getTransactionStatusId());
                 map().setLikeStatus("like");
@@ -400,8 +400,6 @@ public class ProductServiceImpl implements ProductService {
             productPageable = pageable;
         }
 
-        // 차단 유저물건 조회 X
-        // 여기사 사이즈가 0이 나온다? => 이 부분만 테스트 해보자
         List<ProductReadListDto> productReadListDtos =
                 productLikeRepository.findAllByMember(member, member.getBlockUsers(), member.getUserBlockedMe(), productPageable).stream()
                 .map(productLike -> modelMapper.map(productLike.getProduct(), ProductReadListDto.class))
