@@ -114,7 +114,7 @@ public class ProductController {
     public ResponseEntity<?> cancelLikeProduct(
             Authentication authentication,
             @Valid @RequestBody LikeRequest likeRequest, Errors errors) throws CustomControllerExecption {
-
+        if (authentication == null) throw new CustomControllerExecption("로그인이 필요한 서비스", HttpStatus.UNAUTHORIZED);
         if(authentication != null){
             // 유효성 에러
             if (errors.hasErrors()) { // 400

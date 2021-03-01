@@ -46,6 +46,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/block/**", // 유저 차단하기 [인증 필요]
                     "/api/unblock/*", // 유저 차단해제하기 [인증 필요]
                     "/api/report", // 유저 신고하기 [인증 필요]
+                    "/api/blocklist", // 유저 차단리스트 조회하기 [인증 필요]
 
                     "/api/user/"};
 
