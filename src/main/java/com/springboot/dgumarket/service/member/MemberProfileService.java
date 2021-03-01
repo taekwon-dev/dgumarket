@@ -1,12 +1,10 @@
 package com.springboot.dgumarket.service.member;
 
-import com.drew.imaging.ImageProcessingException;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 
 /**
  * Created by TK YOUN (2020-10-20 오전 8:45)
