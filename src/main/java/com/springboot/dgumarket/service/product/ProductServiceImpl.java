@@ -446,16 +446,19 @@ public class ProductServiceImpl implements ProductService {
         };
         modelMapper.addMappings(listDtoPropertyMap);
 
-        List<Product> products = productRepository.getProductsByCategoryId(categoryId, pageable);
+        List<ProductReadListDto> productReadListDtos = null;
         if( userDetails != null ){
             Member member = memberRepository.findById(userDetails.getId());
-            products = products.stream()
-                    .filter(product -> !(member.getBlockUsers().contains(product.getMember())))
-                    .filter(product -> !(member.getUserBlockedMe().contains(product.getMember()))).collect(Collectors.toList());
+            productReadListDtos = productRepository.getProductByCategoryId(categoryId, member.getBlockUsers(), member.getUserBlockedMe(), pageable).stream()
+                    .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                    .collect(Collectors.toList());
+        }else{
+            productReadListDtos = productRepository.getProductsByCategoryId(categoryId, pageable).stream()
+                    .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                    .collect(Collectors.toList());
         }
-        List<ProductReadListDto> productReadListDtos = products.stream()
-                .map(product -> modelMapper.map(product, ProductReadListDto.class))
-                .collect(Collectors.toList());
+
+
 
         // 정렬 중 price 가 있을 경우
         if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
@@ -463,6 +466,25 @@ public class ProductServiceImpl implements ProductService {
             boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
             checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
         };
+
+        if(pageable.getPageSize() == 4){ // 해당 카테고리의 물건 조회시 ( 개별 물건조회 하단 색션 )
+
+            if(userDetails != null){
+                Member member = memberRepository.findById(userDetails.getId());
+                List<Product> productList = productRepository.getProductByCategoryId(categoryId, member.getBlockUsers(), member.getUserBlockedMe(), null);
+                return ShopProductListDto.builder()
+                        .total_size(productList.size())
+                        .page_size(productReadListDtos.size())
+                        .productsList(productReadListDtos).build();
+            }else {
+                List<Product> productList = productRepository.getProductsByCategoryId(categoryId, null);
+                return ShopProductListDto.builder()
+                        .total_size(productList.size())
+                        .page_size(productReadListDtos.size())
+                        .productsList(productReadListDtos).build();
+            }
+
+        }
 
         return ShopProductListDto.builder()
                 .page_size(productReadListDtos.size())
@@ -531,6 +553,7 @@ public class ProductServiceImpl implements ProductService {
         PropertyMap<Product, ProductReadOneDto> propertyMap = new PropertyMap<Product, ProductReadOneDto>() {
             @Override
             protected void configure() {
+                map().setId(source.getId());
                 map().setUserId(source.getMember().getId());
                 map().setUserNickName(source.getMember().getNickName());
                 map().setProfileImgDirectory(source.getMember().getProfileImageDir());

@@ -21,6 +21,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -81,12 +82,16 @@ public class ShopController {
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC)
-            }) Pageable pageable) throws CustomControllerExecption {
+            }) Pageable pageable,
+            @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption {
         if(authentication != null){
             log.info(pageable.toString());
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             if(userDetails.getId() == userId){
                 ShopProductListDto shopProductListDto = productService.getUserProducts(userId, productSet, pageable);
+                if(except_pid != null){
+                    shopProductListDto.getProductsList().removeIf(e -> e.getId() == except_pid); // 원픽 조회했던 물건은 보여주지 않는다.
+                }
                 ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                         .message("my_products_sort_" + productSet)
                         .status(200)
