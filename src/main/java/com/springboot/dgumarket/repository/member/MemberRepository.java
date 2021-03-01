@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Integer> {
 
 
-    Optional<Member> findByWebMail(String webMail);
+    Optional<Member> findByWebMailAndIsWithdrawn(String webMail, int isWithdrawn);
 
     // [회원 정보 조회] - 포로필 사진경로, 닉네임, 관심 카테고리
     // 추후에 신고 제제 추가

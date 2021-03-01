@@ -80,7 +80,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHanler)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET,"/shop/main/index").hasAuthority("ROLE_ADMIN")
                 .anyRequest().permitAll();
 
         // https://www.baeldung.com/spring-security-session

@@ -1,6 +1,5 @@
 package com.springboot.dgumarket.repository.member;
 
-import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface UserRepository extends JpaRepository<User, Integer> {
 
-
+    // [회원탈퇴 API] 회원탈퇴 요청 시 User 테이블에서 해당 유저 삭제
+    User findByWebMail(String webMail);
 
 }
