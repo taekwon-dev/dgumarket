@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class ProductReadOneDto {
+    // 상품 고유 번호
+    private int id;
+
     // 이미지 저장 경로
     private String ImgDirectories;
 

@@ -60,15 +60,26 @@ public class ProductController {
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             ProductReadOneDto readOneDto = productService.getProductInfo(userDetails, productId);
+            if(readOneDto.getUserId() == userDetails.getId()){
+                log.info("readOneDto.getUserId() " + readOneDto.getUserId());
+                log.info("userDetails.getId() " + userDetails.getId());
+                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                        .message("my_product")
+                        .status(200)
+                        .data(readOneDto).build();
+                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+            }
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                    .message("물건 조회")
+                    .message("user_product")
                     .status(200)
                     .data(readOneDto).build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
+
         ProductReadOneDto readOneDto = productService.getProductInfo(null, productId);
+        log.info("auth x - readOneDto.getUserId() " + readOneDto.getUserId());
         ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                .message("물건 조회")
+                .message("user_product")
                 .status(200)
                 .data(readOneDto).build();
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);

@@ -28,7 +28,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/category/*/products", // 카테고리별 물건조회 [ 인증선택, jwt interceptor 예외 추가 ]
 
                     // 물건 상세
-                    "/api/product/*/info ", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
+                    "/api/product/*/info", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
                     "/api/product/all", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
                     "/api/product/like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
                     "/api/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]

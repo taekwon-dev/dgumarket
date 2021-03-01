@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by TK YOUN (2020-12-22 오후 10:06)
@@ -36,7 +37,15 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
 
     // 카테고리별 물건 가져오기 ( feat, 거래중 )
     @Query("select p from Product p where p.productCategory.id =:categoryId and p.transactionStatusId = 0 and p.member.isWithdrawn = 0")
-    List<Product> getProductsByCategoryId (int categoryId, Pageable pageable);
+    List<Product> getProductsByCategoryId (int categoryId, @org.springframework.lang.Nullable Pageable pageable);
+
+    // [로그인] 카테고리별 물건 가져오기 ( feat, 거래중, 차단포함)
+    // 관심목록 조회하기
+    @Query("select p from Product p where " +
+            "p.productStatus=0 and p.productCategory.id =:categoryId and " +
+            "p.member.isWithdrawn=0 and " +
+            "p.member not in (:blockUsers) and p.member not in (:userBlocked)")
+    List<Product> getProductByCategoryId (int categoryId, Set<Member> blockUsers, Set<Member> userBlocked, @org.springframework.lang.Nullable Pageable pageable);
 
     // 전체 물건 가져오기
     @Query("select p from Product p where p.member.isWithdrawn = 0 and p.transactionStatusId =:transactionStatusId")
