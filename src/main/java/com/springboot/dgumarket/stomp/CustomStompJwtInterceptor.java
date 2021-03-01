@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.exception.CustomJwtException;
 import com.springboot.dgumarket.exception.ErrorMessage;
-import com.springboot.dgumarket.repository.member.LoggedLoginRepository;
 import com.springboot.dgumarket.service.UserDetailsServiceImpl;
 import com.springboot.dgumarket.utils.JwtUtils;
 import lombok.SneakyThrows;
@@ -34,12 +33,12 @@ public class CustomStompJwtInterceptor implements ChannelInterceptor {
 
     private JwtUtils jwtUtils;
     private UserDetailsServiceImpl userDetailsService;
-    private LoggedLoginRepository loggedLoginRepository;
 
-    public CustomStompJwtInterceptor(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService, LoggedLoginRepository loggedLoginRepository) {
+
+    public CustomStompJwtInterceptor(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
-        this.loggedLoginRepository = loggedLoginRepository;
+
     }
 
     @SneakyThrows
@@ -68,7 +67,6 @@ public class CustomStompJwtInterceptor implements ChannelInterceptor {
 
                 if (!jwtUtils.validateToken(jwtRefreshToken)) {
                     log.info("[STOMP] Access, Refresh Token are all not valildated, throw Exception!");
-                    loggedLoginRepository.addBlacklist(loggedLoginRepository.findMemberIdbyRefreshToken(jwtRefreshToken), jwtRefreshToken);
                     throw new CustomJwtException(errorResponse());
                 }
                 log.info("[STOMP] Access Token is not valildated, but Refresh Token is vaildated");

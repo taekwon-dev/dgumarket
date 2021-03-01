@@ -10,7 +10,7 @@ import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.block.UserBlockService;
-import com.springboot.dgumarket.service.member.MemberService;
+import com.springboot.dgumarket.service.member.MemberProfileService;
 import com.springboot.dgumarket.service.product.ProductReviewService;
 import com.springboot.dgumarket.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class ShopController {
     private static final int DEFAULT_PAGE_SIZE = 20; // 기본사이즈
 
     private final UserBlockService userBlockService;
-    private final MemberService memberService;
+    private final MemberProfileService memberService;
     private final ProductService productService;
     private final ProductReviewService productReviewService;
 

@@ -2,7 +2,6 @@ package com.springboot.dgumarket.model.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.springboot.dgumarket.model.LoggedLogin;
 import com.springboot.dgumarket.model.Role;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
@@ -95,50 +94,7 @@ public class Member {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<LoggedLogin> loggedLogins = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private Set<Product> products;
-
-    public Member(int id) {
-        this.id = id;
-    }
-
-    public void addRoles(Role role) {
-        this.roles.add(role);
-        role.getMembers().add(this);
-    }
-
-    public void addProductCategories(ProductCategory productCategory) {
-        this.productCategories.add(productCategory);
-        productCategory.getMembers().add(this);
-    }
-
-    // 양방향 관계를 잘 생각해 A B
-    public void addLoginLogging(LoggedLogin loggedLogin) {
-        loggedLogin.setMember(this);
-        this.getLoggedLogins().add(loggedLogin);
-    }
-
-    // 회원정보 수정 (임시 : 프로필 사진 디렉토리)
-    public void updateProfileImgDir(String profileImgDir) {
-        this.profileImageDir = profileImgDir;
-    }
-
-    // 회원정보 수정 (임시 : 닉네임)
-    public void updateNickName(String nickName) {
-        this.nickName = nickName;
-    }
-
-    // 유저의 관심 카테고리 업데이트
-    // 1. 기존 관심 카테고리를 모두 삭제한다. (이 과정 없이, 2번 코드만 진행되도 실제로 delete query 호출)
-    // 2. 새로 입력 받은 관심 카테고리를 입력한다.
-    public void updateCategories(Set<ProductCategory> productCategories) {
-        this.productCategories.clear();
-        this.productCategories = productCategories;
-    }
-
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
@@ -163,6 +119,38 @@ public class Member {
             inverseJoinColumns = {@JoinColumn(name = "product_id")})
     @JsonIgnore
     private Set<Product> likeProducts; // 좋아요한 물건들
+
+    /** ------------------------------------------------------------------------------------------------------------- */
+    // [회원정보 수정 API] (이미지 저장 경로 값 변경 시 활용)
+    // [회원탈퇴 API] - 탈퇴 요청 시 이미지 저장 경로 값 NULL
+    public void updateProfileImgDir(String profileImgDir) {
+        this.profileImageDir = profileImgDir;
+    }
+
+    // [회원정보 수정 API] (닉네임 변경)
+    // [회원탈퇴 API] - 탈퇴 요청 시 닉네임 값 '알 수 없음'
+    public void updateNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    // [회원정보 수정 API] 유저의 관심 카테고리 업데이트
+    // 기존 관심 카테고리를 모두 삭제한다. (이 과정 없이, 2번 코드만 진행되도 실제로 delete query 호출)
+    // 새로 입력 받은 관심 카테고리를 입력한다.
+    public void updateCategories(Set<ProductCategory> productCategories) {
+        this.productCategories.clear();
+        this.productCategories = productCategories;
+    }
+
+    // [회원탈퇴 API]
+    // 회원탈퇴 요청 시 회원 탈퇴 상태 값을 1로 수정한다. (일정 기간 보호 후 삭제)
+    public void updateMemberStatus(int isWithdrawn) {
+        this.isWithdrawn = isWithdrawn;
+    }
+
+    // [비밀번호 변경 API] - 비밀번호 변경 요청 시 비밀번호 값 업데이트
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 
     // 좋아요 누르기
     public void like(Product product){

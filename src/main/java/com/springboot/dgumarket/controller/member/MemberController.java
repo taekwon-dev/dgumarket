@@ -1,22 +1,21 @@
 package com.springboot.dgumarket.controller.member;
 
 import com.springboot.dgumarket.dto.member.SignUpDto;
-import com.springboot.dgumarket.payload.request.LoginRequest;
 import com.springboot.dgumarket.payload.request.WebmailRequest;
-import com.springboot.dgumarket.service.LoginLoggedService;
+import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.service.mail.EmailServiceImpl;
-import com.springboot.dgumarket.service.member.MemberService;
+import com.springboot.dgumarket.service.member.MemberProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 /**
@@ -38,10 +37,7 @@ import javax.validation.Valid;
 public class MemberController {
 
     @Autowired
-    private MemberService memberService;
-
-    @Autowired
-    private LoginLoggedService loginLoggedService;
+    private MemberProfileService memberService;
 
     @Autowired
     private EmailServiceImpl emailService;
@@ -57,29 +53,32 @@ public class MemberController {
         return new ResponseEntity<>("Successful", HttpStatus.CREATED);
     }
 
-    /* 로그인 End point */
-    @PostMapping("/login")
-    public ResponseEntity<?> doLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-
-        logger.debug("doLogin() is called");
-        logger.debug("LoginRequest[webMail] : " + loginRequest.getWebMail());
-        logger.debug("LoginRequest[Password] : " + loginRequest.getPassword());
-
-        /* LoginLoggedService -> doLogLogin() -> DB에 로그 정보 저장, 로그인 성공 시 토큰 발행, 쿠키 생성 처리 */
-        loginLoggedService.doLogLogin(loginRequest, response);
-
-        return new ResponseEntity<>("Successful", HttpStatus.OK);
-    }
-
+    // [회원가입 1단계 - 웹메일 인증]
     @PostMapping("/send-webmail")
     public void doSendEMail(@Valid @RequestBody WebmailRequest webmailRequest) {
         emailService.send(webmailRequest.getWebMail());
     }
 
-    @PostMapping("/check-webmail")
-    public boolean doCheckEMail(@Valid @RequestBody WebmailRequest webmailRequest) {
+    // [회원가입 2단계 - 핸드폰 번호 인증]
+   @PostMapping("/check-webmail")
+    public ResponseEntity<ApiResponseEntity> doCheckEMail(@Valid @RequestBody WebmailRequest webmailRequest) {
         // 회원가입 1단계 - 이메일 중복체크 (return ; true -> 중복된 이메일, false -> 중복되지 않은 이메일)
-        return memberService.doCheckWebMail(webmailRequest.getWebMail());
+
+       boolean result = false;
+       String messages = "회원가입 1단계 - 웹메일 중복체크 통과 : 회원가입 가능";
+
+       result = memberService.doCheckWebMail(webmailRequest.getWebMail());
+
+       // true : 중복된 웹메일 존재
+       if (result) messages = "회원가입 1단계 - 웹메일 중복체크 통과 실패 : 회원가입 불가능";
+
+       ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+               .message(messages)
+               .data(result)
+               .status(200)
+               .build();
+       return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
+
     
 }

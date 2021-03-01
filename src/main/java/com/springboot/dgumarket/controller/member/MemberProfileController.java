@@ -4,7 +4,7 @@ import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.service.UserDetailsImpl;
-import com.springboot.dgumarket.service.member.MemberService;
+import com.springboot.dgumarket.service.member.MemberProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +24,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user/profile")
-public class MemberAuthController {
+public class MemberProfileController {
 
     @Autowired
-    private MemberService memberService;
+    private MemberProfileService memberService;
 
     // [회원정보 불러오기 : 프로필 사진, 닉네임, 관심 카테고리]
     @GetMapping("/read")
@@ -169,5 +169,23 @@ public class MemberAuthController {
 
         }
         return null;
+    }
+
+    // 인증
+    // 게이트웨이에서 이 부분 패턴을 맞출 수 있을까?
+    @PostMapping("/withdraw")
+    public ResponseEntity<String> doWithdraw(Authentication authentication) {
+
+        // UserDetails - 회원탈퇴 요청 유저 정보 -> User 고유 ID 추출 -> 서비스 레이어 파라미터로 전달.
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // 탈퇴 서비스 Layer 결과 값
+        boolean result = false;
+
+        result = memberService.doWithdraw(userDetails.getId());
+
+
+
+        return new ResponseEntity<>("Successful", HttpStatus.OK);
     }
 }

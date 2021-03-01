@@ -24,7 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String webMail) throws UsernameNotFoundException {
 
-        Member member = memberRepository.findByWebMail(webMail)
+        Member member = memberRepository.findByWebMailAndIsWithdrawn(webMail, 0)
                 // UsernameNotFoundException extends AuthenticationException -> AuthEntryPointJwt.class
                 .orElseThrow(()-> new UsernameNotFoundException("User Not Found with Dongguk Univ's webMail : " + webMail));
 

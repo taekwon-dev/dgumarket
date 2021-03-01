@@ -23,25 +23,19 @@ import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.member.RoleRepository;
 import com.springboot.dgumarket.repository.member.UserRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
-import com.springboot.dgumarket.utils.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.imgscalr.Scalr;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +46,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class MemeberServiceImpl implements MemberService {
+public class MemeberServiceImpl implements MemberProfileService {
 
     private static final Logger logger = LoggerFactory.getLogger(MemeberServiceImpl.class);
 
@@ -91,8 +85,32 @@ public class MemeberServiceImpl implements MemberService {
     }
 
     @Override
+    public boolean doWithdraw(int userId) {
+
+        // 회원탈퇴 요청한 유저의 정보를 갖고 있는 객체를 불러온다.
+        Member member = memberRepository.findById(userId);
+
+        if (member == null) return false;
+        // [members] 테이블
+        // 개인정보보호지침에 따라서 회원의 핸드폰, 이메일 정보는 일정기간 보호 후 삭제한다. (script)
+        // - 회원 상태 변경 (isWithdrawn = 1)
+        // 회원 상태 변경 시점 (마지막 수정 시간) --> MySQL 스크립트 / 마지막 수정 시간 & 회원 상태 (1) -> 개인정보 삭제 시점
+        member.updateMemberStatus(1);
+
+        // [users] 테이블 : SCG 인증/인가 로직에서 활용 / 연관관계 없는 테이블
+        User user = userRepository.findByWebMail(member.getWebMail());
+        // 탈퇴 유저의 해당 로우 삭제
+        if (user != null) userRepository.delete(user);
+
+        return true;
+    }
+
+    @Override
     public boolean doCheckWebMail(String webMail) {
-        Optional<Member> member = memberRepository.findByWebMail(webMail);
+        // 웹메일 인증 요청 시
+        // 회원 정보 테이블(members)에서 회원 상태인 웹메일 대상으로 (회원 상태 : isWithdrawn 0 인 경우)
+        // 웹메일 중복 체크를 진행한다.
+        Optional<Member> member = memberRepository.findByWebMailAndIsWithdrawn(webMail, 0);
 
         logger.debug("member : " + member);
 
@@ -106,8 +124,8 @@ public class MemeberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberInfoDto fetchMemberInfo(int user_id) {
-        Member member = memberRepository.findById(user_id);
+    public MemberInfoDto fetchMemberInfo(int userId) {
+        Member member = memberRepository.findById(userId);
 
         org.modelmapper.PropertyMap<ProductCategory, ProductCategoryDto> map_category = new PropertyMap<ProductCategory, ProductCategoryDto>() {
             @Override
@@ -132,8 +150,8 @@ public class MemeberServiceImpl implements MemberService {
     }
 
     @Override
-    public void updateMemberInfo(int user_id, MemberUpdateDto memberUpdateInfoDto) {
-            Member member = memberRepository.findById(user_id);
+    public void updateMemberInfo(int userId, MemberUpdateDto memberUpdateInfoDto) {
+            Member member = memberRepository.findById(userId);
 
         if (memberUpdateInfoDto.getProfileImageDir().isPresent()) {
             member.updateProfileImgDir(memberUpdateInfoDto.getProfileImageDir().get());
@@ -238,7 +256,11 @@ public class MemeberServiceImpl implements MemberService {
 
         // Role
         Set<Role> roleSet = new HashSet<>();
-        Role role = roleRepository.findById(2); // 2 : ROLE_MEMBER_APPROVED (웹메일, 핸드폰 번호 인증한 회원)
+        Role role = roleRepository.findById(2); // 2 : ROLE_MEMBER (웹메일, 핸드폰 번호 인증한 회원)
+
+        // 관리자 권한을 동적으로 추가할 떄 이 부분 로직 추가
+        // 관리자로 회원가입하는 경우 정의 --> 해당 로직에서는 Admin 권한 부여
+        // Admin 권한 > Member 권한
         roleSet.add(role);
 
         // ProductCategory
