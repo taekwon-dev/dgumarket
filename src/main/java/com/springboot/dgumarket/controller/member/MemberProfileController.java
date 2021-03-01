@@ -5,6 +5,8 @@ import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.member.MemberProfileService;
+import com.springboot.dgumarket.utils.CookieUtil;
+import com.springboot.dgumarket.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.UUID;
 
@@ -174,18 +179,44 @@ public class MemberProfileController {
     // 인증
     // 게이트웨이에서 이 부분 패턴을 맞출 수 있을까?
     @PostMapping("/withdraw")
-    public ResponseEntity<String> doWithdraw(Authentication authentication) {
+    public ResponseEntity<ApiResponseEntity> doWithdraw(Authentication authentication, HttpServletResponse response) {
 
         // UserDetails - 회원탈퇴 요청 유저 정보 -> User 고유 ID 추출 -> 서비스 레이어 파라미터로 전달.
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         // 탈퇴 서비스 Layer 결과 값
         boolean result = false;
-
         result = memberService.doWithdraw(userDetails.getId());
 
+        if (result) {
 
+            // R 토큰 쿠키 삭제
+            // create a cookie
+            Cookie cookie = new Cookie("refreshToken", null);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            // https 적용 상황에서 주석 풀고 테스트 하기.
+            // cookie.setSecure(true);
+            cookie.setMaxAge(0);
 
-        return new ResponseEntity<>("Successful", HttpStatus.OK);
+            // add cookie to response
+            response.addCookie(cookie);
+
+            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                    .message("유저 탈퇴 요청 처리 성공")
+                    .data(null)
+                    .status(200)
+                    .build();
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        } else {
+            // 탈퇴 요청 처리 실패 시 예외처리 추후 추가 예정
+            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                    .message("유저 탈퇴 요청 처리 실패")
+                    .data(null)
+                    .status(200)
+                    .build();
+
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        }
     }
 }
