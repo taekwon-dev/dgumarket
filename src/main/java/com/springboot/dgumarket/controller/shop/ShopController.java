@@ -113,6 +113,9 @@ public class ShopController {
         }else{
             // 비로그인상태
             ShopProductListDto shopProductListDto = productService.getUserProducts(userId, productSet, pageable);
+            if(except_pid != null){
+                shopProductListDto.getProductsList().removeIf(e -> e.getId() == except_pid); // 원픽 조회했던 물건은 보여주지 않는다.
+            }
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message("user_products_sort_" + productSet)
                     .status(200)

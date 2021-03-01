@@ -1,9 +1,14 @@
 package com.springboot.dgumarket.repository.member;
 
+import com.springboot.dgumarket.model.member.BlockUser;
 import com.springboot.dgumarket.model.member.Member;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,5 +26,10 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     // 추후에 신고 제제 추가
     @Query("select m from Member m where m.isWithdrawn = 0 and m.id =:id")
     Member findById(int id);
+
+    @Query("select b from BlockUser b where b.user.id=:userId and b.blockedUser.isWithdrawn=0 and b.blockedUser.isEnabled=0")
+    List<BlockUser> findAllBlockUsers(int userId, @Nullable Pageable pageable);
+
+
 
 }
