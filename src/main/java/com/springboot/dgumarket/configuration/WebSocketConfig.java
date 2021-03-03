@@ -63,7 +63,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // sockJS 클라이언트가 WebSocket Handshake를 하기 위해 연결할 EndPoint를 지정할 수 있다.
         // ws://localhost:8080/gs-guide-websocket/246/nvhffhfc/websocket
-        registry.addEndpoint("/ws").withSockJS();
+        registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
         // https://www.concretepage.com/spring-5/spring-websocket ; Registers error handler
 //        registry.setErrorHandler(customErrorHandler);
     }
