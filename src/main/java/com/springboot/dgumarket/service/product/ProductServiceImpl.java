@@ -100,25 +100,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductListIndex> indexNotLoggedIn(int lastCategoryId) {
 
-        org.modelmapper.PropertyMap<ProductCategory, ProductCategoryDto> map_category = new PropertyMap<ProductCategory, ProductCategoryDto>() {
-            @Override
-            protected void configure() {
-                map().setCategory_id(source.getId());
-                map().setCategory_name(source.getCategoryName());
-            }
-        };
+        // init
+        List<ProductListIndex> productListIndexList = new ArrayList<>();
         modelMapper = new ModelMapper();
-        modelMapper.addMappings(map_category);
 
-        Pageable pageable = PageRequest.of(0, 3);
-        // Page 타입 -> List, findAllByCategoryTypeOrderByIdAsc(인기카테고리 Flag(= 1), PageRequest)
-        List<ProductCategoryDto> popularCategories = productCategoryRepository.findAllByCategoryTypeAndIdGreaterThanOrderByIdAsc(1, lastCategoryId, pageable)
-                .stream()
-                .map(productCategory -> modelMapper.map(productCategory, ProductCategoryDto.class))
-                .collect(Collectors.toList());
-
-        // add Mappings
-        org.modelmapper.PropertyMap<Product, ProductReadListDto> map = new PropertyMap<Product, ProductReadListDto>() {
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> map_product = new PropertyMap<Product, ProductReadListDto>() {
             @Override
             protected void configure() {
 
@@ -131,34 +117,42 @@ public class ProductServiceImpl implements ProductService {
                 map().setCategory_id(source.getProductCategory().getId());
             }
         };
-        modelMapper.addMappings(map);
 
-        List<ProductCategory> productCategories = productCategoryRepository.findAllByCategoryTypeAndIdGreaterThanOrderByIdAsc(1, lastCategoryId, pageable).toList();
-        List<ProductReadListDto> dtos = productRepository.apiProductIndex(productCategories)
-                .stream()
-                .map(productList -> modelMapper.map(productList, ProductReadListDto.class))
-                .collect(Collectors.toList());
+        modelMapper.addMappings(map_product); // 상품 정보에서 인덱스 화면에 보여질 데이터만 활용하기 위해 DTO로 변환
 
-        List<ProductListIndex> productListIndexList = new ArrayList<>();
+        // Pageable 오브젝트 생성
+        Pageable pageable = PageRequest.of(0, 3);
 
-        popularCategories.stream().forEach(
-            category -> {
-                List<ProductReadListDto> productReadListDtos = new ArrayList<>();
-                // 물건 리스트 스트림
-                dtos.stream().forEach(product -> {
-                    // 현재 카테고리 id와 동일한 상품만 묶어서 매핑
-                    if (category.getCategory_id() == product.getCategory_id()) {
-                        productReadListDtos.add(product);
-                    }
-                });
+        // {category_type : 1} 카테고리 중, `인기` 카테고리를 조회한다. (실제 서비스를 운영하면서 인기 카테고리가 변경될 수 있으므로 동적으로 처리)
+        // {lastCategoryId}  순서상 마지막 카테고리 고유 id를 의미하고, 초기값은 0이다. 초기값 또는 순서상 마지막 카테고리 고유 id를 기준으로 다음 세 가지 항목을 가져오는 쿼리가 수행된다.
+        // 인기카테고리는 (우선) 3가지 항목이므로, 이 기준에서는 최초 초기값 0이 요청이 된 이후 반환되는 값은 없다. (총 가지수가 세 가지 이므로)
+        // {pageable} : 페이징 오브젝트로, 클라이언트 측에서 무한 스크롤 기반 페이징을 제공하므로, 페이지는 0으로 고정, 사이즈는 3으로 설정되어 있다
+        List<ProductCategory> popularCategories = productCategoryRepository.findAllByCategoryTypeAndIdGreaterThanOrderByIdAsc(1, lastCategoryId, pageable).toList();
 
-                productListIndex = ProductListIndex.builder()
-                        .category_id(category.getCategory_id())
-                        .category_name(category.getCategory_name())
-                        .productsList(productReadListDtos)
-                        .build();
-                productListIndexList.add(productListIndex);
-            });
+        // `인기 카테고리`기준 (도서 / 의류 / 기프티콘) 각 카테고리 별 최대 4개 상품을 조회
+        // 비로그인 상태로 인덱스 화면에 접속하는 경우 호출된다.
+
+        // 인기 카테고리 수 만큼 반복문
+        // 최종적으로 반환 할 `List<ProductListIndex>` 만든다.
+        for (int i = 0; i < popularCategories.size(); i++) {
+
+            // DTO 형태 만들고, 리스트 형태로 해당 디티오들을 담는다.
+            // DTO를 담고 있는 리스트에서 STREAM을 통해 카테고리별로 상품을 분리하는 로직을 통과하고,
+            // 최종 보여질 데이터를 생성한다. (반환데이터)
+            List<ProductReadListDto> productReadListDtos = productRepository.findTop4ByProductCategoryOrderByCreateDatetimeDesc(popularCategories.get(i))
+                    .stream()
+                    .map(productList -> modelMapper.map(productList, ProductReadListDto.class))
+                    .collect(Collectors.toList());
+
+            productListIndex = ProductListIndex.builder()
+                    .category_id(popularCategories.get(i).getId())
+                    .category_name(popularCategories.get(i).getCategoryName())
+                    .productsList(productReadListDtos)
+                    .build();
+            productListIndexList.add(productListIndex);
+        }
+
+        // 결과 반환
         return productListIndexList;
     }
 
@@ -167,26 +161,22 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductListIndex> indexLoggedIn(UserDetailsImpl userDetails, int lastCategoryId) {
 
+        // init
         // '유저' 별 관심 카테고리를 추출하기 위해 로그인한 유저의 고유 아이디를 가진 Member 객체 생성
         Member member = Member.builder()
                 .id(userDetails.getId())
                 .build();
 
-        org.modelmapper.PropertyMap<ProductCategory, ProductCategoryDto> map_category = new PropertyMap<ProductCategory, ProductCategoryDto>() {
-            @Override
-            protected void configure() {
-                map().setCategory_id(source.getId());
-                map().setCategory_name(source.getCategoryName());
-            }
-        };
+        // ModelMapper 객체 생성
         modelMapper = new ModelMapper();
-        modelMapper.addMappings(map_category);
 
+        // 최종 반환 할 오브젝트 : 관심 카테고리 별 상품 리스트 (최대 4개)
+        List<ProductListIndex> productListIndexList = new ArrayList<>();
+
+        // Pageable 오브젝트 생성 (무한 스크롤 형식이므로, page : 0으로 고정, 사이즈는 3 : 카테고리를 최대 3개까지 보여준다)
         Pageable pageable = PageRequest.of(0, 3);
-        List<ProductCategoryDto> popularCategories = productCategoryRepository.findByMembersAndIdGreaterThanOrderByIdAsc(member,lastCategoryId, pageable)
-                .stream()
-                .map(productCategory -> modelMapper.map(productCategory, ProductCategoryDto.class))
-                .collect(Collectors.toList());
+
+        // Product -> ProductReadListDto 매핑
         org.modelmapper.PropertyMap<Product, ProductReadListDto> map = new PropertyMap<Product, ProductReadListDto>() {
             @Override
             protected void configure() {
@@ -200,32 +190,30 @@ public class ProductServiceImpl implements ProductService {
             }
         };
         modelMapper.addMappings(map);
-        List<ProductCategory> productCategories = productCategoryRepository.findByMembersAndIdGreaterThanOrderByIdAsc(member,lastCategoryId, pageable).toList();
-        List<ProductReadListDto> dtos = productRepository.apiProductIndex(productCategories)
-                .stream()
-                .map(productList -> modelMapper.map(productList, ProductReadListDto.class))
-                .collect(Collectors.toList());
 
-        List<ProductListIndex> productListIndexList = new ArrayList<>();
+        // 유저의 관심 카테고리 목록을 불러온다.
+        List<ProductCategory> interestedCategories = productCategoryRepository.findByMembersAndIdGreaterThanOrderByIdAsc(member, lastCategoryId, pageable).toList();
 
-        popularCategories.stream().forEach(
-                category -> {
-                    List<ProductReadListDto> productReadListDtos = new ArrayList<>();
-                    // 물건 리스트 스트림
-                    dtos.stream().forEach(product -> {
-                        // 현재 카테고리 id와 동일한 상품만 묶어서 매핑
-                        if (category.getCategory_id() == product.getCategory_id()) {
-                            productReadListDtos.add(product);
-                        }
-                    });
+        // 유저의 관심 카테고리 (최대 3개 - 페이징 적용)
+        // 유저의 관심 카테고리 수 만큼 반복문이 돌면서, 최종 반환될 카테고리 별 상품 리스트를 조합
+        for (int i = 0; i < interestedCategories.size(); i++) {
 
-                    productListIndex = ProductListIndex.builder()
-                            .category_id(category.getCategory_id())
-                            .category_name(category.getCategory_name())
-                            .productsList(productReadListDtos)
-                            .build();
-                    productListIndexList.add(productListIndex);
-                });
+            // DTO 형태 만들고, 리스트 형태로 해당 디티오들을 담는다.
+            // DTO를 담고 있는 리스트에서 STREAM을 통해 카테고리별로 상품을 분리하는 로직을 통과하고,
+            // 최종 보여질 데이터를 생성한다. (반환데이터)
+            List<ProductReadListDto> productReadListDtos = productRepository.findTop4ByProductCategoryOrderByCreateDatetimeDesc(interestedCategories.get(i))
+                    .stream()
+                    .map(productList -> modelMapper.map(productList, ProductReadListDto.class))
+                    .collect(Collectors.toList());
+
+            productListIndex = ProductListIndex.builder()
+                    .category_id(interestedCategories.get(i).getId())
+                    .category_name(interestedCategories.get(i).getCategoryName())
+                    .productsList(productReadListDtos)
+                    .build();
+            productListIndexList.add(productListIndex);
+        }
+
 
         return productListIndexList;
     }
