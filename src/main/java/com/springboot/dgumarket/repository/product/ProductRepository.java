@@ -1,6 +1,7 @@
 package com.springboot.dgumarket.repository.product;
 
 import com.drew.lang.annotations.Nullable;
+import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
@@ -25,6 +26,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
 
     @Query(value = "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY category_id ORDER BY id ASC)rank_id FROM product WHERE category_id IN (:categories)) ranked WHERE rank_id <= 4", nativeQuery = true)
     List<Product> apiProductIndex(@Param("categories") List<ProductCategory> categories);
+
+    // 인덱스 화면에서 전시될 상품 리스트 입니다.
+    // 상품 리스트는 카테고리 별 최대 네 가지 항목을 조회합니다.
+    List<Product> findTop4ByProductCategoryOrderByCreateDatetimeDesc(ProductCategory productCategory);
+
 
 
     // shop, 유저 전체 판매물건 조회 ( p.productStatus = 0 => 삭제가 안된 물건들 )
