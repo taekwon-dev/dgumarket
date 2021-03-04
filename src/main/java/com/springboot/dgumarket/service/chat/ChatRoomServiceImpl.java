@@ -3,6 +3,7 @@ package com.springboot.dgumarket.service.chat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.springboot.dgumarket.dto.chat.*;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.chat.ChatMessage;
 import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
@@ -19,6 +20,7 @@ import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -191,22 +193,32 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
     // 채팅방 물건 거래완료로 바꾸기
     @Override
-    public boolean changeRoomTransactionStatus(int roomId, int status) {
+    public void changeRoomTransactionStatus(int userId, int roomId, int status) throws CustomControllerExecption {
+        Member member = memberRepository.findById(userId);
+        // 채팅방의 물건 거래완료로 바꾸려는 데 채팅방에 있는 대화상대가 내가 차단한 경우라면 불가능
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
-        if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 거래완료
-            return false;
+        if(chatRoom.getSeller() == member){ // 반드시 채팅방의 판매자가 요청한것이여야함
+            if (member.getBlockUsers().contains(chatRoom.getConsumer()) || member.getUserBlockedMe().contains(chatRoom.getConsumer())){ // 서로 차단 중이라면
+                throw new CustomControllerExecption("차단된 유저와는 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
+            if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 거래완료
+                throw new CustomControllerExecption("이미 거래완료 되어 있는 상태입니다.", HttpStatus.BAD_REQUEST);
+            }else if (chatRoom.getProduct().getTransactionStatusId() == 0){
+                // 거래완료로 바꾸기
+                chatRoom.getProduct().setTransactionStatusId(status);
+
+                // 거래완료 데이터(거래리뷰 null) 추가하기
+                ProductReview productReview = ProductReview.builder()
+                        .consumer(chatRoom.getConsumer())
+                        .seller(chatRoom.getSeller())
+                        .product(chatRoom.getProduct())
+                        .chatRoom(chatRoom)
+                        .build();
+                productReviewRepository.save(productReview);
+            }
+        }else{ // 판매자 요청이 아닌 경우
+            throw new CustomControllerExecption("잘못된 요청입니다", HttpStatus.BAD_REQUEST);
         }
-        // 거래완료로 바꾸기
-        chatRoom.getProduct().setTransactionStatusId(status);
-        // 거래완료 데이터(거래리뷰 null) 추가하기
-        ProductReview productReview = ProductReview.builder()
-                .consumer(chatRoom.getConsumer())
-                .seller(chatRoom.getSeller())
-                .product(chatRoom.getProduct())
-                .chatRoom(chatRoom)
-                .build();
-        productReviewRepository.save(productReview);
-        return true;
     }
 
     // 채팅방 나가기
