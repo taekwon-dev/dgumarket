@@ -10,6 +10,7 @@ import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.chat.ChatRoomService;
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
 import com.springboot.dgumarket.service.product.ProductReviewService;
+import io.swagger.annotations.Authorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,14 +110,17 @@ public class ChatRoomController {
     // 채팅방에서 거래완료 요청 보내기 ( API 문서작성 완료 & 피드백 완료 )
     @PatchMapping("/{roomId}/trade-done")
     public ResponseEntity<?> updateProductStatus (
+            Authentication authorization,
             @RequestBody ProductStatusChangeRequest statusChangeRequest,
         @PathVariable("roomId") int roomId) throws CustomControllerExecption {
 
-        boolean result = chatRoomService.changeRoomTransactionStatus(roomId, statusChangeRequest.getTransaction_status_id());
-        if(!result){
-            throw new CustomControllerExecption("product status already updated", HttpStatus.ACCEPTED);
+        if(authorization != null) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authorization.getPrincipal();
+            chatRoomService.changeRoomTransactionStatus(userDetails.getId(), roomId, statusChangeRequest.getTransaction_status_id());
+            return ResponseEntity.ok("product status updated");
         }
-        return ResponseEntity.ok("product status updated");
+
+        return null;
     }
 
     // 채팅방 상태 확인하기
