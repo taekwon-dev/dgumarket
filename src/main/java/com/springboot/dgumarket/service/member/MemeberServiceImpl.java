@@ -187,6 +187,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
             member.updateCategories(productCategorySet);
         }
+
         memberRepository.save(member);
     }
 

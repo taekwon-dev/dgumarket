@@ -1,9 +1,12 @@
 package com.springboot.dgumarket.controller.product;
 
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
+import com.springboot.dgumarket.dto.product.ProductDeleteDto;
+import com.springboot.dgumarket.dto.product.ProductModifyDto;
 import com.springboot.dgumarket.dto.product.ProductReadOneDto;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
+import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.payload.request.PagingIndexRequest;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
@@ -11,6 +14,7 @@ import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.product.ProductService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -26,6 +30,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Null;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Created by TK YOUN (2020-12-22 오후 10:08)
@@ -38,16 +43,79 @@ import java.util.Objects;
 public class ProductController {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
+
+    @Autowired
     private ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
+    // 상품 업로드 API
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponseEntity> doUploadProduct(Authentication authentication, @RequestBody ProductCreateDto productCreateDto) {
+
+        // 예외처리 (API 요청 시 인증 절차에서 문제가 있는 경우) + 상품 업로드 상황에서.
+        if (authentication == null) return null;
+
+        // 업로드 이후 -> 해당 상품의 상세 정보 페이지로 이동한다.
+        // 상품 상세정보 URL : http://dgumarket.co.kr/product/`4` = 변수 (product_id)
+        // 클라이언트 측에서 해당 페이지로 이동할 수 있도록 product_id를 보내줘야 한다.
+        // 예외처리 ; 서비스 레이어에서 처리 예정
+        Product product = productService.doUplaodProduct(productCreateDto);
+
+        // 상품 고유 아이디 반환 -> (해당 페이지로 이동할 수 있도록)
+        int productId = product.getId();
+
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                .message("상품 업로드 성공")
+                .data(productId) // 상품 고유 아이디 반환
+                .status(200)
+                .build();
+
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.CREATED);
+
+
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<String> doEnrollProduct(@RequestBody ProductCreateDto productCreateDto) {
-        String product = productService.enrollProduct(productCreateDto);
-        return new ResponseEntity<>(product, HttpStatus.CREATED);
+    @PostMapping("/modify")
+    public ResponseEntity<ApiResponseEntity> doModifyProduct(Authentication authentication, @RequestBody ProductModifyDto productModifyDto) {
+
+        // init
+        // 상품 정보를 수정하는 상황 -> `어떤` 물건
+        int productId = 0;
+
+        // 예외처리 (API 요청 시 인증 절차에서 문제가 있는 경우) + 상품 수정 상황에서.
+        if (authentication == null) return null;
+
+        Optional<Product> product = productService.doUpdateProduct(productModifyDto);
+
+        // 상품 고유 아이디 반환 -> (해당 페이지로 이동할 수 있도록)
+        productId = product.get().getId();
+
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                .message("상품 정보 업데이트 성공")
+                .data(productId) // 상품 고유 아이디 반환
+                .status(200)
+                .build();
+
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+    }
+
+
+    @PostMapping("/delete")
+    public ResponseEntity<ApiResponseEntity> doDeleteProduct(Authentication authentication, @RequestBody ProductDeleteDto productDeleteDto) {
+
+        // API 인증 예외 -
+        if (authentication == null) return null;
+
+        // `어떤` 상품을 삭제하는 지 (via 상품 고유 아이디를 받아서 처리)
+        // 상품의 Status 값을 삭제 값으로 수정 {product_status : 1 ; 삭제}
+        productService.doDeleteProduct(productDeleteDto.getProductId());
+
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                .message("상품 삭제 성공")
+                .data(null)
+                .status(200)
+                .build();
+
+       return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
     // 개별 물건 조회하기

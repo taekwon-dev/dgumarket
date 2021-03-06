@@ -32,6 +32,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/product/all", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
                     "/api/product/like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
                     "/api/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
+                    "/api/product/upload", // 상품 업로드
+                    "/api/product/modify", // 상품 수정
+                    "/api/product/delete",  // 상품 삭제
 
                     // 채팅
                     "/api/chat/**", // 채팅 관련 API [인증 필요]
@@ -48,7 +51,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/report", // 유저 신고하기 [인증 필요]
                     "/api/blocklist", // 유저 차단리스트 조회하기 [인증 필요]
 
-                    "/api/user/"};
+                    // AWS S3 복수 이미지 API
+                    "/api/multi-img/**" // 복수 이미지 업로드, 삭제 API, (업로드 + 삭제 로직 모두 포함된 API) (via AWS S3)
+            };
 
     private JwtInterceptor jwtInterceptor;
     private JwtExceptionResolver jwtExceptionResolver;

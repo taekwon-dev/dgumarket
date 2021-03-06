@@ -24,13 +24,12 @@ import java.util.Set;
  */
 public interface ProductRepository extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
 
-    @Query(value = "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY category_id ORDER BY id ASC)rank_id FROM product WHERE category_id IN (:categories)) ranked WHERE rank_id <= 4", nativeQuery = true)
-    List<Product> apiProductIndex(@Param("categories") List<ProductCategory> categories);
-
     // 인덱스 화면에서 전시될 상품 리스트 입니다.
     // 상품 리스트는 카테고리 별 최대 네 가지 항목을 조회합니다.
     List<Product> findTop4ByProductCategoryOrderByCreateDatetimeDesc(ProductCategory productCategory);
 
+    // 상품 정보가 데이터베이스에 저장된 시점 이후, 해당 상품의 고유 ID를 반환 -> 해당 상품 상세 페이지로 이동시키기 위함
+    Product findTopByMemberOrderByCreateDatetimeDesc(Member member);
 
 
     // shop, 유저 전체 판매물건 조회 ( p.productStatus = 0 => 삭제가 안된 물건들 )

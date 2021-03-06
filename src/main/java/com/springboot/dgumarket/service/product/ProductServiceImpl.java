@@ -1,10 +1,7 @@
 package com.springboot.dgumarket.service.product;
 
 
-import com.springboot.dgumarket.dto.product.ProductCategoryDto;
-import com.springboot.dgumarket.dto.product.ProductCreateDto;
-import com.springboot.dgumarket.dto.product.ProductReadListDto;
-import com.springboot.dgumarket.dto.product.ProductReadOneDto;
+import com.springboot.dgumarket.dto.product.*;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.member.Member;
@@ -22,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -56,45 +53,86 @@ public class ProductServiceImpl implements ProductService {
         this.productLikeRepository = productLikeRepository;
     }
 
+    // 상품 업로드
+    // 예외처리
     @Override
-    public String enrollProduct(ProductCreateDto productCreateDto) {
+    public Product doUplaodProduct(ProductCreateDto productCreateDto) {
 
-
-
-        /*
-        클라이언트가 요청한 카테고리 코드 값과 매핑되는 카테고리가 없는 경우 발생하는 에러.
-        {
-        "statusCode": 500,
-        "timestamp": "2020-12-16T09:56:46.436+00:00",
-        "message": "could not execute statement; SQL [n/a]; constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement",
-        "description": "uri=/api/product/create"
-        }
-        */
         ProductCategory productCategory = productCategoryRepository.findById(productCreateDto.getProductCategory());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
 
+        // 예외처리
         Member member = Member.builder()
                 .id(userDetails.getId())
                 .build();
 
         Product product = Product.builder()
-                .member(member)                                                 // Member : Product = One : Many
-                .title(productCreateDto.getTitle())                             // 상품 타이틀
-                .information(productCreateDto.getInformation())                 // 상품 정보
-                .price(productCreateDto.getPrice())                             // 상품 가격
-                .imgDirectory(productCreateDto.getImgDirectory())               // 상품 이미지 저장 경로
-                .productCategory(productCategory)                               // Product : ProductCategory = Many : One
-                .transactionStatusId(productCreateDto.getTransactionStatusId()) // 거래 상태 코드
-                .transactionModeId(productCreateDto.getTransactionModeId())     // 거래 방식 코드
-                .selfProductStatus(productCreateDto.getSelfProductStatus())     // 판매자 자체 상품 상태 평가
-                .build();
+                    .member(member)                                                 // Member : Product = One : Many
+                    .title(productCreateDto.getTitle())                             // 상품 타이틀
+                    .information(productCreateDto.getInformation())                 // 상품 정보
+                    .price(productCreateDto.getPrice())                             // 상품 가격
+                    .imgDirectory(productCreateDto.getImgDirectory())               // 상품 이미지 저장 경로
+                    .productCategory(productCategory)                               // Product : ProductCategory = Many : One
+                    .transactionStatusId(productCreateDto.getTransactionStatusId()) // 거래 상태 코드
+                    .transactionModeId(productCreateDto.getTransactionModeId())     // 거래 방식 코드
+                    .selfProductStatus(productCreateDto.getSelfProductStatus())     // 판매자 자체 상품 상태 평가
+                    .build();
 
+        // 예외처리
         productRepository.save(product);
-        return product.getTitle();
+
+        // 응답 -> 업로드한 상푸의 고유 아이디를 반환
+        Product productForId = productRepository.findTopByMemberOrderByCreateDatetimeDesc(member); // 예외처리
+        return productForId;
     }
+
+    // 상품 수정
+    @Transactional
+    @Override
+    public Optional<Product> doUpdateProduct(ProductModifyDto productModifyDto) {
+
+        // 예외처리 해당 상품을 찾을 수 없는 경우 예외처리 포인트 (orElseThorw 활용)
+        Optional<Product> product = productRepository.findById(productModifyDto.getProductId());
+
+        // 상품의 '카테고리'를 수정
+        // 바뀐 카테고리 코드 값을 활용해서 카테고리 오브젝트를 불러온 후 수정
+        ProductCategory updatedCategory = productCategoryRepository.findById(productModifyDto.getProductCategory());
+
+        // @Transactional -> Update Query 확인
+        // 엔티티 영속성 및 JPA 관련 공부 필수
+        product.ifPresent(productForUpdate -> {
+            productForUpdate.setTitle(productModifyDto.getTitle());
+            productForUpdate.setPrice(productModifyDto.getPrice());
+            productForUpdate.setInformation(productModifyDto.getTitle());
+            productForUpdate.setImgDirectory(productModifyDto.getImgDirectory());
+            productForUpdate.setProductCategory(updatedCategory);
+            productForUpdate.setTransactionModeId(productModifyDto.getTransactionModeId());
+            productForUpdate.setTransactionStatusId(productModifyDto.getTransactionStatusId());
+            productForUpdate.setSelfProductStatus(productModifyDto.getSelfProductStatus());
+        });
+
+        return product;
+    }
+
+    @Transactional
+    @Override
+    public void doDeleteProduct(int productId) {
+
+        // 예외 해당 상품에 맞는 데이터가 없는 경우 (예외처리)
+        // 상품 고유 아이디로 해당 엔티티를 불러온다.
+        Optional<Product> product = productRepository.findById(productId);
+
+        // 컨트롤러에서 인자로 받은 상품 고유아이디의 Status 값을 변경
+        product.ifPresent(productForDelete -> {
+            // {productStatus : 1 ; 삭제}
+            productForDelete.setProductStatus(1);
+        });
+
+    }
+
 
     // 메인 페이지 (index) : 비로그인 상태로 접속한 경우 -> 인기 카테고리, 카테고리 별 상품 리스트 리턴.
     @Override
@@ -547,7 +585,7 @@ public class ProductServiceImpl implements ProductService {
                 map().setProfileImgDirectory(source.getMember().getProfileImageDir());
                 map().setIsNego(source.getIsNego());
                 map().setTitle(source.getTitle());
-                map().setImgDirectories(source.getImgDirectory()); // 추후 보강 필요
+                map().setImgDirectories(source.getImgDirectory());
                 map().setCategoryId(source.getProductCategory().getId());
                 map().setProductCategory(source.getProductCategory().getCategoryName());
                 map().setPrice(source.getPrice());
