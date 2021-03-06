@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.dto.product;
 
 import lombok.Getter;
-
+import org.openapitools.jackson.nullable.JsonNullable;
 /**
  * Created by TK YOUN (2020-12-09 오후 5:43)
  * Github : https://github.com/dgumarket/dgumarket.git
@@ -41,7 +41,7 @@ import lombok.Getter;
  * 2 : 비대면 거래(택배)
  * 3 : 구매자와 조율 가능
 
- * - selfProductStatus : 판매자 자체 상품 상태
+ * - selfProductStatus : 판매자 자체 상품 상태 (2021-03 삭제 처리 결정 / 추후 전체 로직에서 이 부분 삭제 예정)
  * 0 : S 등급
  * 1 : A 등급
  * 2 : B 등급
@@ -52,12 +52,12 @@ import lombok.Getter;
 
 @Getter
 public class ProductCreateDto {
-    private String title;                 // 상품 타이틀 (글 제목)
-    private String information;           // 상품 정보
-    private String price;                 // 상품 가격 (0원 입력 시 - 무료나눔)
-    private String imgDirectory;          // 저장된 상품 이미지 디렉토리 (최대 5장)
-    private int productCategory;          // 상품 카테고리 코드
-    private int transactionStatusId;      // 거래 상태 코드
-    private int transactionModeId;        // 거래 방식 코드
-    private int selfProductStatus;        // [판매자 자체] 상품 상태 평가
+    private String title;                                                  // 상품 타이틀 (글 제목)
+    private String information;                                            // 상품 정보
+    private String price;                                                  // 상품 가격 (0원 입력 시 - 무료나눔)
+    private String imgDirectory;                                           // 저장된 상품 이미지 디렉토리 (최대 5장)
+    private int productCategory;                                           // 상품 카테고리 코드
+    private int transactionStatusId;                                       // 거래 상태 코드
+    private int transactionModeId;                                         // 거래 방식 코드
+    private int selfProductStatus;                                         // [판매자 자체] 상품 상태 평가
 }

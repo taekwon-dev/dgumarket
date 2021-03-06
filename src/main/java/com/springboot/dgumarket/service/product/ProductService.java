@@ -1,10 +1,13 @@
 package com.springboot.dgumarket.service.product;
 
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
+import com.springboot.dgumarket.dto.product.ProductDeleteDto;
+import com.springboot.dgumarket.dto.product.ProductModifyDto;
 import com.springboot.dgumarket.dto.product.ProductReadOneDto;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
+import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.service.UserDetailsImpl;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by TK YOUN (2020-12-22 오후 10:08)
@@ -21,7 +25,12 @@ import java.util.List;
 public interface ProductService {
 
     // 상품 등록
-    String enrollProduct(ProductCreateDto productCreateDto);
+    Product doUplaodProduct(ProductCreateDto productCreateDto);
+
+    // 상품 정보 수정
+    Optional<Product> doUpdateProduct(ProductModifyDto productModifyDto);
+
+    void doDeleteProduct(int productId);
 
     // 비로그인 상태 -> /api/product/index 요청, lastCategoryId -> 비로그인 상황에서 무한스크롤 감지 했을 때 인기카테고리가 계속 반환되는 문제 해결
     List<ProductListIndex>  indexNotLoggedIn(int lastCategoryId);

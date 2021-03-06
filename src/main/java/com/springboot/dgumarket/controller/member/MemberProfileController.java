@@ -102,6 +102,9 @@ public class MemberProfileController {
             // NULL -> A로, 기본 프로필 사진에서 A로 변경하는 경우는
             // 이미 기존 프로필 사진에 대한 파일명을 가지고 있지 않은 경우 (클라이언트 측)
             // 따라서, 새로운 고유한 파일명을 생성한다.
+
+            // 추가 작업 (2021-03-06)
+            // 새로 업로드한 이미지 파일의 타입이 달라진 경우에 기존 파일명에 포함된 파일형식을 바꿔줘야 한다.
             if (fileName.equals("")) {
                 fileName = UUID.randomUUID().toString().replace("-", "")+"."+fileType;
             }
