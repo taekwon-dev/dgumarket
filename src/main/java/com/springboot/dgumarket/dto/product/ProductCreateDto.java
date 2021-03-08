@@ -57,6 +57,7 @@ public class ProductCreateDto {
     private String price;                                                  // 상품 가격 (0원 입력 시 - 무료나눔)
     private String imgDirectory;                                           // 저장된 상품 이미지 디렉토리 (최대 5장)
     private int productCategory;                                           // 상품 카테고리 코드
+    private int isNego;                                                    // 가격 조율 가능 여부 (0 : 가능, 1 : 불가능)
     private int transactionStatusId;                                       // 거래 상태 코드
     private int transactionModeId;                                         // 거래 방식 코드
     private int selfProductStatus;                                         // [판매자 자체] 상품 상태 평가
