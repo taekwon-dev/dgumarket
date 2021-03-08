@@ -76,6 +76,7 @@ public class ProductServiceImpl implements ProductService {
                     .price(productCreateDto.getPrice())                             // 상품 가격
                     .imgDirectory(productCreateDto.getImgDirectory())               // 상품 이미지 저장 경로
                     .productCategory(productCategory)                               // Product : ProductCategory = Many : One
+                    .isNego(productCreateDto.getIsNego())                           // 가격 조율 가능 여부 (0 : 가능, 1 : 불가능)
                     .transactionStatusId(productCreateDto.getTransactionStatusId()) // 거래 상태 코드
                     .transactionModeId(productCreateDto.getTransactionModeId())     // 거래 방식 코드
                     .selfProductStatus(productCreateDto.getSelfProductStatus())     // 판매자 자체 상품 상태 평가
