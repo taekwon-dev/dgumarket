@@ -110,6 +110,7 @@ public class ProductServiceImpl implements ProductService {
             productForUpdate.setInformation(productModifyDto.getTitle());
             productForUpdate.setImgDirectory(productModifyDto.getImgDirectory());
             productForUpdate.setProductCategory(updatedCategory);
+            productForUpdate.setIsNego(productModifyDto.getIsNego());
             productForUpdate.setTransactionModeId(productModifyDto.getTransactionModeId());
             productForUpdate.setTransactionStatusId(productModifyDto.getTransactionStatusId());
             productForUpdate.setSelfProductStatus(productModifyDto.getSelfProductStatus());
