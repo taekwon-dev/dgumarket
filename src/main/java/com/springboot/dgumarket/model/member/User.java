@@ -68,4 +68,10 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updateDatetime;
 
+    // [회원탈퇴 API]
+    // 회원탈퇴 요청 시 회원 탈퇴 상태 값을 1로 수정한다. (일정 기간 보호 후 삭제)
+    public void updateUserStatus(int isWithdrawn) {
+        this.isWithdrawn = isWithdrawn;
+    }
+
 }
