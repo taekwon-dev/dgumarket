@@ -93,6 +93,8 @@ public class MemeberServiceImpl implements MemberProfileService {
     @Override
     public boolean doWithdraw(int userId) {
 
+        // 예외처리 시 서비스 레이어에서 처리 하도록 변경 예정 (boolean 값으로 처리하지 않도록)
+
         // 회원탈퇴 요청한 유저의 정보를 갖고 있는 객체를 불러온다.
         Member member = memberRepository.findById(userId);
 
@@ -105,8 +107,8 @@ public class MemeberServiceImpl implements MemberProfileService {
 
         // [users] 테이블 : SCG 인증/인가 로직에서 활용 / 연관관계 없는 테이블
         User user = userRepository.findByWebMail(member.getWebMail());
-        // 탈퇴 유저의 해당 로우 삭제
-        if (user != null) userRepository.delete(user);
+        // 탈퇴 유저의 회원 여부 상태 값을 -> 회원 탈퇴(1)로 변경
+        if (user != null) user.updateUserStatus(1);
 
         return true;
     }
