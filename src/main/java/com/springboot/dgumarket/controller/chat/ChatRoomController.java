@@ -1,12 +1,15 @@
 package com.springboot.dgumarket.controller.chat;
 
+import com.springboot.dgumarket.controller.shop.CheckUserIsWithDrawn;
 import com.springboot.dgumarket.dto.chat.*;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.request.chat.ChatRoomLeaveRequest;
+import com.springboot.dgumarket.payload.request.chat.ValidationRequest;
 import com.springboot.dgumarket.payload.request.product.ProductStatusChangeRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
+import com.springboot.dgumarket.service.Validation.ValidationService;
 import com.springboot.dgumarket.service.chat.ChatRoomService;
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
 import com.springboot.dgumarket.service.product.ProductReviewService;
@@ -43,6 +46,8 @@ public class ChatRoomController {
     @Autowired
     ProductReviewService productReviewService;
 
+    @Autowired
+    ValidationService validationService;
 
     // 채팅방 목록들을 가져옵니다. (  API 문서작성 완료 & 피드백 완료  )
     @GetMapping("/lists")
@@ -165,4 +170,17 @@ public class ChatRoomController {
 
     // ------------------------------------- [ 유저제재 / 탈퇴 / 차단 / 물건블라인드 체크 ] -----------------------------------
 
+    // 채팅방에서 (제재, 프로필 차단) 유저프로필 또는 물건이미지 클릭시 먼저 유효성 체크 ( 3/10 )
+    @GetMapping("/check-validate")
+    public String validationCheck(
+            Authentication authentication,
+            @RequestBody ValidationRequest validationRequest) throws CustomControllerExecption {
+
+        if(authentication != null){
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            return validationService.checkValidateForChatroom(userDetails.getId(), validationRequest);
+        }
+
+        return null;
+    }
 }
