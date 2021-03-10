@@ -33,6 +33,7 @@ public class ReportServiceImpl implements ReportService{
     @Autowired
     ReportRepository reportRepository;
 
+    // 신고하기
     @Override
     public void postReport(int userId, ReportRequest reportRequest) {
         Member member = memberRepository.findById(userId);
@@ -42,6 +43,10 @@ public class ReportServiceImpl implements ReportService{
                 .reporter(member)
                 .reportEtcReason(reportRequest.getReport_etc_reason())
                 .reportCategory(category).build();
+
+        if(reportRequest.getReport_img_path().isPresent()){ // 업로드할 이미지가 있을 경우
+            report.setReportImgDirectory(reportRequest.getReport_img_path().get());
+        }
 
         // 개별물건페이지에서 요청온 경우
         if (reportRequest.getReport_product_id().isPresent()){
@@ -57,6 +62,7 @@ public class ReportServiceImpl implements ReportService{
             report.setChatRoom(chatRoom);
             report.setReportProduct(chatRoom.getProduct());
         }
+        // 관리자에게 신고접수여부 알려주면 좋을것같음. 이곳에 휴대전화로 메시지알림가도록 하기
 
         reportRepository.save(report); // 신고저장
     }

@@ -3,19 +3,20 @@ package com.springboot.dgumarket.model.member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.springboot.dgumarket.model.Role;
+import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.WhereJoinTable;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.Period;
 import java.util.List;
 import java.util.Set;
 //
@@ -120,6 +121,18 @@ public class Member {
     @JsonIgnore
     private Set<Product> likeProducts; // 좋아요한 물건들
 
+    @Column(name = "alert_num")
+    private int alertNum; // 받은 경고 횟수
+
+    @Column(name = "alert_date")
+    private LocalDateTime alertDate; // 최신경고 받은 날짜
+
+    @Column(name = "is_withdrawn_date")
+    private LocalDateTime isWithdrawnDate; // 탈퇴 날짜
+
+    @Column(name = "is_enabled_date")
+    private LocalDateTime isEnabledDate; // 유저제재 받은 날짜
+
     /** ------------------------------------------------------------------------------------------------------------- */
     // [회원정보 수정 API] (이미지 저장 경로 값 변경 시 활용)
     // [회원탈퇴 API] - 탈퇴 요청 시 이미지 저장 경로 값 NULL
@@ -152,16 +165,22 @@ public class Member {
         this.password = password;
     }
 
+    // [회원탈퇴시 모든 회원과 관련된 모든 채팅방 나가도록 하는 함수 3/5, by ms]
+    /**
+     * @param chatRooms 회원과 관련된 채팅방들
+     */
+    public void leave(List<ChatRoom> chatRooms){
+       chatRooms.forEach(e -> e.leave(this.getId())); // userId 이용 -> 정확히 seller, consumer 판단하여 deleted = 1 넣어줌
+    }
+
     // 좋아요 누르기
     public void like(Product product){
         this.getLikeProducts().add(product); // 좋아요 물건 추가
-        product.setLikeNums(product.getLikeNums()+1); // 해당 물건에 좋아요 +1
     }
 
     // 좋아요 취소하기
     public void unlike(Product product){
         this.getLikeProducts().remove(product); // 좋아요 했던 물건 취소하기
-        product.setLikeNums(product.getLikeNums()-1); // 해당 물건에 좋아요 -1
     }
 
     // 유저 차단하기
@@ -178,6 +197,49 @@ public class Member {
     public boolean checkBlockedBy(Member targetUser){
         return this.getUserBlockedMe().contains(targetUser);
     }
+
+    // -------------------------------------- 유저의 패널티 ---------------------------------------------------
+
+    // 유저 경고유무
+    public boolean checkWarnActive(){
+        if(this.getAlertNum() >= 3){ // 경고횟수가 3회 이상
+            LocalDateTime today = LocalDateTime.now();
+            Period period = Period.between(this.getAlertDate().toLocalDate(), today.toLocalDate());
+            if(period.getDays() <= 7){ // 패널티기간 지나지 않았다면
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 유저 경고추가
+    public void addWarn(){
+        this.alertNum += 1;
+        this.setAlertDate(LocalDateTime.now());
+    }
+
+    // 유저 경고 취소
+    public void cancelWarn(){
+        this.alertNum -= 1;
+        if(this.alertNum < 0){
+            this.alertNum = 0;
+        }
+        this.setAlertDate(null);
+    }
+
+    // 유저 제재가하기
+    public void punish(){
+        this.setIsEnabled(1);
+        this.setIsEnabledDate(LocalDateTime.now());
+    }
+
+    // 유저 제재 취소하기
+    public void unPunish(){
+        this.setIsEnabled(0);
+    }
+
+
+
 
     public int checkBlockStatus(Member targetUser){
         if(this.getBlockUsers().contains(targetUser)){

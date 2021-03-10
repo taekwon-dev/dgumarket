@@ -37,6 +37,8 @@ public class Report {
     @JoinColumn(name = "report_product_id", referencedColumnName = "id")
     private Product reportProduct;
 
+    @Column(name = "report_image_dir")
+    private String reportImgDirectory; // 신고이미지경로
 
     @Column(name = "report_content")
     private String reportEtcReason; // 신고 기타 이유
@@ -54,11 +56,8 @@ public class Report {
     @Column(name = "report_completed_date")
     private LocalDateTime reportCompletedDate; // 신고처리 완료일
 
-    @Column(name = "report_completed_content")
-    private String reportCompletedContent; // 신고처리결과내용
-
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ChatRoom.class)
     @JoinColumn(name = "report_chatroom", referencedColumnName = "id")
-    private ChatRoom chatRoom;
+    private ChatRoom chatRoom; // 채팅방정보( 신고를 채팅방에서 할 경우 추가적으로 채팅방 정보까지 포함시킴 )
 
 }

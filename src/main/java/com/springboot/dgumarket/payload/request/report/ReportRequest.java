@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,4 +31,7 @@ public class ReportRequest {
 
     @NotBlank
     private JsonNullable<Integer> report_room_id = JsonNullable.undefined();
+
+    @NotBlank
+    private JsonNullable<String> report_img_path = JsonNullable.undefined();
 }

@@ -50,9 +50,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/unblock/*", // 유저 차단해제하기 [인증 필요]
                     "/api/report", // 유저 신고하기 [인증 필요]
                     "/api/blocklist", // 유저 차단리스트 조회하기 [인증 필요]
-
                     // AWS S3 복수 이미지 API
-                    "/api/multi-img/**" // 복수 이미지 업로드, 삭제 API, (업로드 + 삭제 로직 모두 포함된 API) (via AWS S3)
+                    "/api/multi-img/**", // 복수 이미지 업로드, 삭제 API, (업로드 + 삭제 로직 모두 포함된 API) (via AWS S3)
+
+
+                    // [관리자] 기능
+                    "/api/admin/reports", // 신고접수건들 조회하기
+                    "/api/admin/report-results", // 신고처리결과들(or관리자 처리결과) 조회하기
+                    "/api/admin/report/*/result", // [관리자] 신고접수건에 대해서 신고처리
+                    "/api/admin/alert/*", // [관리자자체] 경고주기 및 취소
+                    "/api/admin/blind/*", // [관리자자체] 물건 블라인드처리 및 취소
+                    "/api/admin/sanction/*", // [관리자자체] 유저 제재처리 및 취소
+                    "/api/admin/report/*/status" // 신고접수상태 바꾸기
             };
 
     private JwtInterceptor jwtInterceptor;
