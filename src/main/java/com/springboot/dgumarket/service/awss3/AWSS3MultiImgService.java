@@ -90,10 +90,12 @@ public class AWSS3MultiImgService {
     public List<String> doUploadImgViaPrevNamesAll(MultipartFile[] multipartFiles, List<String> prevFileNames, String uploadDirPrefix) {
 
         // init
-        String fileType = null; // 각 사진의 파일타입
+        String newFileType = null; // 새로 업로드 하는 이미지 파일 타입
+        String prevFileType = null; // 기존 업로드 했던 이미지 파일 타입
         String[] fileTempName = null; // 파일명 스플릿 적용을 위한 스트링 배열 -> 예를 들어 a.jpg --> a (파일타입을 제외한 파일명만 분리해서 활용하기 위해)
         String fileName = null; // 각 사진의 파일명
         String uploadDirOnS3 = null; // AWS S3 업로드 경로
+        String originFileKey = null; // 기존 파일명과 새로 업로드하는 이미지의 파일 형식이 서로 다른 경우, 기존 파일명 삭제를 위한 오브젝트 키
 
         List<String> fileNameLists = new ArrayList<>();
 
@@ -102,12 +104,37 @@ public class AWSS3MultiImgService {
             // 파일명 생성
             // 업로드 디렉토리
             // 파일타입
-            fileType = multipartFiles[i].getOriginalFilename().substring(multipartFiles[i].getOriginalFilename().lastIndexOf(".") + 1);
+            newFileType = multipartFiles[i].getOriginalFilename().substring(multipartFiles[i].getOriginalFilename().lastIndexOf(".") + 1);
 
             // 새로 업로드한 이미지 파일의 타입이 달라진 경우에 기존 파일명에 포함된 파일형식을 바꿔줘야 한다.
+            // example.jpg -> fileTempName[0] : example, fileTempName[1] : jpg
             fileTempName = prevFileNames.get(i).split("\\.");
+
             fileName = fileTempName[0];
-            fileName = fileName+"."+fileType;
+            prevFileType = fileTempName[1];
+
+            // 기존 파일명을 그대로 활용해서 이미지를 업로드 하는 경우 중
+            // 기존 이미지 파일 타입과 새로운 이미지 파일 타입이 다른 경우,
+            // AWS S3에 동일한 파일명이지만, 서로 다른 파일 타입으로 인해 서로 다른 이미지로 인식되는 문제 (기존 파일명 + 타입에 해당하는 파일 삭제처리)
+            // 삭제할 키 값 (=삭제 할 원본의 경로 값)
+
+            if (!prevFileType.equals(newFileType)) {
+                // ex) `origin/product/` + `example.jpg`
+                originFileKey = uploadDirPrefix+prevFileNames.get(i);
+
+                // AWS S3 Delete API 위한 DeleteObjetctRequest 생성
+                DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, originFileKey);
+
+                try {
+                    // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
+                    s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
+                } catch (AmazonServiceException e) {
+                    log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                }
+            }
+
+
+            fileName = fileName+"."+newFileType;
             uploadDirOnS3 = uploadDirPrefix+fileName;
 
             // 반환 할 파일명 리스트를 위해서 파일명 생성 후 리스트에 추가.
@@ -148,10 +175,13 @@ public class AWSS3MultiImgService {
     public List<String> doUploadImgViaPrevNamesPart(MultipartFile[] multipartFiles, List<String> prevFileNames, String uploadDirPrefix) {
 
         // init
-        String fileType = null; // 각 사진의 파일타입
+        String newFileType = null; // 각 사진의 파일타입
+        String prevFileType = null;  // 기존 업로드 했던 이미지 파일 타입
         String[] fileTempName = null; // 파일명 스플릿 적용을 위한 스트링 배열 -> 예를 들어 a.jpg --> a (파일타입을 제외한 파일명만 분리해서 활용하기 위해)
         String fileName = null; // 각 사진의 파일명
         String uploadDirOnS3 = null; // AWS S3 업로드 경로
+        String originFileKey = null; // 기존 파일명과 새로 업로드하는 이미지의 파일 형식이 서로 다른 경우, 기존 파일명 삭제를 위한 오브젝트 키
+
 
         List<String> fileNameLists = new ArrayList<>();
 
@@ -159,12 +189,12 @@ public class AWSS3MultiImgService {
 
             ObjectMetadata metadata  = new ObjectMetadata();
             // 업로드한 이미지 파일의 타입
-            fileType = multipartFiles[i].getOriginalFilename().substring(multipartFiles[i].getOriginalFilename().lastIndexOf(".") + 1);
+            newFileType = multipartFiles[i].getOriginalFilename().substring(multipartFiles[i].getOriginalFilename().lastIndexOf(".") + 1);
 
 
             if (i > (prevFileNames.size()-1)) {
                 // 새로운 파일명을 생성해서 AWS S3에 업로드 해야 하는 경우
-                fileName = UUID.randomUUID().toString().replace("-", "")+"."+fileType;
+                fileName = UUID.randomUUID().toString().replace("-", "")+"."+newFileType;
                 uploadDirOnS3 = uploadDirPrefix+fileName;
 
                 // 오브젝트 - 메타데이터
@@ -175,8 +205,31 @@ public class AWSS3MultiImgService {
             } else {
                 // 기존 파일명을 활용해서 클라이언트가 요청한 파일을 AWS S3에 업로드 하는 경우
                 fileTempName = prevFileNames.get(i).split("\\.");
-                fileName = fileTempName[0];
-                fileName = fileName+"."+fileType;
+                fileName = fileTempName[0];  // 기존 업로드 했던 이미지 파일명
+                prevFileType = fileTempName[1]; // 기존 업로드 했던 이미지 파일 타입
+
+                // 기존 파일명을 그대로 활용해서 이미지를 업로드 하는 경우 중
+                // 기존 이미지 파일 타입과 새로운 이미지 파일 타입이 다른 경우,
+                // AWS S3에 동일한 파일명이지만, 서로 다른 파일 타입으로 인해 서로 다른 이미지로 인식되는 문제 (기존 파일명 + 타입에 해당하는 파일 삭제처리)
+                // 삭제할 키 값 (=삭제 할 원본의 경로 값)
+
+                if (!prevFileType.equals(newFileType)) {
+                    // ex) `origin/product/` + `example.jpg`
+                    originFileKey = uploadDirPrefix+prevFileNames.get(i);
+
+                    // AWS S3 Delete API 위한 DeleteObjetctRequest 생성
+                    DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, originFileKey);
+
+                    try {
+                        // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
+                        s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
+                    } catch (AmazonServiceException e) {
+                        log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                    }
+                }
+
+
+                fileName = fileName+"."+newFileType;
                 uploadDirOnS3 = uploadDirPrefix+fileName;
 
                 // 오브젝트 - 메타데이터
@@ -259,10 +312,17 @@ public class AWSS3MultiImgService {
         // 그 이전은 업로드 요청을 보내면 된다. 이 때 기존 파일명을 활용해서 업로드 한다.
 
         // init
-        String fileType = null; // 각 사진의 파일타입
+        String newFileType = null; // 새로 업로드 하는 이미지 파일 타입
+        String prevFileType = null; // 기존 업로드 했던 이미지 파일 타입
         String[] fileTempName = null; // 파일명 스플릿 적용을 위한 스트링 배열 -> 예를 들어 a.jpg --> a (파일타입을 제외한 파일명만 분리해서 활용하기 위해)
         String fileName = null; // 각 사진의 파일명
         String uploadDirOnS3 = null; // AWS S3 업로드 경로
+
+        // 1. 5->3 에서 기존 이미지 중 삭제 처리를 해야하는 이미지 오브젝트 키
+        // 2. 기존 파일명과 새로 업로드하는 이미지의 파일 형식이 서로 다른 경우, 기존 파일명 삭제를 위한 오브젝트 키
+        String originFileKey = null;
+
+
 
 
         List<String> fileNameLists = new ArrayList<>();
@@ -272,8 +332,6 @@ public class AWSS3MultiImgService {
 
             if (i >= multipartFiles.length) {
                 // 삭제 요청
-                String originFileKey = null;  // 삭제 할 파일의 저장 경로
-
                 // 삭제할 키 값 (=삭제 할 원본의 경로 값)
                 // ex) `origin/product/` + `example.jpg`
                 originFileKey = uploadDirPrefix+prevFileNames.get(i);
@@ -290,12 +348,35 @@ public class AWSS3MultiImgService {
 
             } else {
                 // 업로드한 이미지 파일의 타입
-                fileType = multipartFiles[i].getOriginalFilename().substring(multipartFiles[i].getOriginalFilename().lastIndexOf(".") + 1);
+                newFileType = multipartFiles[i].getOriginalFilename().substring(multipartFiles[i].getOriginalFilename().lastIndexOf(".") + 1);
                 // 기존 파일명을 활용해서 클라이언트가 요청한 파일을 AWS S3에 업로드 하는 경우
                 fileTempName = prevFileNames.get(i).split("\\.");
 
-                fileName = fileTempName[0];
-                fileName = fileName+"."+fileType;
+                fileName = fileTempName[0]; // 기존 업로드 했던 이미지 파일
+                prevFileType = fileTempName[1]; // 기존 업로드 했던 이미지 파일 타입 명
+
+                // 기존 파일명을 그대로 활용해서 이미지를 업로드 하는 경우 중
+                // 기존 이미지 파일 타입과 새로운 이미지 파일 타입이 다른 경우,
+                // AWS S3에 동일한 파일명이지만, 서로 다른 파일 타입으로 인해 서로 다른 이미지로 인식되는 문제 (기존 파일명 + 타입에 해당하는 파일 삭제처리)
+                // 삭제할 키 값 (=삭제 할 원본의 경로 값)
+
+                if (!prevFileType.equals(newFileType)) {
+                    // ex) `origin/product/` + `example.jpg`
+                    originFileKey = uploadDirPrefix+prevFileNames.get(i);
+
+                    // AWS S3 Delete API 위한 DeleteObjetctRequest 생성
+                    DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, originFileKey);
+
+                    try {
+                        // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
+                        s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
+                    } catch (AmazonServiceException e) {
+                        log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                    }
+                }
+
+
+                fileName = fileName+"."+newFileType;
                 uploadDirOnS3 = uploadDirPrefix+fileName;
 
                 // 오브젝트 - 메타데이터
