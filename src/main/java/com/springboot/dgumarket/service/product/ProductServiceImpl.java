@@ -107,7 +107,7 @@ public class ProductServiceImpl implements ProductService {
         product.ifPresent(productForUpdate -> {
             productForUpdate.setTitle(productModifyDto.getTitle());
             productForUpdate.setPrice(productModifyDto.getPrice());
-            productForUpdate.setInformation(productModifyDto.getTitle());
+            productForUpdate.setInformation(productModifyDto.getInformation());
             productForUpdate.setImgDirectory(productModifyDto.getImgDirectory());
             productForUpdate.setProductCategory(updatedCategory);
             productForUpdate.setIsNego(productModifyDto.getIsNego());
