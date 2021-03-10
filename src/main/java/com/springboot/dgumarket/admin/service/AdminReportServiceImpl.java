@@ -14,7 +14,6 @@ import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.User;
 import com.springboot.dgumarket.model.product.Product;
-import com.springboot.dgumarket.model.report.ReportResult;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.member.UserRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;

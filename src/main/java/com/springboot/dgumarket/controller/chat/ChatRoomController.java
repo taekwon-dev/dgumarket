@@ -162,4 +162,7 @@ public class ChatRoomController {
         redisChatRoomService.join(Integer.valueOf(roomId), Integer.valueOf(userId), sessionId); // 구독오면 redis 채팅방 가입
     }
 
+
+    // ------------------------------------- [ 유저제재 / 탈퇴 / 차단 / 물건블라인드 체크 ] -----------------------------------
+
 }
