@@ -74,4 +74,13 @@ public class User {
         this.isWithdrawn = isWithdrawn;
     }
 
+    // 유저 제재가하기
+    public void punish(){
+        this.isEnabled = 1;
+    }
+
+    // 유저 제재 취소하기
+    public void unPunish(){
+        this.isEnabled = 0;
+    }
 }
