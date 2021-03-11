@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.controller.chat;
 
-import com.springboot.dgumarket.controller.shop.CheckUserIsWithDrawn;
+import com.springboot.dgumarket.controller.product.ProductValidationForChatRoom;
 import com.springboot.dgumarket.dto.chat.*;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.request.chat.ChatRoomLeaveRequest;
@@ -73,7 +73,7 @@ public class ChatRoomController {
 
     // 채팅방 찾기
     @GetMapping("/find/room")
-    public ResponseEntity findChatRoom(
+    public ResponseEntity<?> findChatRoom(
             @RequestParam(value = "productId")int productId,
             @RequestParam(value = "sellerId")int sellerId,
             @RequestParam(value = "userId")int userId){
@@ -91,13 +91,14 @@ public class ChatRoomController {
 
     // 채팅방상단 물건의 대략적인 정보 + 채팅방이 내것인지 확인 가져옴 ( 기존 채팅방 ), 1.13 완료 ( API 문서작성 완료 & 피드백 완료 ) -> 수정
     @GetMapping("/product/{productId}")
-    public ResponseEntity getChatRoomProductInfo(
+    @ProductValidationForChatRoom
+    public ResponseEntity<?> getChatRoomProductInfo(
             Authentication authentication,
-            @PathVariable("productId") int productId){
+            @PathVariable("productId") int productId) throws CustomControllerExecption{
 
         if (authentication != null) {
+            logger.info("채팅방 상단 정보 조회");
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
             ChatRoomSectionProductDto chatRoomSectionProductDto = chatRoomService.findRoomProductSectionByProduct(productId, userDetails.getId());
             ApiResponseEntity apiResponseEntity = ApiResponseEntity
                     .builder()
@@ -106,8 +107,6 @@ public class ChatRoomController {
                     .data(chatRoomSectionProductDto).build();
 
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        } else {
-
         }
         return null;
     }
@@ -180,7 +179,6 @@ public class ChatRoomController {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             return validationService.checkValidateForChatroom(userDetails.getId(), validationRequest);
         }
-
         return null;
     }
 }

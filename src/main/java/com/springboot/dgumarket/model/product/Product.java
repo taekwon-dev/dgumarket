@@ -38,11 +38,11 @@ public class Product {
     // member_id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", referencedColumnName = "id")
-    private Member member;
+            private Member member;
 
-    // 상품 카테고리
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", referencedColumnName = "id")
+            // 상품 카테고리
+            @ManyToOne(fetch = FetchType.LAZY)
+            @JoinColumn(name = "category_id", referencedColumnName = "id")
     private ProductCategory productCategory;
 
     // 거래 상태 코드

@@ -1,7 +1,6 @@
 package com.springboot.dgumarket.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -76,4 +75,8 @@ public class ProductReadOneDto {
     // 물건 좋아요 여부
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String isLiked = "nolike";
+
+    // 채팅이력이 있는 지 여부
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String chatHistory;
 }

@@ -2,6 +2,7 @@ package com.springboot.dgumarket.service.chat;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.springboot.dgumarket.controller.chat.UserValidationForChatRoom;
 import com.springboot.dgumarket.dto.chat.*;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.chat.ChatMessage;
@@ -14,6 +15,7 @@ import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
+import com.springboot.dgumarket.service.Validation.ValidationService;
 import com.springboot.dgumarket.service.block.UserBlockService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -63,6 +65,9 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
     @Autowired
     UserBlockService userBlockService;
+
+    @Autowired
+    ValidationService validationService;
 
     // 전체 채팅방 목록들 가져오기
     @Override
@@ -212,6 +217,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .consumer(chatRoom.getConsumer())
                         .seller(chatRoom.getSeller())
                         .product(chatRoom.getProduct())
+                        .createdDate(LocalDateTime.now())
                         .chatRoom(chatRoom)
                         .build();
                 productReviewRepository.save(productReview);
@@ -233,15 +239,19 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
     // 채팅방 상태 가져오기
     @Override
+//    @UserValidationForChatRoom
     public ChatRoomStatusDto getChatRoomStatus(int roomId, int userId) {
         Member member = memberRepository.findById(userId); // 본인
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
         Optional<ProductReview> productReview = productReviewRepository.findByChatRoom(chatRoom);
 
+
         // 물건삭제되었을 경우
         if( chatRoom.getProduct().getProductStatus() == 1){
             return ChatRoomStatusDto.builder()
                     .productStatus(PRODUCT_STATUS_PRODUCT_DELETE) // 3
+                    .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                    .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
                     .build();
         }
 
@@ -251,6 +261,8 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_CONSUMER)
                         .transactionStatus(SOLD)
+                        .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
                         .build();
                 if(productReview.get().getReviewMessage() == null){
                     chatRoomStatusDto.setIsReviewUpload(NO);
@@ -266,7 +278,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_SELLER)
                         .transactionStatus(SOLD)
-                        .reviewer_nickname(reviewerNickname).build();
+                        .reviewer_nickname(reviewerNickname)
+                        .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .build();
 
                 if(productReview.get().getReviewMessage() == null){ // 거래완료 & 구매자 후기 아직 안남김
                     chatRoomStatusDto.setIsReviewUpload(NO);
@@ -277,7 +292,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 return chatRoomStatusDto;
             }else { // 아무도 아닌 사람
                 return ChatRoomStatusDto.builder()
-                        .productStatus(PRODUCT_STATUS_ETC).build();
+                        .productStatus(PRODUCT_STATUS_ETC)
+                        .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .build();
             }
         }else{ // 판매자가 구매완료 버튼 누르지 않은 경우 ( 모두에게 공평 ) + 구매버튼을 눌러도 해당 거래완료한 해당 채팅방이 아닐경우
 
@@ -289,15 +307,24 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 다른 곳에서 판매자가 거래완료 함
                     return ChatRoomStatusDto.builder()
                             .productStatus(PRODUCT_STATUS_SELLER)
-                            .transactionStatus(SOLD_BY_ANOTHER_ROOM).build();
+                            .transactionStatus(SOLD_BY_ANOTHER_ROOM)
+                            .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                            .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                            .build();
                 }
 
                 return ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_SELLER)
-                        .transactionStatus(SOLDNOT).build();
+                        .transactionStatus(SOLDNOT)
+                        .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .build();
             }else {
                 return ChatRoomStatusDto.builder()
-                        .productStatus(PRODUCT_STATUS_ETC).build();
+                        .productStatus(PRODUCT_STATUS_ETC)
+                        .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .build();
             }
         }
     }
@@ -340,6 +367,33 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     }
 
 
+    // 채팅으로거래하기 클릭시
+    @Override
+    public ChatRoomTradeHistoryDto checkChatHistory(int userId, int productId) throws CustomControllerExecption {
+        System.out.println("채팅으로거래하기 : 아이디" + userId +" / 물건번호" + productId);
+        Optional<Product> product = productRepository.findById(productId);
+        product.orElseThrow(()-> new CustomControllerExecption("존재하지 않은 물건입니다.", HttpStatus.NOT_FOUND));
+        ChatRoom chatRoom = chatRoomRepository.findChatRoomsByProductIdAndSellerIdAndConsumerId(productId, product.get().getMember().getId(), userId); // 채팅방 있는 지 체크
+        if(chatRoom != null){
+            return ChatRoomTradeHistoryDto.builder()
+                    .history_product_id(chatRoom.getProduct().getId())
+                    .history_room_id(chatRoom.getRoomId())
+                    .isExisted(true).build();
+        }
+
+        // (물건삭제, 물건블라인드), 유저제재, 유저탈퇴, 유저차단
+        if(product.get().getProductStatus() == 1){throw new CustomControllerExecption("존재하지않는 물건입니다.", HttpStatus.NOT_FOUND);}
+        if(product.get().getProductStatus() == 2){throw new CustomControllerExecption("관리자에 의해 블라인드 처리된 물건입니다. 새로운 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
+        if(product.get().getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);}
+        if(product.get().getMember().getIsEnabled()==2){throw new CustomControllerExecption("관리자로 부터 이용제재당한 유저입니다.", HttpStatus.NOT_FOUND);}
+        Member member = memberRepository.findById(userId);
+        if(member.getBlockUsers().contains(product.get().getMember()) || member.getUserBlockedMe().contains(product.get().getMember())) {
+            throw new CustomControllerExecption("차단관계에 있는 유저끼리는 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
 
 
+
+        return ChatRoomTradeHistoryDto.builder()
+                .isExisted(false).build();
+    }
 }

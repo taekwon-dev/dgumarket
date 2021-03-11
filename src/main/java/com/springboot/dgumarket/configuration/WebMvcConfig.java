@@ -35,6 +35,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/product/upload", // 상품 업로드
                     "/api/product/modify", // 상품 수정
                     "/api/product/delete",  // 상품 삭제
+                    "/api/product/*/chat-history", // 해당 물건에 대해서 채팅으로 거래중인지 확인하는 API
 
                     // 채팅
                     "/api/chat/**", // 채팅 관련 API [인증 필요]

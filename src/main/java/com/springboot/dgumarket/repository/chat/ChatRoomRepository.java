@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.repository.chat;
 
+import com.springboot.dgumarket.dto.chat.ChatRoomTradeHistoryDto;
 import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;

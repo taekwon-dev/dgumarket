@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.controller.product;
 
+import com.springboot.dgumarket.dto.chat.ChatRoomTradeHistoryDto;
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
 import com.springboot.dgumarket.dto.product.ProductDeleteDto;
 import com.springboot.dgumarket.dto.product.ProductModifyDto;
@@ -11,8 +12,11 @@ import com.springboot.dgumarket.payload.request.PagingIndexRequest;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
+import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
+import com.springboot.dgumarket.service.chat.ChatRoomService;
 import com.springboot.dgumarket.service.product.ProductService;
+import io.swagger.annotations.Authorization;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +50,9 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private ChatRoomService chatRoomService;
 
     // 상품 업로드 API
     @PostMapping("/upload")
@@ -125,10 +132,10 @@ public class ProductController {
             Authentication authentication,
             @PathVariable("productId") int productId) throws CustomControllerExecption {
 
-        if(authentication != null){
+        if(authentication != null){ // 로그인 유저
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             ProductReadOneDto readOneDto = productService.getProductInfo(userDetails, productId);
-            if(readOneDto.getUserId() == userDetails.getId()){
+            if(readOneDto.getUserId() == userDetails.getId()){ // 내 물건에 들어가는 경우
                 log.info("readOneDto.getUserId() " + readOneDto.getUserId());
                 log.info("userDetails.getId() " + userDetails.getId());
                 ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
@@ -213,4 +220,24 @@ public class ProductController {
             @RequestParam(required = false) int category_id){
     }
 
+
+    // 채팅으로거래하기 클릭시 해당 물건과 채팅 중인지 아닌 지 확인하기
+    @GetMapping("/{productId}/chat-history")
+    public ResponseEntity<?> doCheckChatroomHistory(
+            Authentication authentication,
+            @PathVariable("productId") int productId) throws CustomControllerExecption {
+
+        if(authentication != null){
+            UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
+            ChatRoomTradeHistoryDto chatRoomTradeHistoryDto = chatRoomService.checkChatHistory(userDetails.getId(), productId); // 이전과 채팅한 적 있는 지 체크하기
+            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                    .status(200)
+                    .message("이전에 채팅거래했는지 조회")
+                    .data(chatRoomTradeHistoryDto).build();
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        }
+
+
+        return null;
+    }
 }
