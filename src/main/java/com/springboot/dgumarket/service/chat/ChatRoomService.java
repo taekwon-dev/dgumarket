@@ -24,4 +24,5 @@ public interface ChatRoomService {
     ChatRoomStatusDto getChatRoomStatus(int roomId, int userId); // 채팅방상태 조회하기
     void leaveChatRoom(int roomId, int userId); // 채팅방 나가기
     Long calculateUnreadMessageCount(ChatRoom room, Member member); // 개별 채팅방의 읽지않은 메시지개수 계산하기
+    ChatRoomTradeHistoryDto checkChatHistory(int userId, int productId) throws CustomControllerExecption; // 물건페이지에서 채팅으로거래하기 클릭했을 때 해당 물건에 대해서 이전에 채팅거래한 적이 있는 지 없는 지 확인하기
 }
