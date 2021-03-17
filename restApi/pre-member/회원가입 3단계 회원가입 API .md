@@ -27,7 +27,6 @@
     "phoneNumber" : "01000000000", // - 없이 번호만 입력 
     "nickName" : "닉네임",
     "password" : "비밀번호",
-    "location" : "서울",
     "productCategories" : [1, 2, 3, 4] 
 }
 ```
