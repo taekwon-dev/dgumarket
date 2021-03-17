@@ -70,7 +70,7 @@ public class SMSServiceImpl implements SMSService {
         params.add("sender", "01022292983");                   // application.yml 값으로 재설정
         params.add("receiver", phoneNumber);
         params.add("msg", text);
-        params.add("testmode_yn", "Y");
+//        params.add("testmode_yn", "Y");
 
 
         RestTemplate restTemplate = new RestTemplate();
