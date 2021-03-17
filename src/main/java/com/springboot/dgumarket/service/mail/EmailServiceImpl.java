@@ -5,12 +5,9 @@ import com.springboot.dgumarket.repository.member.PreMemberRepository;
 import com.springboot.dgumarket.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 
 /**
