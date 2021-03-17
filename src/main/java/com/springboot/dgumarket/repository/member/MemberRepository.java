@@ -19,8 +19,17 @@ import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Integer> {
 
-
+    // 웹메일 중복체크 (회원가입 1단계)
     Optional<Member> findByWebMailAndIsWithdrawn(String webMail, int isWithdrawn);
+
+    // 핸드폰 번호 중복체크 (회원가입 2단계)
+    // 회원으로 등록된 핸드폰 번호 중 중복되는 것이 있는 지 체크
+    Member findByPhoneNumberAndIsWithdrawnIs(String phoneNumber, int isWithdrawn);
+
+    // 닉네임 중복체크 (회원가입 3단계)
+    // 회원으로 등록된 닉네임 중 중복되는 것이 있는 지 체크
+    Member findByNickNameAndIsWithdrawnIs(String nickname, int isWithdrawn);
+
 
     // [회원 정보 조회] - 포로필 사진경로, 닉네임, 관심 카테고리
     // 추후에 신고 제제 추가

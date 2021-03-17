@@ -43,7 +43,7 @@ public class JwtExceptionResolver extends AbstractHandlerExceptionResolver {
             log.warn("Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
         }
 
-        log.error("exceptions : {}" + ex.getMessage() );
+        log.error("exceptions : " + ex.getMessage() );
         return null;
     }
 

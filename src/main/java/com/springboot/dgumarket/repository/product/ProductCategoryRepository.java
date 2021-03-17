@@ -14,10 +14,10 @@ import java.util.Set;
  * Description :
  */
 public interface ProductCategoryRepository extends JpaRepository<ProductCategory, Integer> {
+
     ProductCategory findById(int id);
 
     // 비로그인 상태 -> /api/product/index 요청 시 활용, 인기 카테고리 (category_type = 1)
-//    Page<ProductCategory> findAllByCategoryTypeOrderByIdAsc(int category_type, Pageable pageable);
     Page<ProductCategory> findAllByCategoryTypeAndIdGreaterThanOrderByIdAsc(int category_type, int last_id, Pageable pageable);
 
 
@@ -26,6 +26,13 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
     // 무한 스크롤링 감지 후 /api/product/index 요청 시 -> (Client side) 응답 받은 카테고리의 중 가장 아래에 위치하는 카테고리 고유 id
     Page<ProductCategory> findByMembersAndIdGreaterThanOrderByIdAsc(Member member, int last_id, Pageable pageable);
 
-    Set<ProductCategory> findByMembers(Member member);
+    // 회원가입 3단계 - 유저의 관심카테고리에 해당하는 카테고리 목록 한 번에 조회
+    // for loop으로 하나씩 조회하는 과정에서 처리시간 문제
+    Set<ProductCategory> findByIdIn(Iterable<Integer> ids);
+
+    // https://stackoverflow.com/questions/35119544/java-spring-repositories-findby-method-using-set-of-ids-values
+    // findAll(Iterable<ID> ids)
+
+
 
 }

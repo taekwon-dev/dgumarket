@@ -9,8 +9,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
-import com.springboot.dgumarket.utils.CookieUtil;
-import com.springboot.dgumarket.utils.JwtUtils;
+import com.springboot.dgumarket.exception.CategoryNotFountException;
 import org.springframework.beans.factory.annotation.Value;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
@@ -35,9 +34,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -81,12 +77,13 @@ public class MemeberServiceImpl implements MemberProfileService {
     @Autowired
     private BCryptPasswordEncoder encoder;
 
-    @Override
-    public SignUpDto doSignUp(SignUpDto signUpDto) {
 
-        Member member = mapDtoToEntityDoSignup(signUpDto);
-        memberRepository.save(member);
-        return null;
+    @Override
+    public void doSignUp(SignUpDto signUpDto) {
+
+        // 회원정보 DB 저장
+        // members, users, member_roles, member_categories
+        mapDtoToEntityDoSignup(signUpDto);
     }
 
     @Transactional
@@ -261,11 +258,13 @@ public class MemeberServiceImpl implements MemberProfileService {
         return true;
     }
 
-    private Member mapDtoToEntityDoSignup(SignUpDto signUpDto) {
+    public void mapDtoToEntityDoSignup(SignUpDto signUpDto) {
 
-        // Role
         Set<Role> roleSet = new HashSet<>();
-        Role role = roleRepository.findById(2); // 2 : ROLE_MEMBER (웹메일, 핸드폰 번호 인증한 회원)
+
+        // 회원가입 시점에 ROLE_MEMBER의 권한을 부여한다.
+        // 2 : ROLE_MEMBER (웹메일, 핸드폰 번호 인증한 회원)
+        Role role = roleRepository.findById(2);
 
         // 관리자 권한을 동적으로 추가할 떄 이 부분 로직 추가
         // 관리자로 회원가입하는 경우 정의 --> 해당 로직에서는 Admin 권한 부여
@@ -273,13 +272,10 @@ public class MemeberServiceImpl implements MemberProfileService {
         roleSet.add(role);
 
         // ProductCategory
-        Set<ProductCategory> productCategorySet = new HashSet<>();
-        signUpDto.getProductCategories().forEach(category_id -> {
-            ProductCategory productCategory = productCategoryRepository.findById(category_id)
-                    .orElseThrow(()-> new CustomJwtException("Not Found Product Category ID : " + category_id));
+        // 유저가 입력한 상품 카테고리 고유 아이디가 없는 경우 -> 에외 발생 X
+        // 해당 값이 Null 처리 -> member_categories에 삽입되는 데이터가 없다 (쿼리 직업 확인)
+        Set<ProductCategory> productCategorySet = productCategoryRepository.findByIdIn(signUpDto.getProductCategories());
 
-            productCategorySet.add(productCategory);
-        });
 
         Member member = new Member()
                 .builder()
@@ -288,9 +284,9 @@ public class MemeberServiceImpl implements MemberProfileService {
                 .nickName(signUpDto.getNickName())
                 .password(encoder.encode(signUpDto.getPassword()))
                 .roles(roleSet)                                       // 회원 권한 - ROLE_MEMBER_APPROVED
-                .productCategories(productCategorySet)  // 회원 - 관심 카테고리
-                .isWithdrawn(0)                                      // 회원 탈퇴 여부(0 : 회원, 1: 회원 탈퇴)
-                .isEnabled(0)                                        // 회원 이용 제한 여부 (0 : 이용 가능, 1 : 이용 제한)
+                .productCategories(productCategorySet)                // 회원 - 관심 카테고리
+                .isWithdrawn(0)                                       // 회원 탈퇴 여부(0 : 회원, 1: 회원 탈퇴)
+                .isEnabled(0)                                         // 회원 이용 제한 여부 (0 : 이용 가능, 1 : 이용 제한)
                 .build();
 
         User user = User
@@ -304,8 +300,7 @@ public class MemeberServiceImpl implements MemberProfileService {
                 .isEnabled(0)
                 .build();
 
+        memberRepository.save(member);
         userRepository.save(user);
-
-        return member;
     }
 }
