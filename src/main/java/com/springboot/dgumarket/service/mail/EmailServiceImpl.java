@@ -88,7 +88,9 @@ public class EmailServiceImpl implements EmailService {
         message.setSubject("제목");
 
         // 발신 메일 본문 :
-        message.setText("https://dgumarket.co.kr/shop/account/smartPhone_certification?user_id="+webMailJwt);
+//        message.setText("https://dgumarket.co.kr/shop/account/smartPhone_certification?user_id="+webMailJwt);
+        message.setText("http://localhost:8081/shop/account/smartPhone_certification?user_id="+webMailJwt);
+
 
         // 웹메일 전송
         emailSender.send(message);
