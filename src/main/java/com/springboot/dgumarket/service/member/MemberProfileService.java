@@ -16,12 +16,11 @@ public interface MemberProfileService {
     // 여기는 최종적으로 회원 정보 관련 서비스 로직만 포함되도록 조정 예정 (2021-02-27)
 
     // 회원가입 3단계 - 회원가입 완료 시 호출
-    SignUpDto doSignUp(SignUpDto signUpDto);
+    void doSignUp(SignUpDto signUpDto);
 
     // 회원 탈퇴
     // userId : 탈퇴 요청을 한 유저의 고유 아이디 값
     boolean doWithdraw(int userId);
-
 
     boolean doCheckWebMail(String webMail);
 

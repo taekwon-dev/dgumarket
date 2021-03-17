@@ -25,24 +25,18 @@ public class JwtUtils {
     @Value("${dgumarket.app.jwtSecret}")
     private String SECRET_KEY;
 
-    // temp
-    public final static long TOKEN_VALIDATION_SECOND = 1L * 500000 * 1000;
-    public final static long REFRESH_TOKEN_VALIDATION_SECOND = 1L * 50000 * 1000;
+    // 토큰 유효기간 (1주일 - 회원가입 2단계 페이지 접근 시간)
+    public final static long TOKEN_VALIDATION_SECOND = 1L * 604800 * 1000;
+    // A 토큰 키 값
+    private static String ACCESS_TOKEN_NAME = "accessToken";
 
-    final static public String ACCESS_TOKEN_NAME = "accessToken";
-    final static public String REFRESH_TOKEN_NAME = "refreshToken";
 
     //generate token for user
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(String webMail) {
         Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, userDetails.getUsername());
-    }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return doRefreshGenerateToken(claims, userDetails.getUsername());
+        return doGenerateToken(claims, webMail);
     }
-
 
     //while creating the token -
     //1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
@@ -56,12 +50,6 @@ public class JwtUtils {
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
     }
 
-    private String doRefreshGenerateToken(Map<String, Object> claims, String subject) {
-
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_VALIDATION_SECOND))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
-    }
 
     //check if the token has expired
     private Boolean isTokenExpired(String token) {
