@@ -65,7 +65,7 @@ public class SMSServiceImpl implements SMSService {
 
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("key", "alf3u6b3ltxwe14t77zq8gcg10ytf3mn"); // application.yml 값으로 재설정
+        params.add("key", "god7s23jii5u2whi3ymlezr9jinfzxao"); // application.yml 값으로 재설정
         params.add("user_id", "dgumarket");                    // application.yml 값으로 재설정
         params.add("sender", "01022292983");                   // application.yml 값으로 재설정
         params.add("receiver", phoneNumber);
@@ -84,6 +84,7 @@ public class SMSServiceImpl implements SMSService {
 
             resultValue = Integer.parseInt(jsonObject.get("result_code").toString());
 
+
             // Rollback 처리
             if (resultValue != 1) {
                 // {
@@ -94,7 +95,7 @@ public class SMSServiceImpl implements SMSService {
                 // }
 
                 // 인증문자 발송이 실패했습니다. 다시 한 번 시도하시고 계속 문제가 있는 경우 관리자에게 문의해주세요. (클라이언트 측 안내)
-                throw new AligoSendException("알리고 문자 전송 실패");
+                throw new AligoSendException("알리고 문자 전송 실패 : " + jsonObject.toString());
             }
 
         } catch (ParseException e) {
