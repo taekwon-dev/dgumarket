@@ -9,16 +9,20 @@ import com.springboot.dgumarket.dto.shop.ShopPurchaseListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
+import com.springboot.dgumarket.model.product.ProductLike;
 import com.springboot.dgumarket.model.product.ProductReview;
 import com.springboot.dgumarket.payload.request.review.ProductCommentRequest;
 import com.springboot.dgumarket.repository.member.MemberRepository;
+import com.springboot.dgumarket.repository.product.CustomProductRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -46,14 +50,38 @@ public class ProductReviewServiceImpl implements ProductReviewService{
     @Autowired
     ProductReviewRepository productReviewRepository;
 
+    @Autowired
+    CustomProductRepository customProductRepository;
 
     // 거래후기 남기기
     @Override
     @Transactional
-    public void addProductComment(int productId, int userId, ProductCommentRequest productCommentRequest) {
+    public void addProductComment(int productId, int userId, ProductCommentRequest productCommentRequest) throws CustomControllerExecption {
 
         Member member = memberRepository.getOne(userId);
+
+        // 본인이 탈퇴/이용제재 해당될 경우 예외처리
+        if(member==null || member.getIsWithdrawn()==1){throw new CustomControllerExecption("존재하지 않는 유저 입니다.(본인)", HttpStatus.NOT_FOUND);}
+        if(member.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 제재조치를 받고 있습니다. 서비스 이용불가(본인)", HttpStatus.NOT_FOUND);}
+
+
         Product product = productRepository.getOne(productId);
+        // 상대방이 유저제재/탈퇴/차단관계 일경우 예외처리하기
+        if(product.getMember()==null || product.getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("존재하지 않는 유저입니다.(상대방)", HttpStatus.NOT_FOUND);}
+        if(product.getMember().getIsEnabled()==1){throw new CustomControllerExecption("관리자로 부터 이용제재 받고 있는 유저입니다.(상대방)", HttpStatus.BAD_REQUEST);}
+        if(member.getBlockUsers().contains(product.getMember())){
+            throw new CustomControllerExecption("차단한 유저에게 거래후기를 남길 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+        if(member.getUserBlockedMe().contains(product.getMember())){
+            throw new CustomControllerExecption("차단당한 유저에게 거래후기를 남길 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+
+        // 상대방 물건이 블라인드 또는 삭제 되었을 경우 예외처리하기
+        if(product==null || product.getProductStatus()==1){throw new CustomControllerExecption("물건이 존재하지 않습니다.", HttpStatus.NOT_FOUND);}
+        if(product.getProductStatus()==2){throw new CustomControllerExecption("해당물건은 관리자에 의해 블라인드 처리되었습니다.", HttpStatus.BAD_REQUEST);}
+
+
         Optional<ProductReview> productReview = productReviewRepository.findByProduct(product);
         log.info("addProductComment 실행");
         if(productReview.isPresent()){
@@ -67,14 +95,48 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
     // 거래후기 보기
     @Override
-    public ProductReviewDto getProductComment(int productId, int userId) {
+    public ProductReviewDto getProductComment(int productId, int userId) throws CustomControllerExecption {
 
         Member member = memberRepository.getOne(userId);
+        // 이미 게이트웨이에서 걸러진다.
+        if(member.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 제재조치를 받고 있습니다. 서비스 이용불가(본인)", HttpStatus.NOT_FOUND);}
+
+
         Product product = productRepository.getOne(productId);
+        if(product==null || product.getProductStatus()==1){ throw new CustomControllerExecption("물건이 존재하지 않습니다.", HttpStatus.NOT_FOUND); }
+        if(product.getProductStatus()==2){throw new CustomControllerExecption("해당물건은 관리자에 의해 블라인드 처리되었습니다.", HttpStatus.BAD_REQUEST); }
+
+
 
         Optional<ProductReview> productReview = productReviewRepository.findByProduct(product);
         if(productReview.isPresent()){
             if(productReview.get().getSeller() == member || productReview.get().getConsumer() == member){ // 판매자 or 구매자 이라면
+                if(productReview.get().getConsumer() == member){ // 구매자일경우
+                    if(productReview.get().getSeller() == null || productReview.get().getSeller().getIsWithdrawn()==1){throw new CustomControllerExecption("존재하지 않는 유저입니다(상대방)", HttpStatus.NOT_FOUND);}
+                    if(productReview.get().getSeller().getIsEnabled()==1){throw new CustomControllerExecption("관리자로 부터 이용제재 받고 있는 유저입니다.(상대방)", HttpStatus.BAD_REQUEST);}
+
+                    if(member.getBlockUsers().contains(productReview.get().getSeller())){ // 내가 차단한 상대라면
+                        throw new CustomControllerExecption("차단한 유저에게 남긴 구매후기를 볼 수 없습니다.", HttpStatus.BAD_REQUEST);
+                    }
+
+                    if(member.getUserBlockedMe().contains(productReview.get().getSeller())){
+                        throw new CustomControllerExecption("차단당한 유저로부터는 내가 남긴 구매후기를 볼 수 없습니다.", HttpStatus.BAD_REQUEST);
+                    }
+                }else{ // 내가 판매자일경우(채팅방에서만 볼 수 있다)
+                    if(productReview.get().getConsumer() == null || productReview.get().getConsumer().getIsWithdrawn()==1){throw new CustomControllerExecption("존재하지 않는 유저입니다(상대방)", HttpStatus.NOT_FOUND);}
+                    if(productReview.get().getConsumer().getIsEnabled()==1){throw new CustomControllerExecption("관리자로 부터 이용제재 받고 있는 유저입니다.(상대방)", HttpStatus.BAD_REQUEST);}
+
+
+                    if(member.getBlockUsers().contains(productReview.get().getSeller())){ // 내가 차단한 상대라면
+                        throw new CustomControllerExecption("차단한 유저의 구매후기를 볼 수 없습니다.", HttpStatus.BAD_REQUEST);
+                    }
+
+                    if(member.getUserBlockedMe().contains(productReview.get().getSeller())){
+                        throw new CustomControllerExecption("차단당한 유저로부터는 유저가 남긴 구매후기를 볼 수 없습니다.", HttpStatus.BAD_REQUEST);
+                    }
+                }
+
+
                 return ProductReviewDto.builder()
                         .review_comment(productReview.get().getReviewMessage())
                         .review_nickname(productReview.get().getConsumer().getNickName())
@@ -85,9 +147,13 @@ public class ProductReviewServiceImpl implements ProductReviewService{
     }
 
     // 리뷰 조회하기
+    // 제재, 탈퇴, 차단 제외 조회
     @Override
-    public ShopReviewListDto getReviews(int userId, Pageable pageable) {
-        Member member = memberRepository.findById(userId);
+    public ShopReviewListDto getReviews(Integer loginUserId, Integer userId, Pageable pageable) throws CustomControllerExecption {
+
+        Optional<Member> user = memberRepository.findById(userId); // 조회유저아이디
+        user.orElseThrow(() -> new CustomControllerExecption("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND));
+
         ModelMapper modelMapper = new ModelMapper();
         PropertyMap<ProductReview, ProductReviewDto> dtoPropertyMap = new PropertyMap<ProductReview, ProductReviewDto>() {
             @Override
@@ -99,18 +165,24 @@ public class ProductReviewServiceImpl implements ProductReviewService{
                 map().setReview_nickname(source.getConsumer().getNickName());
             }
         };
+        PageImpl<ProductReview> productReviews = null;
+        if(loginUserId == null){
+            productReviews = customProductRepository.findAllReviews(null, user.get(), pageable);
+        }else{
+            Optional<Member> loginMember = memberRepository.findById(loginUserId);
+            loginMember.orElseThrow(() -> new CustomControllerExecption("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND));
+            productReviews = customProductRepository.findAllReviews(loginMember.get(), user.get(), pageable);
+        }
+
         modelMapper.addMappings(dtoPropertyMap);
-        List<ProductReviewDto> productReadListDtos;
-        int totalNumber = productReviewRepository.countAllBySellerAndReviewMessageIsNotNull(member); // 총 메시지 개수
-         productReadListDtos = productReviewRepository.findReviews(member, pageable)
-                .stream()
+        List<ProductReviewDto> productReadListDtos = productReviews.getContent().stream()
                 .map(productReview -> modelMapper.map(productReview, ProductReviewDto.class))
                 .collect(Collectors.toList());
 
         return ShopReviewListDto.builder()
                 .review_list(productReadListDtos)
                 .page_size(productReadListDtos.size())
-                .total_size(Math.toIntExact(totalNumber)).build();
+                .total_size((int) productReviews.getTotalElements()).build();
     }
 
 
@@ -122,16 +194,6 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         Member member = memberRepository.findById(userId);
         ModelMapper modelMapper = new ModelMapper();
         Converter<Object, Boolean> BooleanConverter = context -> (context.getSource() != null); // boolean 컨버터
-
-//        Converter<String, String> withDrawnConverter = context -> { // 삭제유저 컨버터
-//            if((ProductReview)context.getSource(). == 1){ // 해당 물건이 삭제된 경우
-//                d.setPurchase_seller_nickname("알 수 없음");
-//            }else{
-//                d.setPurchase_seller_nickname(s.getSeller().getNickName());
-//            }
-//            return d;
-//        };
-
 
         PropertyMap<ProductReview, ProductPurchaseDto> purchaseProductListPropertyMap = new PropertyMap<ProductReview, ProductPurchaseDto>() {
             @Override
@@ -149,49 +211,16 @@ public class ProductReviewServiceImpl implements ProductReviewService{
             }
         };
         modelMapper.addMappings(purchaseProductListPropertyMap);
-//        modelMapper.addConverter(withDrawnConverter);
-        List<ProductPurchaseDto> productPurchaseDtos = new ArrayList<>();
-        ShopPurchaseListDto shopPurchaseListDto = null;
-        switch (purchaseSet){
-            case "total" :
-                productPurchaseDtos = productReviewRepository.findAllByConsumerId(userId, pageable)
-                        .stream()
-                        .map(productReview -> modelMapper.map(productReview, ProductPurchaseDto.class))
-                        .collect(Collectors.toList());
 
-                shopPurchaseListDto = ShopPurchaseListDto.builder()
-                        .page_size(productPurchaseDtos.size())
-                        .total_size(productReviewRepository.countAllByConsumer(member))
-                        .purchase_product_list(productPurchaseDtos).build();
-                break;
-            case "write" :
-                productPurchaseDtos = productReviewRepository.findWritedReviewsPurchase(member, pageable)
-                        .stream()
-                        .map(productReview -> modelMapper.map(productReview, ProductPurchaseDto.class))
-                        .collect(Collectors.toList());
+        PageImpl<ProductReview> products =  customProductRepository.findUserPurchases(member, purchaseSet, pageable);
+        List<ProductPurchaseDto> productPurchaseDtos = products.getContent().stream()
+                .map(productReview -> modelMapper.map(productReview, ProductPurchaseDto.class))
+                .collect(Collectors.toList());
 
-                shopPurchaseListDto = ShopPurchaseListDto.builder()
-                        .page_size(productPurchaseDtos.size())
-                        .total_size(productReviewRepository.countAllByConsumerAndReviewMessageIsNotNull(member))
-                        .purchase_product_list(productPurchaseDtos).build();
-                break;
-
-            case "nowrite" :
-                productPurchaseDtos = productReviewRepository.findNoWritedReviewsPurchase(member, pageable)
-                        .stream()
-                        .map(productReview -> modelMapper.map(productReview, ProductPurchaseDto.class))
-                        .collect(Collectors.toList());
-
-                shopPurchaseListDto = ShopPurchaseListDto.builder()
-                        .page_size(productPurchaseDtos.size())
-                        .total_size(productReviewRepository.countAllByConsumerAndReviewMessageIsNull(member))
-                        .purchase_product_list(productPurchaseDtos).build();
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + purchaseSet);
-        }
-
-
-        return shopPurchaseListDto;
+        return ShopPurchaseListDto.builder()
+                .total_size((int)products.getTotalElements())
+                .page_size(productPurchaseDtos.size())
+                .purchase_product_list(productPurchaseDtos)
+                .build();
     }
 }

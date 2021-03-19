@@ -213,20 +213,12 @@ public class ProductController {
         return null;
     }
 
-    @GetMapping
-    public void searchProduct(
-            Authentication authentication,
-            @RequestParam String q,
-            @RequestParam(required = false) int category_id){
-    }
-
 
     // 채팅으로거래하기 클릭시 해당 물건과 채팅 중인지 아닌 지 확인하기
     @GetMapping("/{productId}/chat-history")
     public ResponseEntity<?> doCheckChatroomHistory(
             Authentication authentication,
             @PathVariable("productId") int productId) throws CustomControllerExecption {
-
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             ChatRoomTradeHistoryDto chatRoomTradeHistoryDto = chatRoomService.checkChatHistory(userDetails.getId(), productId); // 이전과 채팅한 적 있는 지 체크하기

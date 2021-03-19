@@ -15,4 +15,6 @@ public class ChatRoomTradeHistoryDto {
     int history_product_id;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     boolean isExisted;
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    boolean isLeave;
 }
