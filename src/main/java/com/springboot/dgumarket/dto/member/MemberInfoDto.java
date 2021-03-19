@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.dto.member;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,4 +20,6 @@ public class MemberInfoDto {
     private String profileImageDir;
     private String nickName;
     private Set<ProductCategoryDto> productCategories = new HashSet<>();
+    @JsonInclude(JsonInclude.Include.NON_ABSENT)
+    private boolean warn; // 경고유무
 }

@@ -41,6 +41,7 @@ public class ChatMessageController {
 
     // [STOMP] SEND Frame 메시지 받는 곳
     @MessageMapping("/message")
+    @MessageCheckValidate
     public void handleSendMessage(SendMessage sendMessage, SimpMessageHeaderAccessor accessor) throws StompErrorException {
         BlockStatusDto blockStatus = userBlockService.checkBlockStatus(sendMessage.getSenderId(), sendMessage.getReceiverId());
 

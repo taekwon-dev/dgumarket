@@ -23,7 +23,6 @@ import java.util.Optional;
 public class UserWithDrawnAspect {
 
     Logger logger = LoggerFactory.getLogger(UserWithDrawnAspect.class);
-
     @Autowired
     MemberRepository memberRepository;
 
@@ -36,6 +35,4 @@ public class UserWithDrawnAspect {
         }
         return joinPoint.proceed();
     }
-
-
 }

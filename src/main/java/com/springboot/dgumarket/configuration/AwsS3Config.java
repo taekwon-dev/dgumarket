@@ -1,3 +1,4 @@
+
 package com.springboot.dgumarket.configuration;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -41,4 +42,3 @@ public class AwsS3Config {
                 .build();
     }
 }
-

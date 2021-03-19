@@ -95,7 +95,6 @@ public class ChatRoomController {
     public ResponseEntity<?> getChatRoomProductInfo(
             Authentication authentication,
             @PathVariable("productId") int productId) throws CustomControllerExecption{
-
         if (authentication != null) {
             logger.info("채팅방 상단 정보 조회");
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -117,13 +116,11 @@ public class ChatRoomController {
             Authentication authorization,
             @RequestBody ProductStatusChangeRequest statusChangeRequest,
         @PathVariable("roomId") int roomId) throws CustomControllerExecption {
-
         if(authorization != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authorization.getPrincipal();
             chatRoomService.changeRoomTransactionStatus(userDetails.getId(), roomId, statusChangeRequest.getTransaction_status_id());
             return ResponseEntity.ok("product status updated");
         }
-
         return null;
     }
 
@@ -170,7 +167,7 @@ public class ChatRoomController {
     // ------------------------------------- [ 유저제재 / 탈퇴 / 차단 / 물건블라인드 체크 ] -----------------------------------
 
     // 채팅방에서 (제재, 프로필 차단) 유저프로필 또는 물건이미지 클릭시 먼저 유효성 체크 ( 3/10 )
-    @GetMapping("/check-validate")
+    @PostMapping("/check-validate")
     public String validationCheck(
             Authentication authentication,
             @RequestBody ValidationRequest validationRequest) throws CustomControllerExecption {

@@ -10,7 +10,4 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.METHOD) // 어디에 쓸 지 정함
 @Retention(RetentionPolicy.RUNTIME)  // 에노테이션 정보를 언제까지 유지할 것인가
 public @interface CheckUserIsWithDrawn {
-
-
-
 }

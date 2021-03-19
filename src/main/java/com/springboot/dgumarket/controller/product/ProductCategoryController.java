@@ -69,11 +69,12 @@ public class ProductCategoryController {
             Authentication authentication,
             @PathVariable(value = "categoryId", required = false) int categoryId,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable){
+            @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) @Nullable Integer except_pid){
 
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            ShopProductListDto categoryProducts  = productService.getProductsByCategory(userDetails, categoryId, pageable);
+            ShopProductListDto categoryProducts  = productService.getProductsByCategory(userDetails, categoryId, pageable, except_pid);
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message(categoryName[categoryId-1] + " 조회")
                     .status(200)
@@ -81,7 +82,7 @@ public class ProductCategoryController {
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
 
-        ShopProductListDto categoryProducts = productService.getProductsByCategory(null, categoryId, pageable);
+        ShopProductListDto categoryProducts = productService.getProductsByCategory(null, categoryId, pageable, except_pid);
         ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                 .message(categoryName[categoryId-1] + " 조회")
                 .status(200)

@@ -204,9 +204,11 @@ public class Member {
     public boolean checkWarnActive(){
         if(this.getAlertNum() >= 3){ // 경고횟수가 3회 이상
             LocalDateTime today = LocalDateTime.now();
-            Period period = Period.between(this.getAlertDate().toLocalDate(), today.toLocalDate());
-            if(period.getDays() <= 7){ // 패널티기간 지나지 않았다면
-                return true;
+            if(this.getAlertDate() != null){ // 경고받은일이 있고
+                Period period = Period.between(this.getAlertDate().toLocalDate(), today.toLocalDate());
+                if(period.getDays() <= 7){ // 패널티기간 지나지 않았다면
+                    return true;
+                }
             }
         }
         return false;

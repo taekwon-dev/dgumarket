@@ -69,24 +69,24 @@ public class MemberController {
     }
 
     // [회원가입 1단계 - 웹메일 중복체크 API]
-   @PostMapping("/check-webmail")
+    @PostMapping("/check-webmail")
     public ResponseEntity<ApiResponseEntity> doCheckEMail(@Valid @RequestBody WebmailRequest webmailRequest) {
         // 회원가입 1단계 - 이메일 중복체크 (return ; true -> 중복된 이메일, false -> 중복되지 않은 이메일)
 
-       boolean result = false;
-       String messages = "회원가입 1단계 - 웹메일 중복체크 통과 : 회원가입 가능";
+        boolean result = false;
+        String messages = "회원가입 1단계 - 웹메일 중복체크 통과 : 회원가입 가능";
 
-       result = memberService.doCheckWebMail(webmailRequest.getWebMail());
+        result = memberService.doCheckWebMail(webmailRequest.getWebMail());
 
-       // true : 중복된 웹메일 존재
-       if (result) messages = "회원가입 1단계 - 웹메일 중복체크 통과 실패 : 회원가입 불가능";
+        // true : 중복된 웹메일 존재
+        if (result) messages = "회원가입 1단계 - 웹메일 중복체크 통과 실패 : 회원가입 불가능";
 
-       ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-               .message(messages)
-               .data(result)
-               .status(200)
-               .build();
-       return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                .message(messages)
+                .data(result)
+                .status(200)
+                .build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
 }

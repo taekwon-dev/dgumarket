@@ -1,10 +1,12 @@
 package com.springboot.dgumarket.controller.product;
 
 import com.springboot.dgumarket.dto.product.ProductReviewDto;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.request.review.ProductCommentRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.product.ProductReviewService;
+import com.springboot.dgumarket.utils.GlobalUserValidate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,7 +28,7 @@ public class ProductReviewController {
     public ResponseEntity<?> writeComment(
             @PathVariable("productId") int productId,
             @RequestBody ProductCommentRequest commentRequest,
-            Authentication authentication){
+            Authentication authentication) throws CustomControllerExecption {
 
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -43,9 +45,9 @@ public class ProductReviewController {
     }
 
 
-    // 구매후기 보기
+    // 구매후기 보기(채팅방 또는 내거래정보에서 보는 경우)
     @GetMapping("/{productId}/comment")
-    public ResponseEntity<?> getProductComment(@PathVariable("productId") int productId, Authentication authentication){
+    public ResponseEntity<?> getProductComment(@PathVariable("productId") int productId, Authentication authentication) throws CustomControllerExecption {
 
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();

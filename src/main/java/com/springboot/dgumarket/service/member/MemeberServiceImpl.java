@@ -156,7 +156,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
     @Override
     public void updateMemberInfo(int userId, MemberUpdateDto memberUpdateInfoDto) {
-            Member member = memberRepository.findById(userId);
+        Member member = memberRepository.findById(userId);
 
         if (memberUpdateInfoDto.getProfileImageDir().isPresent()) {
             member.updateProfileImgDir(memberUpdateInfoDto.getProfileImageDir().get());

@@ -85,22 +85,24 @@ public class ShopController {
             }) Pageable pageable,
             @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption {
         if(authentication != null){
+
+
             log.info(pageable.toString());
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             if(userDetails.getId() == userId){
-                ShopProductListDto shopProductListDto = productService.getUserProducts(userId, productSet, pageable);
-                if(except_pid != null){
-                    shopProductListDto.getProductsList().removeIf(e -> e.getId() == except_pid); // 원픽 조회했던 물건은 보여주지 않는다.
-                }
+                ShopProductListDto shopProductListDto = productService.getUserProducts(userDetails, userId, productSet, pageable, except_pid); // 내 물건 조회
+//                if(except_pid != null){
+//                    shopProductListDto.getProductsList().removeIf(e -> e.getId() == except_pid); // 원픽 조회했던 물건은 보여주지 않는다.
+//                }
                 ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                         .message("my_products_sort_" + productSet)
                         .status(200)
                         .data(shopProductListDto).build();
                 return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-            }else{
+            }else{ // 로그인유저 -> 다른사람의 판매물건 조회
                 BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
                 if(blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 상태
-                    ShopProductListDto shopProductListDto = productService.getUserProducts(userId, productSet, pageable);
+                    ShopProductListDto shopProductListDto = productService.getUserProducts(userDetails, null, productSet, pageable, except_pid);
                     ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                             .message("user_products_sort_" + productSet)
                             .status(200)
@@ -112,7 +114,7 @@ public class ShopController {
             }
         }else{
             // 비로그인상태
-            ShopProductListDto shopProductListDto = productService.getUserProducts(userId, productSet, pageable);
+            ShopProductListDto shopProductListDto = productService.getUserProducts(null, userId, productSet, pageable, except_pid);
             if(except_pid != null){
                 shopProductListDto.getProductsList().removeIf(e -> e.getId() == except_pid); // 원픽 조회했던 물건은 보여주지 않는다.
             }
@@ -136,18 +138,22 @@ public class ShopController {
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-                    if(userDetails.getId() != userId){//로그인
-                        BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
-                        if (blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 경우
-                            ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userId, pageable);
+            if(userDetails.getId() != userId){ // 로그인한 다른사람이 조회할 경우
+                BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
+                if (blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 경우
+                    ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userDetails.getId(), userId ,pageable);
                     ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                             .message("review_messages")
                             .status(200)
                             .data(productReviewDtoList).build();
                     return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-                }else { throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN); } // 차단된 경우
+
+                }else {
+                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN);
+                } // 차단된 경우
+
             }else { // 나 자신이 조회하는 경우
-                ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userId, pageable);
+                ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userDetails.getId(), userId ,pageable);
                 ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                         .message("my_review_messages")
                         .status(200)
@@ -155,7 +161,7 @@ public class ShopController {
                 return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
             }
         }else { //비로그인
-            ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userId, pageable);
+            ShopReviewListDto productReviewDtoList = productReviewService.getReviews(null, userId, pageable);
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message("review_messages")
                     .status(200)
@@ -170,7 +176,7 @@ public class ShopController {
             Authentication authentication,
             @RequestParam(value = "purchase_set", defaultValue = "total", required = false) String purchase_set,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
+            @SortDefault(direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userDetails.getId(), purchase_set, pageable);
@@ -188,7 +194,7 @@ public class ShopController {
     public ResponseEntity<?> getUserFavorites(
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @SortDefault(direction = Sort.Direction.DESC) Pageable pageable) {
 
         if (authentication != null){
             log.info("로그인성공");

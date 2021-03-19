@@ -199,16 +199,31 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     // 채팅방 물건 거래완료로 바꾸기
     @Override
     public void changeRoomTransactionStatus(int userId, int roomId, int status) throws CustomControllerExecption {
-        Member member = memberRepository.findById(userId);
-        // 채팅방의 물건 거래완료로 바꾸려는 데 채팅방에 있는 대화상대가 내가 차단한 경우라면 불가능
+        Member member = memberRepository.findById(userId); // 이미 여기서 탈퇴가 걸러진다.
+        if(member==null){throw new CustomControllerExecption("존재하지않는 유저는 해당 기능을 이용하실 수 엇습니다.", HttpStatus.BAD_REQUEST);}
+        if(member.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 이용제재를 받고있는 유저는 해당 기능을 사용하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
+
+
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
+        // 물건 삭제 또는 블라인드 처리되었을 경우 불가
+        if(chatRoom.getProduct()==null || chatRoom.getProduct().getProductStatus()==1){throw new CustomControllerExecption("물건이 존재하지 않습니다.", HttpStatus.NOT_FOUND);}
+        if(chatRoom.getProduct().getProductStatus()==2){throw new CustomControllerExecption("관리자에 의해 블라인드 처리된 물건입니다. 거래완료를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
+
+        // 채팅방의 물건 거래완료로 바꾸려는 데 채팅방에 있는 대화상대가 내가 차단한 경우라면 불가능
+        // 채팅방 상대방이 사용자제재, 탈퇴 유저인지 확인하기
+        Member opponentMember = chatRoom.getMemberOpponent(member);
+        if(opponentMember.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 제재를 받고있는 유저와는 거래완료를 하실 수 없습니다.", HttpStatus.NOT_FOUND);}
+        if(opponentMember.getIsWithdrawn()==1 || opponentMember == null){throw new CustomControllerExecption("존재하지 않는 유저와는 거래완료를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
+
         if(chatRoom.getSeller() == member){ // 반드시 채팅방의 판매자가 요청한것이여야함
             if (member.getBlockUsers().contains(chatRoom.getConsumer()) || member.getUserBlockedMe().contains(chatRoom.getConsumer())){ // 서로 차단 중이라면
                 throw new CustomControllerExecption("차단된 유저와는 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
             if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 거래완료
                 throw new CustomControllerExecption("이미 거래완료 되어 있는 상태입니다.", HttpStatus.BAD_REQUEST);
-            }else if (chatRoom.getProduct().getTransactionStatusId() == 0){
+            }
+
+            if (chatRoom.getProduct().getTransactionStatusId() == 0){
                 // 거래완료로 바꾸기
                 chatRoom.getProduct().setTransactionStatusId(status);
 
@@ -375,12 +390,22 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         product.orElseThrow(()-> new CustomControllerExecption("존재하지 않은 물건입니다.", HttpStatus.NOT_FOUND));
         ChatRoom chatRoom = chatRoomRepository.findChatRoomsByProductIdAndSellerIdAndConsumerId(productId, product.get().getMember().getId(), userId); // 채팅방 있는 지 체크
         if(chatRoom != null){
-            return ChatRoomTradeHistoryDto.builder()
+            Member member = memberRepository.findById(userId);
+            ChatRoomTradeHistoryDto chatRoomTradeHistoryDto = ChatRoomTradeHistoryDto.builder()
                     .history_product_id(chatRoom.getProduct().getId())
                     .history_room_id(chatRoom.getRoomId())
                     .isExisted(true).build();
+            if(chatRoom.isMine(member)){//seller
+                if(chatRoom.getSellerDeleted()==1){ // 채팅방 나갔을 경우
+                    chatRoomTradeHistoryDto.setLeave(true);
+                }
+            }else{ //consumer
+                if(chatRoom.getConsumerDeleted()==1) {
+                    chatRoomTradeHistoryDto.setLeave(true);
+                }
+            }
+            return chatRoomTradeHistoryDto;
         }
-
         // (물건삭제, 물건블라인드), 유저제재, 유저탈퇴, 유저차단
         if(product.get().getProductStatus() == 1){throw new CustomControllerExecption("존재하지않는 물건입니다.", HttpStatus.NOT_FOUND);}
         if(product.get().getProductStatus() == 2){throw new CustomControllerExecption("관리자에 의해 블라인드 처리된 물건입니다. 새로운 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
@@ -390,10 +415,8 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         if(member.getBlockUsers().contains(product.get().getMember()) || member.getUserBlockedMe().contains(product.get().getMember())) {
             throw new CustomControllerExecption("차단관계에 있는 유저끼리는 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
-
-
-
         return ChatRoomTradeHistoryDto.builder()
-                .isExisted(false).build();
+                .isLeave(false)
+                .isExisted(true).build();
     }
 }
