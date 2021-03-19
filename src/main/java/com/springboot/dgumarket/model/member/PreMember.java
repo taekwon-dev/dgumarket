@@ -75,6 +75,10 @@ public class PreMember {
         this.phoneVerificationNumber = phoneVerificationNumber;
     }
 
+    public void updatePreMemberStatus(int status) {
+        this.status = status;
+    }
+
     public void initPhoneNumber() {
         this.phoneNumber = null;
     }

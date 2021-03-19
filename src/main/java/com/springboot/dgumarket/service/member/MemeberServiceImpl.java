@@ -10,6 +10,8 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.springboot.dgumarket.exception.CategoryNotFountException;
+import com.springboot.dgumarket.model.member.PreMember;
+import com.springboot.dgumarket.repository.member.PreMemberRepository;
 import org.springframework.beans.factory.annotation.Value;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
@@ -66,6 +68,9 @@ public class MemeberServiceImpl implements MemberProfileService {
     private UserRepository userRepository;
 
     @Autowired
+    private PreMemberRepository preMemberRepository;
+
+    @Autowired
     private ProductCategoryRepository productCategoryRepository;
 
     @Value("${application.bucket.name}")
@@ -86,6 +91,8 @@ public class MemeberServiceImpl implements MemberProfileService {
         mapDtoToEntityDoSignup(signUpDto);
     }
 
+    // 2021-03-19 boolean 타입을 리턴하게 되면 예외 상황이 생겼을 때, 정확한 원인 파악이 힘듬
+    // 특히 Transaction 작업이 있는 상황이라면 더더욱.
     @Transactional
     @Override
     public boolean doWithdraw(int userId) {
@@ -106,6 +113,16 @@ public class MemeberServiceImpl implements MemberProfileService {
         User user = userRepository.findByWebMail(member.getWebMail());
         // 탈퇴 유저의 회원 여부 상태 값을 -> 회원 탈퇴(1)로 변경
         if (user != null) user.updateUserStatus(1);
+
+        // 회원가입 1차 피드백 수정되면 그 때 처리.
+//        // 회원가입한 유저가 회원가입 절차(2단계 페이지 접근) 하지 못하도록 차단하기 위해 상태 값을 회원으로 변경 (on pre-members)
+//        PreMember preMember = preMemberRepository.findByWebMail(member.getWebMail());
+//
+//        // preMember == null -> RuntimeException -> Rollback -> 예외처리 할 것 (2021-03-19)
+//        if (preMember != null) {
+//            // (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
+//            preMember.updatePreMemberStatus(2);
+//        }
 
         return true;
     }
@@ -258,6 +275,7 @@ public class MemeberServiceImpl implements MemberProfileService {
         return true;
     }
 
+    @Transactional
     public void mapDtoToEntityDoSignup(SignUpDto signUpDto) {
 
         Set<Role> roleSet = new HashSet<>();
@@ -299,6 +317,16 @@ public class MemeberServiceImpl implements MemberProfileService {
                 .isWithdrawn(0)
                 .isEnabled(0)
                 .build();
+
+        // 회원가입한 유저가 회원가입 절차(2단계 페이지 접근) 하지 못하도록 차단하기 위해 상태 값을 회원으로 변경 (on pre-members)
+        PreMember preMember = preMemberRepository.findByWebMail(signUpDto.getWebMail());
+
+        // preMember == null -> RuntimeException -> Rollback -> 예외처리 할 것 (2021-03-19)
+        // 회원가입 1차 피드백 수정되면 그 때 처리.
+        if (preMember != null) {
+            // (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
+            preMember.updatePreMemberStatus(1);
+        }
 
         memberRepository.save(member);
         userRepository.save(user);
