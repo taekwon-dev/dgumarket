@@ -52,11 +52,13 @@ public class ProductCategoryController {
     public ResponseEntity<List<ProductListIndex>> findIndexTest(Authentication authentication, @RequestBody PagingIndexRequest lastCategoryId) {
 
         if (authentication != null) {
+            log.info("로그인");
             // 로그인 상태 (-> '유저의 관심' 카테고리)
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             List<ProductListIndex> productCategorySet = productService.indexLoggedIn(userDetails, lastCategoryId.getLastCategoryId());
             return new ResponseEntity<>(productCategorySet, HttpStatus.OK);
         } else {
+            log.info("비로그인");
             // 비로그인 상태 (-> '인기' 카테고리)
             List<ProductListIndex>  products = productService.indexNotLoggedIn(lastCategoryId.getLastCategoryId());
             return new ResponseEntity<>(products, HttpStatus.OK);
@@ -69,11 +71,12 @@ public class ProductCategoryController {
             Authentication authentication,
             @PathVariable(value = "categoryId", required = false) int categoryId,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable){
+            @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) @Nullable Integer except_pid){
 
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            ShopProductListDto categoryProducts  = productService.getProductsByCategory(userDetails, categoryId, pageable);
+            ShopProductListDto categoryProducts  = productService.getProductsByCategory(userDetails, categoryId, pageable, except_pid);
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                     .message(categoryName[categoryId-1] + " 조회")
                     .status(200)
@@ -81,7 +84,7 @@ public class ProductCategoryController {
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
 
-        ShopProductListDto categoryProducts = productService.getProductsByCategory(null, categoryId, pageable);
+        ShopProductListDto categoryProducts = productService.getProductsByCategory(null, categoryId, pageable, except_pid);
         ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
                 .message(categoryName[categoryId-1] + " 조회")
                 .status(200)

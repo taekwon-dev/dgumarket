@@ -79,4 +79,7 @@ public class ProductReadOneDto {
     // 채팅이력이 있는 지 여부
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String chatHistory;
+
+    @JsonInclude(JsonInclude.Include.NON_ABSENT)
+    private boolean warn;
 }
