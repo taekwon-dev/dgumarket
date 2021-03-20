@@ -39,13 +39,20 @@ public interface ProductService {
     List<ProductListIndex> indexLoggedIn(UserDetailsImpl userDetails, int lastCategoryId);
 
     // 사용자 판매물품 조회 -> /user/{userId}/products 요청
-    ShopProductListDto getUserProducts(int userId, String productSet, Pageable pageable);
+    ShopProductListDto getUserProducts(
+            @Nullable UserDetailsImpl userDetails,
+            @Nullable Integer userId,
+            String productSet,
+            Pageable pageable,
+            @Nullable Integer exceptPid
+    );
+
 
     // 사용자 관심물건 조회 -> /user/favorites
     ShopFavoriteListDto getFavoriteProducts(UserDetailsImpl userDetails, Pageable pageable);
 
     // 카테고리별 상품 불러오기
-    ShopProductListDto getProductsByCategory(@Nullable UserDetailsImpl userDetails, int categoryId, Pageable pageable);
+    ShopProductListDto getProductsByCategory(@Nullable UserDetailsImpl userDetails, int categoryId, Pageable pageable, @Nullable Integer exceptPid);
 
     // 물건 전체보기
     ShopProductListDto getAllProducts(@Nullable UserDetailsImpl userDetails, Pageable pageable);

@@ -120,8 +120,14 @@ public class ChatRoom {
     public void updateEntranceDate(int userId){
         LocalDateTime currentDateTime = LocalDateTime.now();
         if(this.getConsumer().getId() == userId){
+            if(this.getConsumerDeleted()==1){ // 이미 나간상태라면(채팅으로 거래하기 시)
+                this.setConsumerDeleted(0);
+            }
             this.setConsumerEntranceDate(currentDateTime);
         }else {
+            if(this.getSellerDeleted()==1){ // 이미 나간상태라면 (채팅으로 거래하기 시)
+                this.setSellerDeleted(0);
+            }
             this.setSellerEntranceDate(currentDateTime);
         }
     }
