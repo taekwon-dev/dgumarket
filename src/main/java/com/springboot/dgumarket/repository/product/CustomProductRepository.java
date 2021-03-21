@@ -24,5 +24,6 @@ import java.util.List;
     PageImpl<ProductReview> findUserPurchases(Member loginMember, @Nullable String purchase_set, Pageable pageable); // 유저가 구매한 물건 조회하기(required, 로그인)
 
 
-    List<Product> findIndexProductsByCategory(@Nullable Member loginMember, ProductCategory productCategory); // 인덱스, 카테고리별 및 관심 물건(optional, 로그인)
+    List<Product> findIndexProductsByCategoryLogin(Member loginMember, ProductCategory productCategory); // 인덱스, 카테고리별 및 관심 물건(로그인)
+    List<Product> findIndexProductsByCategory(ProductCategory productCategory); // 인덱스, 인기카테고리 별 물건조회 (비로그인)
 }

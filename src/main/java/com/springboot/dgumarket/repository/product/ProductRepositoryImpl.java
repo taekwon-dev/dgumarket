@@ -169,10 +169,9 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         return new PageImpl<>(queryResults.getResults(), pageable, totalCount);
     }
 
+    // (로그인)유저의 관심 카테고리 별 물건 조회
     @Override
-    public List<Product> findIndexProductsByCategory(Member loginMember, ProductCategory productCategory) {
-        log.info("loginMember : {}", loginMember.getId());
-        log.info("productCategory : {}", productCategory.getCategoryName());
+    public List<Product> findIndexProductsByCategoryLogin(Member loginMember, ProductCategory productCategory) {
         JPQLQuery<Product> query = from(product)
                             .where(
                                     product.productCategory.eq(productCategory),
@@ -182,11 +181,24 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                                     product.member.isWithdrawn.eq(0) // 탈퇴
                             ).limit(4).orderBy(product.createDatetime.desc()); // 업로드 최신순
         if(loginMember != null){ // 로그인한 경우
+            log.info("login : {}",loginMember.getId());
             query.where(notContainBlocks(loginMember, product.member)); // 개별 물건들중 내가 차단하거나/차단당한 유저의 물건은 제외
         }
+        QueryResults<Product> productQueryResults = query.fetchResults();
+        return productQueryResults.getResults();
+    }
 
-        List<Product> products = query.fetch();
-        products.forEach(e->log.info("productid : {}, productcate : {}", e.getId(), e.getProductCategory().getCategoryName()));
+    // (비로그인) 인기카테고리 물건조회하기
+    @Override
+    public List<Product> findIndexProductsByCategory(ProductCategory productCategory) {
+        JPQLQuery<Product> query = from(product)
+                .where(
+                        product.productCategory.eq(productCategory),
+                        product.transactionStatusId.eq(0), // 현재 판매중인 상품만
+                        product.productStatus.eq(0), // 상품 삭제, 블라인드 x
+                        product.member.isEnabled.eq(0), // 유저제재 x
+                        product.member.isWithdrawn.eq(0) // 탈퇴
+                ).limit(4).orderBy(product.createDatetime.desc()); // 업로드 최신순
         return query.fetch();
     }
 

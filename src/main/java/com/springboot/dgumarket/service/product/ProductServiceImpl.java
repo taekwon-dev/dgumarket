@@ -179,11 +179,10 @@ public class ProductServiceImpl implements ProductService {
         // 인기 카테고리 수 만큼 반복문
         // 최종적으로 반환 할 `List<ProductListIndex>` 만든다.
         for (int i = 0; i < popularCategories.size(); i++) {
-
             // DTO 형태 만들고, 리스트 형태로 해당 디티오들을 담는다.
             // DTO를 담고 있는 리스트에서 STREAM을 통해 카테고리별로 상품을 분리하는 로직을 통과하고,
             // 최종 보여질 데이터를 생성한다. (반환데이터)
-            List<ProductReadListDto> productReadListDtos = productRepository.findTop4ByProductCategoryOrderByCreateDatetimeDesc(popularCategories.get(i))
+            List<ProductReadListDto> productReadListDtos = customProductRepository.findIndexProductsByCategory(popularCategories.get(i))
                     .stream()
                     .map(productList -> modelMapper.map(productList, ProductReadListDto.class))
                     .collect(Collectors.toList());
@@ -209,6 +208,7 @@ public class ProductServiceImpl implements ProductService {
         Member member = Member.builder()
                 .id(userDetails.getId())
                 .build();
+        Member member1 = memberRepository.findById(userDetails.getId());
 
         // ModelMapper 객체 생성
         modelMapper = new ModelMapper();
@@ -235,7 +235,7 @@ public class ProductServiceImpl implements ProductService {
         modelMapper.addMappings(map);
 
         // 유저의 관심 카테고리 목록을 불러온다.
-        List<ProductCategory> interestedCategories = productCategoryRepository.findByMembersAndIdGreaterThanOrderByIdAsc(member, lastCategoryId, pageable).toList();
+        List<ProductCategory> interestedCategories = productCategoryRepository.findByMembersAndIdGreaterThanOrderByIdAsc(member1, lastCategoryId, pageable).toList();
 
         // 유저의 관심 카테고리 (최대 3개 - 페이징 적용)
         // 유저의 관심 카테고리 수 만큼 반복문이 돌면서, 최종 반환될 카테고리 별 상품 리스트를 조합
@@ -244,7 +244,7 @@ public class ProductServiceImpl implements ProductService {
             // DTO 형태 만들고, 리스트 형태로 해당 디티오들을 담는다.
             // DTO를 담고 있는 리스트에서 STREAM을 통해 카테고리별로 상품을 분리하는 로직을 통과하고,
             // 최종 보여질 데이터를 생성한다. (반환데이터)
-            List<ProductReadListDto> productReadListDtos = productRepository.findTop4ByProductCategoryOrderByCreateDatetimeDesc(interestedCategories.get(i))
+            List<ProductReadListDto> productReadListDtos = customProductRepository.findIndexProductsByCategoryLogin(member1, interestedCategories.get(i))
                     .stream()
                     .map(productList -> modelMapper.map(productList, ProductReadListDto.class))
                     .collect(Collectors.toList());
