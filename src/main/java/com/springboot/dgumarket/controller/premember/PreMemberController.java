@@ -3,6 +3,7 @@ package com.springboot.dgumarket.controller.premember;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 import com.springboot.dgumarket.dto.member.VerifyPhoneDto;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.premember.PreMemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class PreMemberController {
 
     // [회원가입 2단계 - 핸드폰 번호 중복체크 API]
     @PostMapping("/check-duplicate-phone")
-    public ResponseEntity<ApiResponseEntity> doCheckDupilcatePhone(@RequestBody VerifyPhoneDto verifyPhoneDto) {
+    public ResponseEntity<ApiResultEntity> doCheckDupilcatePhone(@RequestBody VerifyPhoneDto verifyPhoneDto) {
 
         // init
         boolean resultFlag = false;
@@ -32,18 +33,19 @@ public class PreMemberController {
         resultFlag = preMemberService.doCheckDuplicatePhone(verifyPhoneDto);
 
         if (!resultFlag) {
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .resultCode(1)
                     .message("사용 할 수 없는 핸드폰 번호입니다.")
-                    .data(null)
-                    .status(1)
+                    .responseData(null)
                     .build();
+
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
 
         } else {
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .resultCode(2)
                     .message("사용 할 수 있는 핸드폰 번호입니다.")
-                    .data(null)
-                    .status(2)
+                    .responseData(null)
                     .build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
@@ -52,7 +54,7 @@ public class PreMemberController {
 
     // [회원가입 2단계 - 핸드폰 인증 API]
     @PostMapping("/verify-phone")
-    public ResponseEntity<ApiResponseEntity> doVerifyPhone(@RequestBody VerifyPhoneDto verifyPhoneDto) {
+    public ResponseEntity<ApiResultEntity> doVerifyPhone(@RequestBody VerifyPhoneDto verifyPhoneDto) {
 
         // init
         String token = null;
@@ -61,18 +63,23 @@ public class PreMemberController {
         token = preMemberService.doVerifyNumberForPhone(verifyPhoneDto);
 
         if (token == null) {
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .resultCode(1)
                     .message("핸드폰 인증 실패")
-                    .data(null)
-                    .status(1)
+                    .responseData(null)
                     .build();
+
+
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         } else {
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .resultCode(2)
                     .message("핸드폰 인증 성공")
-                    .data(BASE_URL+token)
-                    .status(2)
+                    .responseData(BASE_URL+token)
                     .build();
+
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
     }
@@ -80,7 +87,7 @@ public class PreMemberController {
 
     // [회원가입 3단계 - 닉네임 중복체크 API]
     @PostMapping("/check-duplicate-nickname")
-    public ResponseEntity<ApiResponseEntity> doCheckDupilcateNickname(@RequestBody SignUpDto signUpDto) {
+    public ResponseEntity<ApiResultEntity> doCheckDupilcateNickname(@RequestBody SignUpDto signUpDto) {
 
         // init
         boolean resultFlag = false;
@@ -89,17 +96,19 @@ public class PreMemberController {
         resultFlag = preMemberService.doCheckDupilicateNickname(signUpDto);
 
         if (!resultFlag) {
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .resultCode(1)
                     .message("입력 닉네임을 사용할 수 없습니다.")
-                    .data(null)
-                    .status(1)
+                    .responseData(null)
                     .build();
+
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         } else {
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .resultCode(2)
                     .message("입력 닉네임을 사용할 수 있습니다.")
-                    .data(null)
-                    .status(2)
+                    .responseData(null)
                     .build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }

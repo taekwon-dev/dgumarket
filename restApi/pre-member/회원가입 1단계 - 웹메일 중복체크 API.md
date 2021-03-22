@@ -31,33 +31,26 @@ ___
 
 **Code** : `200 OK`
 
-**Content**
-
-`message`: 응답 메시지 
-
-`status`: 응답 상태 
-
-`data`:  true or false (true : 중복된 이메일이 있는 경우 / false : 중복된 이메일이 없는 경우)
-
 **example**
 
 ```json
 
 각 케이스 별로 유저한테 안내 메시지를 띄어주시면 됩니다.
 
+[HTTP/1.1 200 OK]
 1. 중복체크 결과, 입력 받은 웹메일로 회원가입이 불가능한 경우
-
 {
+    "resultCode": 1,
     "message": "회원가입 1단계 - 웹메일 중복체크 통과 실패 : 회원가입 불가능",
-    "status": 200,
-    "data": true
+    "responseData": null
 }
 
+[HTTP/1.1 200 OK]
 2. 중복체크 결과, 입력 받은 웹메일로 회원가입이 가능한 경우
-
 {
+    "resultCode": 2,
     "message": "회원가입 1단계 - 웹메일 중복체크 통과 : 회원가입 가능",
-    "status": 200,
-    "data": false
+    "responseData": null
 }
 ```
+

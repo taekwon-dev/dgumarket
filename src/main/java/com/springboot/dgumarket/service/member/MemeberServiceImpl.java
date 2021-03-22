@@ -9,15 +9,23 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
-import com.springboot.dgumarket.exception.CategoryNotFountException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
+import com.springboot.dgumarket.exception.ErrorMessage;
+import com.springboot.dgumarket.exception.NotFoundException.MemberNotFoundException;
+import com.springboot.dgumarket.exception.NotFoundException.PreMemberNotFoundException;
 import com.springboot.dgumarket.model.member.PreMember;
 import com.springboot.dgumarket.repository.member.PreMemberRepository;
+import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 import com.springboot.dgumarket.dto.product.ProductCategoryDto;
-import com.springboot.dgumarket.exception.CustomJwtException;
 import com.springboot.dgumarket.model.Role;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.User;
@@ -32,10 +40,13 @@ import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -69,6 +80,9 @@ public class MemeberServiceImpl implements MemberProfileService {
 
     @Autowired
     private PreMemberRepository preMemberRepository;
+
+    @Autowired
+    private RedisJwtTokenRepository redisJwtTokenRepository;
 
     @Autowired
     private ProductCategoryRepository productCategoryRepository;
@@ -109,20 +123,26 @@ public class MemeberServiceImpl implements MemberProfileService {
         // 회원 상태 변경 시점 (마지막 수정 시간) --> MySQL 스크립트 / 마지막 수정 시간 & 회원 상태 (1) -> 개인정보 삭제 시점
         member.updateMemberStatus(1);
 
+
         // [users] 테이블 : SCG 인증/인가 로직에서 활용 / 연관관계 없는 테이블
         User user = userRepository.findByWebMail(member.getWebMail());
         // 탈퇴 유저의 회원 여부 상태 값을 -> 회원 탈퇴(1)로 변경
         if (user != null) user.updateUserStatus(1);
 
-        // 회원가입 1차 피드백 수정되면 그 때 처리.
-//        // 회원가입한 유저가 회원가입 절차(2단계 페이지 접근) 하지 못하도록 차단하기 위해 상태 값을 회원으로 변경 (on pre-members)
-//        PreMember preMember = preMemberRepository.findByWebMail(member.getWebMail());
-//
-//        // preMember == null -> RuntimeException -> Rollback -> 예외처리 할 것 (2021-03-19)
-//        if (preMember != null) {
-//            // (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
-//            preMember.updatePreMemberStatus(2);
-//        }
+        // 예비 회원을 관리하는 pre-members에 회원 상태 값을 변경해야 하는 이유는 다음과 같다.
+        // 회원탈퇴한 유저는 다시 동일한 웹메일을 통해 회원가입을 진행할 수 있다.
+        // pre-members에 이전 웹메일 정보가 남아 있는 경우, 새로운 로우를 생성하지 않고 기존 로우를 그대로 활용하는데,
+        // 해당 웹메일을 통해 회원절차를 진행하려면 회원상태가 (비회원 또는 탈퇴한 인원)이어야 하기 때문이다.
+
+        // 추후 pre-members에서 해당 정보를 삭제하는 것과 관련해서 이 부분의 로직은 수정될 수 있다.
+        // 따라서 2021-03-22에서 premember가 null이어도 회원 탈퇴 로직에는 영향을 끼치지 않는다.
+        PreMember preMember = preMemberRepository.findByWebMail(member.getWebMail());
+
+        // preMember == null -> RuntimeException -> Rollback -> 예외처리 할 것 (2021-03-19)
+        if (preMember != null) {
+            // (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
+            preMember.updatePreMemberStatus(2);
+        }
 
         return true;
     }
@@ -171,46 +191,47 @@ public class MemeberServiceImpl implements MemberProfileService {
         return memberInfoDto;
     }
 
+    @Transactional
     @Override
     public void updateMemberInfo(int userId, MemberUpdateDto memberUpdateInfoDto) {
             Member member = memberRepository.findById(userId);
 
-        if (memberUpdateInfoDto.getProfileImageDir().isPresent()) {
-            member.updateProfileImgDir(memberUpdateInfoDto.getProfileImageDir().get());
-        }
+            // [Exception]
 
-        if (memberUpdateInfoDto.getNickName().isPresent()) {
-            member.updateNickName(memberUpdateInfoDto.getNickName().get());
-        }
+            if (memberUpdateInfoDto.getProfileImageDir().isPresent()) {
+                member.updateProfileImgDir(memberUpdateInfoDto.getProfileImageDir().get());
+            }
 
-        if (memberUpdateInfoDto.getProductCategories().isPresent()) {
-            // Dto to Entity
-            org.modelmapper.PropertyMap<ProductCategoryDto, ProductCategory> map_category = new PropertyMap<ProductCategoryDto, ProductCategory>() {
-                @Override
-                protected void configure() {
-                    map().setId(source.getCategory_id());
-                    map().setCategoryName(source.getCategory_name());
-                }
-            };
-            modelMapper = new ModelMapper();
-            modelMapper.addMappings(map_category);
+            if (memberUpdateInfoDto.getNickName().isPresent()) {
+                member.updateNickName(memberUpdateInfoDto.getNickName().get());
+            }
 
-            Set<ProductCategory> productCategorySet = new HashSet<>();
-            memberUpdateInfoDto.getProductCategories().get().forEach(productCategoryDto -> {
-                ProductCategory productCategory = productCategoryRepository.findById(productCategoryDto.getCategory_id());
-                productCategorySet.add(productCategory);
-            });
+            if (memberUpdateInfoDto.getProductCategories().isPresent()) {
+                // Dto to Entity
+                org.modelmapper.PropertyMap<ProductCategoryDto, ProductCategory> map_category = new PropertyMap<ProductCategoryDto, ProductCategory>() {
+                    @Override
+                    protected void configure() {
+                        map().setId(source.getCategory_id());
+                        map().setCategoryName(source.getCategory_name());
+                    }
+                };
+                modelMapper = new ModelMapper();
+                modelMapper.addMappings(map_category);
 
-            member.updateCategories(productCategorySet);
-        }
+                Set<ProductCategory> productCategorySet = new HashSet<>();
+                memberUpdateInfoDto.getProductCategories().get().forEach(productCategoryDto -> {
+                    ProductCategory productCategory = productCategoryRepository.findById(productCategoryDto.getCategory_id());
+                    productCategorySet.add(productCategory);
+                });
 
-        memberRepository.save(member);
+                member.updateCategories(productCategorySet);
+            }
+
+            memberRepository.save(member);
     }
 
     @Override
     public boolean uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) throws Exception {
-
-
 
         try {
             // https://docs.aws.amazon.com/ko_kr/AmazonS3/latest/userguide/UsingMetadata.html#object-metadata502
@@ -275,8 +296,10 @@ public class MemeberServiceImpl implements MemberProfileService {
         return true;
     }
 
+    @SneakyThrows
     @Transactional
     public void mapDtoToEntityDoSignup(SignUpDto signUpDto) {
+        // 회원가입 시점에 마지막에 이미 회원인 유저가 재가입 못하도록 처리
 
         Set<Role> roleSet = new HashSet<>();
 
@@ -295,7 +318,14 @@ public class MemeberServiceImpl implements MemberProfileService {
         Set<ProductCategory> productCategorySet = productCategoryRepository.findByIdIn(signUpDto.getProductCategories());
 
 
-        Member member = new Member()
+        Optional<Member> member = memberRepository.findByWebMailAndIsWithdrawn(signUpDto.getWebMail(), 0);
+
+
+        // [Exception]
+        if (member.isPresent()) throw new MemberNotFoundException(errorResponse("이미 회원가입한 유저가 회원가입 API 요청한 경우", 300));
+
+
+        Member newMember = new Member()
                 .builder()
                 .webMail(signUpDto.getWebMail())
                 .phoneNumber(signUpDto.getPhoneNumber())
@@ -321,14 +351,78 @@ public class MemeberServiceImpl implements MemberProfileService {
         // 회원가입한 유저가 회원가입 절차(2단계 페이지 접근) 하지 못하도록 차단하기 위해 상태 값을 회원으로 변경 (on pre-members)
         PreMember preMember = preMemberRepository.findByWebMail(signUpDto.getWebMail());
 
-        // preMember == null -> RuntimeException -> Rollback -> 예외처리 할 것 (2021-03-19)
+        // [Exception]
+        // preMember == null -> RuntimeException -> Rollback -> 예외처리
+        if (preMember == null) throw new PreMemberNotFoundException(errorResponse("회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우", 301));
+
+
         // 회원가입 1차 피드백 수정되면 그 때 처리.
         if (preMember != null) {
             // (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
             preMember.updatePreMemberStatus(1);
         }
 
-        memberRepository.save(member);
+        // 회원 테이블 저장
+        memberRepository.save(newMember);
+
+        // Gateway 서버에서 활용하는 인증/인가 위한 회원 테이블 저장
         userRepository.save(user);
+    }
+
+
+    // 유저 프로필 관련 API 예외 메시지 오브젝트 생성 및 리턴
+    public String errorResponse(String errMsg, int resultCode) {
+
+        // [ErrorMessage]
+        // {
+        //     int resultCode;
+        //     Date timestamp;
+        //     String message;
+        //     String requestPath;
+        //     String pathToMove;
+        // }
+
+        // errorCode에 따라서 예외 결과 클라이언트가 특정 페이지로 요청해야 하는 경우가 있다.
+        // 그 경우 pathToMove 항목을 채운다.
+
+        // init
+        ErrorMessage errorMessage = null;
+
+        // 최종 클라이언트에 반환 될 예외 메시지 (JsonObject as String)
+        String errorResponse = null;
+
+        // 예외 처리 결과 클라이언트가 이동시킬 페이지 참조 값을 반환해야 하는 경우 에러 코드 범위
+        // (300 - 319)
+        // 300 : 이미 회원가입한 유저가 회원가입 API 요청한 경우
+        // 301 : 회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우
+        // 302 : 회원가입 2단계, 3단계 페이지 요청 시, 토큰 유효하지 않거나 토큰 없이 접근한 경우
+
+        // 예외처리 결과 클라이언트가 __페이지를 요청해야 하는 경우
+        // 해당 페이지 정보 포함해서 에러 메시지 반환
+        if (resultCode >= 300 && resultCode < 320) {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .resultCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath("/api/user/signup")
+                    .pathToMove("/shop/main/index") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
+                    .build();
+        } else {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .resultCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath("/api/user/signup")
+                    .build();
+
+        }
+
+        Gson gson = new GsonBuilder().create();
+
+        errorResponse = gson.toJson(errorMessage);
+
+        return errorResponse;
     }
 }

@@ -33,29 +33,27 @@ ___
 **Response**
 
 ```json
-// 두 응답의 경우 200 응답을 하게 됩니다. 
-// 두 상태의 구분은 아래 JSON에서 "status"를 통해서 구분하시면 됩니다! (중요)
-
-
-// 핸드폰 인증 성공 
-{
-    "message": "핸드폰 인증 성공",
-    "status": 2,
-    "data": "회원가입 3단계 페이지 요청 URL" 
-    
-  	// URL 예시 
-    // http://localhost:8081/shop/account/smartPhone_certification?user_id=토큰값
-
-
-}
-
+[HTTP/1.1 200 OK]
 // 핸드폰 인증 실패 
 // 이 경우 -> "핸드폰 인증 번호가 일치하지 않습니다" 문구를 안내하면 됩니다. 
 {
+    "resultCode": 1,
     "message": "핸드폰 인증 실패",
-    "status": 1,
-    "data": null
+    "responseData": null
 }
+
+
+[HTTP/1.1 200 OK]
+// 핸드폰 인증 성공 
+{
+    "resultCode": 2,
+    "message": "핸드폰 인증 성공",
+    "responseData": "회원가입 3단계 페이지 요청 URL" 
+    
+  	// URL 예시 
+    // http://localhost:8081/shop/account/smartPhone_certification?user_id=토큰값
+}
+
 
 
 ```

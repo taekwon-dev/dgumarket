@@ -30,23 +30,21 @@ ___
 **Response**
 
 ```json
-// 두 응답의 경우 200 응답을 하게 됩니다. 
-// 두 상태의 구분은 아래 JSON에서 "status"를 통해서 구분하시면 됩니다! (중요)
-
-
+[HTTP/1.1 200 OK]
 // 중복체크 결과 해당 닉네임을 사용할 수 없는 경우
 {
+    "resultCode": 1,
     "message": "입력 닉네임을 사용할 수 없습니다.",
-    "status": 1,
-    "data": null
+    "responseData": null
 }
 
-
+[HTTP/1.1 200 OK]
 // 중복체크 결과 해당 닉네임을 사용할 수 있는 경우 
 {
+    "resultCode": 2,
     "message": "입력 닉네임을 사용할 수 있습니다.",
-    "status": 2,
-    "data": null
+    "responseData": null
 }
+
 ```
 

@@ -1,5 +1,10 @@
 package com.springboot.dgumarket.exception;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
 
 /**
@@ -9,40 +14,24 @@ import java.util.Date;
  */
 
 
+@AllArgsConstructor
+@Builder
+@Getter
 public class ErrorMessage {
-    private int statusCode;
+    private int resultCode;
     private Date timestamp;
     private String message;
-    private String description;
+    private String requestPath;
+    private String pathToMove;
 
-    public ErrorMessage(int statusCode, Date timestamp, String message, String description) {
-        this.statusCode = statusCode;
+    @Builder
+    public ErrorMessage(int resultCode, Date timestamp, String message, String requestPath) {
+        this.resultCode = resultCode;
         this.timestamp = timestamp;
         this.message = message;
-        this.description = description;
-    }
-
-    public ErrorMessage(int statusCode, Date timestamp, String message) {
-        this.statusCode = statusCode;
-        this.timestamp = timestamp;
-        this.message = message;
+        this.requestPath = requestPath;
     }
 
 
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 }
 
