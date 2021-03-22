@@ -2,7 +2,9 @@ package com.springboot.dgumarket.controller.member;
 
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
+import com.springboot.dgumarket.model.member.redis.RedisJwtToken;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.member.MemberProfileService;
 import com.springboot.dgumarket.utils.CookieUtil;
@@ -34,6 +36,9 @@ public class MemberProfileController {
     @Autowired
     private MemberProfileService memberService;
 
+    @Autowired
+    private RedisJwtTokenRepository redisJwtTokenRepository;
+
     // [회원정보 불러오기 : 프로필 사진, 닉네임, 관심 카테고리]
     @GetMapping("/read")
     public ResponseEntity<ApiResponseEntity> getMemberInfo(Authentication authentication) {
@@ -57,7 +62,6 @@ public class MemberProfileController {
 
     // 회원 정보 (프로필 사진, 닉네임, 관심카테고리) 수정
     @PostMapping("/update")
-    @Transactional
     public ResponseEntity<ApiResponseEntity> updateInfo(@Valid @RequestBody MemberUpdateDto memberUpdateInfoDto, Authentication authentication) {
 
 
@@ -179,19 +183,39 @@ public class MemberProfileController {
         return null;
     }
 
-    // 인증
-    // 게이트웨이에서 이 부분 패턴을 맞출 수 있을까?
     @PostMapping("/withdraw")
-    public ResponseEntity<ApiResponseEntity> doWithdraw(Authentication authentication, HttpServletResponse response) {
+    public ResponseEntity<ApiResponseEntity> doWithdraw(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
 
         // UserDetails - 회원탈퇴 요청 유저 정보 -> User 고유 ID 추출 -> 서비스 레이어 파라미터로 전달.
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         // 탈퇴 서비스 Layer 결과 값
         boolean result = false;
+        String refreshToken = null;
+
+        Cookie[] cookies = request.getCookies();
+
+        for (int i = 0; i < cookies.length; i++) {
+
+            if (cookies[i].getName().equals("refreshToken")) {
+                refreshToken = cookies[i].getValue();
+            }
+        }
+
+
+
+
+        // Service
         result = memberService.doWithdraw(userDetails.getId());
 
         if (result) {
+            
+            RedisJwtToken redisJwtToken = RedisJwtToken.builder()
+                    .id(refreshToken)
+                    .build();
+
+            // Redis - R 토큰 삭제
+            redisJwtTokenRepository.delete(redisJwtToken);
 
             // R 토큰 쿠키 삭제
             // create a cookie
@@ -211,6 +235,8 @@ public class MemberProfileController {
                     .status(200)
                     .build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+
+
         } else {
             // 탈퇴 요청 처리 실패 시 예외처리 추후 추가 예정
             ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()

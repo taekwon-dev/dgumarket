@@ -39,6 +39,7 @@ public class EmailServiceImpl implements EmailService {
     private PreMemberRepository preMemberRepository;
 
     // Rollback : 메일 전송 과정에서 예외가 발생한 경우 데이터 변경에 대해서 롤백 처리가 필요하다.
+    // MailException (extending RuntimeException) - Rollback 대상
     @Transactional
     @Override
     public void send(String receiverWebMail) {
@@ -88,11 +89,8 @@ public class EmailServiceImpl implements EmailService {
 //        message.setText("https://dgumarket.co.kr/shop/account/smartPhone_certification?user_id="+webMailJwt);
         message.setText("http://localhost:8081/shop/account/smartPhone_certification?user_id="+webMailJwt);
 
-
         // 웹메일 전송
         emailSender.send(message);
-
-
     }
 }
 

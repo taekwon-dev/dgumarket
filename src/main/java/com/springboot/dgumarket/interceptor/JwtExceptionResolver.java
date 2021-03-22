@@ -1,9 +1,11 @@
 package com.springboot.dgumarket.interceptor;
 
 import com.springboot.dgumarket.exception.CustomJwtException;
+import com.springboot.dgumarket.exception.JsonParseFailedException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
@@ -30,17 +32,20 @@ public class JwtExceptionResolver extends AbstractHandlerExceptionResolver {
             Exception ex) {
 
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("shop/account/login");
+        modelAndView.setViewName("/shop/account/login");
         modelAndView.addObject("exception", ex.getMessage());
         try {
             if (ex instanceof CustomJwtException) {
                 log.error("[JWT ExpiredJwtException]");
-
                 return modelAndView;
             }
 
+            if (ex instanceof IncorrectResultSizeDataAccessException) {
+                log.error("IncorrectResultSizeDataAccessException");
+            }
+
         } catch (Exception handlerException) {
-            log.warn("Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
+            log.error("Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
         }
 
         log.error("exceptions : " + ex.getMessage() );

@@ -13,11 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by TK YOUN (2020-12-04 오후 11:26)
- * Github : https://github.com/dgumarket/dgumarket.git
- * Description :
- */
+
 @Slf4j
 @Component
 public class HandlerExceptionResolverComposite implements HandlerExceptionResolver, Ordered {
@@ -66,7 +62,6 @@ public class HandlerExceptionResolverComposite implements HandlerExceptionResolv
                 }
             }
         }
-
         return null;
     }
 
