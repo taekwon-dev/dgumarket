@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 public class ApiResultEntity {
 
-    int resultCode;
+    int statusCode;
     String message;
     Object responseData;
 

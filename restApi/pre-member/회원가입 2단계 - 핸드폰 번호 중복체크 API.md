@@ -31,14 +31,11 @@ ___
 **Response**
 
 ```json
-// 두 응답의 경우 200 응답을 하게 됩니다. 
-// 두 상태의 구분은 아래 JSON에서 "status"를 통해서 구분하시면 됩니다! (중요)
-
 [HTTP/1.1 200 OK]
 // 핸드폰 중복체크 결과 - 사용할 수 없는 핸드폰 번호인 경우
 // 이 경우 -> "사용할 수 없는 번호입니다" 안내 띄워주시면 됩니다. 
 {
-    "resultCode": 1,
+    "statusCode": 1,
     "message": "사용 할 수 없는 핸드폰 번호입니다.",
     "responseData": null
 }
@@ -46,7 +43,7 @@ ___
 [HTTP/1.1 200 OK]
 // 핸드폰 중복체크 결과 - 사용할 수 있는 핸드폰 번호인 경우
 {
-    "resultCode": 2,
+    "statusCode": 2,
     "message": "사용 할 수 있는 핸드폰 번호입니다.",
     "responseData": null
 }

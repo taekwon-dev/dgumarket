@@ -42,7 +42,7 @@ public class MemberController {
 
 
         ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                .resultCode(200)
+                .statusCode(200)
                 .message("회원가입이 완료되었습니다.")
                 .responseData(null)
                 .build();
@@ -60,7 +60,7 @@ public class MemberController {
 
 
         ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                .resultCode(1)
+                .statusCode(1)
                 .message("인증메일을 발송했습니다.")
                 .responseData(null)
                 .build();
@@ -81,7 +81,7 @@ public class MemberController {
        if (result) {
 
            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                   .resultCode(1)
+                   .statusCode(1)
                    .message("회원가입 1단계 - 웹메일 중복체크 통과 실패 : 회원가입 불가능")
                    .responseData(null)
                    .build();
@@ -89,7 +89,7 @@ public class MemberController {
            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
        } else {
            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                   .resultCode(2)
+                   .statusCode(2)
                    .message("회원가입 1단계 - 웹메일 중복체크 통과 : 회원가입 가능")
                    .responseData(null)
                    .build();

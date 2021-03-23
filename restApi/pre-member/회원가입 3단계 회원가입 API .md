@@ -41,7 +41,7 @@ ___
 // 회원가입 요청에 대한 응답 속도가 평균 3초 입니다. 
 // 응답 과정까지 '로딩 중'을 표현하면 좋을 것 같습니다.(로딩바 활용 등)
 {
-    "resultCode": 200,
+    "statusCode": 200,
     "message": "회원가입이 완료되었습니다.",
     "responseData": null
 }
@@ -62,8 +62,8 @@ ___
 // 예외 발생 시 클라이언트는 'pathToMove' 값을 활용해서 해당 페이지를 요청하시면 됩니다. 
 // 이 때 "잘못된 접근입니다." Alert를 띄우고 메인 페이지가 렌더링 될 수 있도록 처리해주시면 됩니다. 
 {
-    "resultCode": 300,
-    "timestamp": "2021-03-20T01:30:35.791+00:00",
+    "statusCode": 300,
+    "timestamp": "2021-03-23T10:48:07.905+00:00",
     "message": "이미 회원가입한 유저가 회원가입 API 요청한 경우",
     "requestPath": "/api/user/signup",
     "pathToMove": "/shop/main/index"
@@ -74,8 +74,8 @@ ___
 // 예외 발생 시 클라이언트는 'pathToMove' 값을 활용해서 해당 페이지를 요청하시면 됩니다. 
 // 이 때 "잘못된 접근입니다." Alert를 띄우고 메인 페이지가 렌더링 될 수 있도록 처리해주시면 됩니다. 
 {
-    "resultCode": 301,
-    "timestamp": "2021-03-20T01:31:11.508+00:00",
+    "statusCode": 301,
+    "timestamp": "2021-03-23T10:48:50.710+00:00",
     "message": "회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우",
     "requestPath": "/api/user/signup",
     "pathToMove": "/shop/main/index"
