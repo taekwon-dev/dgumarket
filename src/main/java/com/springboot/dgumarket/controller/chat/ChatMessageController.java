@@ -3,9 +3,11 @@ package com.springboot.dgumarket.controller.chat;
 import com.springboot.dgumarket.dto.block.BlockStatusDto;
 import com.springboot.dgumarket.dto.chat.ChatMessagesUnreadCountDto;
 import com.springboot.dgumarket.exception.stomp.StompErrorException;
+import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.payload.request.chat.SendMessage;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.stomp.error.StompErrorResponseMessage;
+import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.awss3.AWSS3MultiImgService;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.block.UserBlockService;
@@ -39,11 +41,34 @@ public class ChatMessageController {
     @Autowired
     SimpMessagingTemplate template;
 
+    @Autowired
+    MemberRepository memberRepository;
+
     // [STOMP] SEND Frame 메시지 받는 곳
     @MessageMapping("/message")
-    @MessageCheckValidate
     public void handleSendMessage(SendMessage sendMessage, SimpMessageHeaderAccessor accessor) throws StompErrorException {
         BlockStatusDto blockStatus = userBlockService.checkBlockStatus(sendMessage.getSenderId(), sendMessage.getReceiverId());
+        logger.info("메시지를 받습니다.");
+        logger.info("blockStatus : {}", blockStatus.getBlock_status());
+
+        Member user = memberRepository.findById(sendMessage.getSenderId()); // 이미 여기서 탈퇴한 유저는 거른다.
+        if(user == null || user.getIsWithdrawn()==1) {
+            throw StompErrorException.builder().ERR_CODE(3).ERR_MESSAGE("탈퇴하거나, 존재하지 않는 유저는 메시지기능을 이용하실 수 없습니다.").build();
+        }
+
+        if(user.getIsEnabled()==1){
+            throw StompErrorException.builder().ERR_CODE(4).ERR_MESSAGE("관리자로부터 이용제재를 받고있습니다. 더 이상 서십스를 이용하실 수 없습니다.").build();
+        }
+
+
+        Member targetUser = memberRepository.findById(sendMessage.getReceiverId());
+        if(targetUser==null || targetUser.getIsWithdrawn()==1){
+            throw StompErrorException.builder().ERR_CODE(5).ERR_MESSAGE("탈퇴하거나 존재하지 않는 유저에게 메시지를 보낼 수 없습니다.").build();
+        }
+
+        if(targetUser.getIsEnabled()==1){ // 관리자부터 제재를 받고 있는 유저에게 메시지 전송
+            throw StompErrorException.builder().ERR_CODE(6).ERR_MESSAGE("관리자로부터 제재를 받고있는 유저에게 메시지를 전달할 수 없습니다.").build();
+        }
 
         switch (blockStatus.getBlock_status()){
             case 1:
