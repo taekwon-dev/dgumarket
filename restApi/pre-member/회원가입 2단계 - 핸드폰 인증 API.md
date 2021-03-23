@@ -51,7 +51,7 @@ ___
     "responseData": "회원가입 3단계 페이지 요청 URL" 
     
   	// URL 예시 
-    // http://localhost:8081/shop/account/smartPhone_certification?user_id=토큰값
+    // http://localhost:8081/shop/account/userInfo_input?user_id=토큰값
 }
 
 
