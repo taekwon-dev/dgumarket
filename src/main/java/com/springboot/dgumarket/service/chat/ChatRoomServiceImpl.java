@@ -408,10 +408,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             return chatRoomTradeHistoryDto;
         }
         // (물건삭제, 물건블라인드), 유저제재, 유저탈퇴, 유저차단
-        if(product.get().getProductStatus() == 1){throw new CustomControllerExecption("존재하지않는 물건입니다.", HttpStatus.NOT_FOUND);}
-        if(product.get().getProductStatus() == 2){throw new CustomControllerExecption("관리자에 의해 블라인드 처리된 물건입니다. 새로운 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
-        if(product.get().getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);}
-        if(product.get().getMember().getIsEnabled()==2){throw new CustomControllerExecption("관리자로 부터 이용제재당한 유저입니다.", HttpStatus.NOT_FOUND);}
+        if(product.get().getProductStatus() == 1){throw new CustomControllerExecption("삭제된 중고물품의 경우 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND);}
+        if(product.get().getProductStatus() == 2){throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
+        if(product.get().getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND);}
+        if(product.get().getMember().getIsEnabled()==2){throw new CustomControllerExecption("관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
         Member member = memberRepository.findById(userId);
         if(member.getBlockUsers().contains(product.get().getMember()) || member.getUserBlockedMe().contains(product.get().getMember())) {
             throw new CustomControllerExecption("차단관계에 있는 유저끼리는 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);
