@@ -18,15 +18,15 @@ import java.util.Date;
 @Builder
 @Getter
 public class ErrorMessage {
-    private int resultCode;
+    private int statusCode;
     private Date timestamp;
     private String message;
     private String requestPath;
     private String pathToMove;
 
     @Builder
-    public ErrorMessage(int resultCode, Date timestamp, String message, String requestPath) {
-        this.resultCode = resultCode;
+    public ErrorMessage(int statusCode, Date timestamp, String message, String requestPath) {
+        this.statusCode = statusCode;
         this.timestamp = timestamp;
         this.message = message;
         this.requestPath = requestPath;

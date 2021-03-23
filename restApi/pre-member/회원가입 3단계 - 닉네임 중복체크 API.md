@@ -33,7 +33,7 @@ ___
 [HTTP/1.1 200 OK]
 // 중복체크 결과 해당 닉네임을 사용할 수 없는 경우
 {
-    "resultCode": 1,
+    "statusCode": 1,
     "message": "입력 닉네임을 사용할 수 없습니다.",
     "responseData": null
 }
@@ -41,7 +41,7 @@ ___
 [HTTP/1.1 200 OK]
 // 중복체크 결과 해당 닉네임을 사용할 수 있는 경우 
 {
-    "resultCode": 2,
+    "statusCode": 2,
     "message": "입력 닉네임을 사용할 수 있습니다.",
     "responseData": null
 }

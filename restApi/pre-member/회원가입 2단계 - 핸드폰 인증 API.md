@@ -37,7 +37,7 @@ ___
 // 핸드폰 인증 실패 
 // 이 경우 -> "핸드폰 인증 번호가 일치하지 않습니다" 문구를 안내하면 됩니다. 
 {
-    "resultCode": 1,
+    "statusCode": 1,
     "message": "핸드폰 인증 실패",
     "responseData": null
 }
@@ -46,7 +46,7 @@ ___
 [HTTP/1.1 200 OK]
 // 핸드폰 인증 성공 
 {
-    "resultCode": 2,
+    "statusCode": 2,
     "message": "핸드폰 인증 성공",
     "responseData": "회원가입 3단계 페이지 요청 URL" 
     

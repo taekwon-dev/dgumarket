@@ -61,18 +61,18 @@ public class ControllerExceptionHandler {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(ex.getMessage());
 
-            resultCode = Integer.parseInt(jsonObject.get("resultCode").toString());
+            resultCode = Integer.parseInt(jsonObject.get("statusCode").toString());
             errorMessage = jsonObject.get("message").toString();
             requestPath = jsonObject.get("requestPath").toString();
 
             // resultCode에 따라서 pathToMove 값이 결정된다.
-            // {resultCode 300 ~ 399 -> pathToMove 페이지 주소 값이 들어온다}
+            // {resultCode 300 ~ 320 -> pathToMove 페이지 주소 값이 들어온다}
             if (resultCode >= 300 && resultCode < 320) pathToMove = jsonObject.get("pathToMove").toString();
 
             if (pathToMove != null) {
                 errorObject = ErrorMessage
                         .builder()
-                        .resultCode(resultCode)
+                        .statusCode(resultCode)
                         .timestamp(new Date())
                         .message(errorMessage)
                         .requestPath(requestPath)
@@ -81,7 +81,7 @@ public class ControllerExceptionHandler {
             } else {
                 errorObject = ErrorMessage
                         .builder()
-                        .resultCode(resultCode)
+                        .statusCode(resultCode)
                         .timestamp(new Date())
                         .message(errorMessage)
                         .requestPath(requestPath)
@@ -123,7 +123,7 @@ public class ControllerExceptionHandler {
 
         // [ErrorMessage]
         // {
-        //     int resultCode;
+        //     int statusCode;
         //     Date timestamp;
         //     String message;
         //     String requestPath;
@@ -138,7 +138,7 @@ public class ControllerExceptionHandler {
 
         errorMessage = ErrorMessage
                 .builder()
-                .resultCode(resultCode)
+                .statusCode(resultCode)
                 .timestamp(new Date())
                 .message(errMsg)
                 .requestPath(requestPath)

@@ -43,7 +43,7 @@ ___
 [HTTP/1.1 200 OK]
 // 인증문자 발송된 경우 -> 메시지 값을 그래도 안내 메시지로 띄어 주시면 됩니다. 
 {
-    "resultCode": 200,
+    "statusCode": 200,
     "message": "인증문자가 발송되었습니다.",
     "responseData": null
 }
@@ -55,10 +55,10 @@ ___
 // 이 경우에는 아래 'pathToMove' 메인 페이지 경로 값을 참조해서 메인 페이지로 이동시키시면 됩니다.
 // 이 때 "잘못된 접근입니다." Alert를 띄우고 메인 페이지가 렌더링 될 수 있도록 처리해주시면 됩니다. 
 {
-    "resultCode": 301,
-    "timestamp": "2021-03-20T01:36:29.298+00:00",
+    "statusCode": 301,
+    "timestamp": "2021-03-23T10:45:06.808+00:00",
     "message": "회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우",
-    "requestPath": "/api/user/signup",
+    "requestPath": "/api/send-sms/verify-phone",
     "pathToMove": "/shop/main/index"
 }
 
@@ -74,10 +74,10 @@ ___
 // 이 경우에는 아래 보신 것과 같이 'pathToMove'가 null 입니다. 
 // (= 페이지 이동이 아니라, 위에 말씀드린 안내 메시지를 출력만 해주시면 됩니다!)
 {
-    "resultCode": 0 보다 작은 경우, (ex -1, -102, ..)
+    "statusCode": 0 보다 작은 경우, (ex -1, -102, ..)
     "timestamp": "2021-03-20T01:33:27.427+00:00",
     "message": "알리고 문자 전송 실패, 실패 사유 : '실패사유'",
-    "requestPath": "/api/user/signup",
+    "requestPath": "/api/send-sms/verify-phone",
     "pathToMove": null
 }
 

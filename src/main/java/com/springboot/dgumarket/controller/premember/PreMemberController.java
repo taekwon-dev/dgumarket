@@ -34,7 +34,7 @@ public class PreMemberController {
 
         if (!resultFlag) {
             ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .resultCode(1)
+                    .statusCode(1)
                     .message("사용 할 수 없는 핸드폰 번호입니다.")
                     .responseData(null)
                     .build();
@@ -43,7 +43,7 @@ public class PreMemberController {
 
         } else {
             ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .resultCode(2)
+                    .statusCode(2)
                     .message("사용 할 수 있는 핸드폰 번호입니다.")
                     .responseData(null)
                     .build();
@@ -65,7 +65,7 @@ public class PreMemberController {
         if (token == null) {
 
             ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .resultCode(1)
+                    .statusCode(1)
                     .message("핸드폰 인증 실패")
                     .responseData(null)
                     .build();
@@ -75,7 +75,7 @@ public class PreMemberController {
         } else {
 
             ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .resultCode(2)
+                    .statusCode(2)
                     .message("핸드폰 인증 성공")
                     .responseData(BASE_URL+token)
                     .build();
@@ -98,7 +98,7 @@ public class PreMemberController {
         if (!resultFlag) {
 
             ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .resultCode(1)
+                    .statusCode(1)
                     .message("입력 닉네임을 사용할 수 없습니다.")
                     .responseData(null)
                     .build();
@@ -106,7 +106,7 @@ public class PreMemberController {
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         } else {
             ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .resultCode(2)
+                    .statusCode(2)
                     .message("입력 닉네임을 사용할 수 있습니다.")
                     .responseData(null)
                     .build();

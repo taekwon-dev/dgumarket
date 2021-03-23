@@ -124,7 +124,7 @@ public class SMSServiceImpl implements SMSService {
 
         // [ErrorMessage]
         // {
-        //     int errorCode;
+        //     int statusCode;
         //     Date timestamp;
         //     String message;
         //     String requestPath;
@@ -148,20 +148,20 @@ public class SMSServiceImpl implements SMSService {
         if (errorCode < 0) {
             errorMessage = ErrorMessage
                     .builder()
-                    .resultCode(errorCode)
+                    .statusCode(errorCode)
                     .timestamp(new Date())
                     .message(errMsg)
-                    .requestPath("/api/user/signup")
+                    .requestPath("/api/send-sms/verify-phone")
                     .build();
         } else {
             // errorCode = 0
             // 메인 페이지로 이동 시키는 상황.
             errorMessage = ErrorMessage
                     .builder()
-                    .resultCode(errorCode)
+                    .statusCode(errorCode)
                     .timestamp(new Date())
                     .message(errMsg)
-                    .requestPath("/api/user/signup")
+                    .requestPath("/api/send-sms/verify-phone")
                     .pathToMove("/shop/main/index")
                     .build();
 

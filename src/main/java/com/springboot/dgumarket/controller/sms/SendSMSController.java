@@ -28,7 +28,7 @@ public class SendSMSController {
         smsService.doSendSMSForPhone(verifyPhoneDto);
 
         ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                .resultCode(200)
+                .statusCode(200)
                 .message("인증문자가 발송되었습니다.")
                 .responseData(null)
                 .build();

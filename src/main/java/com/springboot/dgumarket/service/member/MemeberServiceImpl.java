@@ -375,7 +375,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
         // [ErrorMessage]
         // {
-        //     int resultCode;
+        //     int statusCode;
         //     Date timestamp;
         //     String message;
         //     String requestPath;
@@ -402,7 +402,7 @@ public class MemeberServiceImpl implements MemberProfileService {
         if (resultCode >= 300 && resultCode < 320) {
             errorMessage = ErrorMessage
                     .builder()
-                    .resultCode(resultCode)
+                    .statusCode(resultCode)
                     .timestamp(new Date())
                     .message(errMsg)
                     .requestPath("/api/user/signup")
@@ -411,7 +411,7 @@ public class MemeberServiceImpl implements MemberProfileService {
         } else {
             errorMessage = ErrorMessage
                     .builder()
-                    .resultCode(resultCode)
+                    .statusCode(resultCode)
                     .timestamp(new Date())
                     .message(errMsg)
                     .requestPath("/api/user/signup")
