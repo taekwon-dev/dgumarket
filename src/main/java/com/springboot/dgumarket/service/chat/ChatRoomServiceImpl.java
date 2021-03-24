@@ -413,8 +413,12 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         if(product.get().getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND);}
         if(product.get().getMember().getIsEnabled()==2){throw new CustomControllerExecption("관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);}
         Member member = memberRepository.findById(userId);
-        if(member.getBlockUsers().contains(product.get().getMember()) || member.getUserBlockedMe().contains(product.get().getMember())) {
-            throw new CustomControllerExecption("차단관계에 있는 유저끼리는 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST);
+        if(member.getBlockUsers().contains(product.get().getMember())){
+            throw new CustomControllerExecption("차단한 유저와는 채팅거래를 할 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        if(member.getUserBlockedMe().contains(product.get().getMember())) {
+            throw new CustomControllerExecption("차단 당한 유저와는 채팅거래를 할 수 없습니다", HttpStatus.BAD_REQUEST);
         }
         return ChatRoomTradeHistoryDto.builder()
                 .isExisted(false).build();
