@@ -2,6 +2,13 @@
 REST API - Chat created by MS (21-02-02)
 ---
 
+
+### 수정사항(3.25)
+
+이미지가 없을 경우 null로 옵니다.
+
+
+
 # 유저의 구매물품 조회하기
 
 유저가 중고로 팔고있는 물품들을 조회한다.
@@ -47,7 +54,7 @@ purchase products 로 고정
 ​		​		 `purchase_product_id`: 구매물건 고유ID
 ​		​		 `purchase_title`: 구매물건제목
 ​		​		 `purchase_price`: 구매물건가격
-​		​		 `purchase_product_img`: 구매물건 이미지경로
+​		​		 `purchase_product_img`: 구매물건 이미지경로 (이미지 없을 경우 null)
 ​		​		 `purchase_like_num`: 구매물건 좋아요 개수
 ​		​		 `purchase_chat_num`: 구매물건 채팅 수
 ​		​		 `purchase_date`: 구매물건 구매날짜

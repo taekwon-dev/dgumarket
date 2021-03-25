@@ -67,7 +67,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
         Product product = productRepository.getOne(productId);
         // 상대방이 유저제재/탈퇴/차단관계 일경우 예외처리하기
-        if(product.getMember()==null || product.getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 조회할 수 없습니다.", HttpStatus.NOT_FOUND);} // 게이트웨이에서 걸러짐
+        if(product.getMember()==null || product.getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저에게 거래후기를 남길 수 없습니다.", HttpStatus.NOT_FOUND);} // 게이트웨이에서 걸러짐
         if(product.getMember().getIsEnabled()==1){throw new CustomControllerExecption("이용제재를 받고 있는 유저와 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST);}
         if(member.getBlockUsers().contains(product.getMember())){
             throw new CustomControllerExecption("차단하신 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST);

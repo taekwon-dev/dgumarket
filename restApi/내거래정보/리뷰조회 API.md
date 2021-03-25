@@ -2,6 +2,12 @@
 REST API - Chat created by MS (21-02-04)
 ---
 
+
+### 수정사항(3.25)
+
+이미지가 없을 경우 null로 옵니다.
+
+
 # 유저에게 남긴 리뷰 조회하기
 
 유저가 중고로 팔고있는 물품들을 조회한다.
@@ -52,7 +58,7 @@ ex2) 로그인 유저(나)가 내 자신의 review 조회를 요청했을 경우
 ​		`review_list`: 물건 리스트[JSON Array]
 
 ​		​		 `review_user_id`: 리뷰남긴유저 고유 ID,
-​		​		 `review_user_icon`: 유저 프로필 이미지 경로,
+​		​		 `review_user_icon`: 유저 프로필 이미지 경로,(이미지 없을경우 null로 옵니다.)
 ​		​		 `review_nickname`: 리뷰 유저 닉네임,
 ​		​		 `review_comment`: 리뷰 내용,
 ​		​		 `review_date`: 리뷰 남긴 날짜

@@ -3,6 +3,12 @@ REST API - Chat created by MS (21-02-04)
 
 ---
 
+
+### 수정사항(3.25)
+
+이미지가 없을 경우 null로 옵니다.
+
+
 # 유저의 판매물품조회하기
 
 유저가 중고로 팔고있는 물품들을 조회한다.
@@ -56,7 +62,7 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
 ​		`productsList`: 물건 리스트[JSON Array]
 
 ​		​		 `id`: 물건 고유ID
-​		​		 `thumbnailImg`: 물건이미지경로
+​		​		 `thumbnailImg`: 물건이미지경로(없을 경우 null 로 옵니다.)
 ​		​		 `title`: 물건제목
 ​		​		 `price`: 물건가격
 ​		​		 `likeNums`: 물건좋아요개수
