@@ -60,7 +60,7 @@ public class RedisChatRoom implements Serializable {
     }
 
     /**
-     * @param userId 나의 아이디(보내는 사람 번호)
+     * @param receiverId 나의 아이디(보내는 사람 번호)
      * @return 현재 채팅방에 다른 사람이 있는 지 없는 지 유뮤
      */
     public boolean isSomeoneInChatRoom(String receiverId){
