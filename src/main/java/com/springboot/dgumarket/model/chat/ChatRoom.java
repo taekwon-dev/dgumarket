@@ -120,15 +120,21 @@ public class ChatRoom {
     public void updateEntranceDate(int userId){
         LocalDateTime currentDateTime = LocalDateTime.now();
         if(this.getConsumer().getId() == userId){
-            if(this.getConsumerDeleted()==1){ // 이미 나간상태라면(채팅으로 거래하기 시)
-                this.setConsumerDeleted(0);
-            }
             this.setConsumerEntranceDate(currentDateTime);
-        }else {
-            if(this.getSellerDeleted()==1){ // 이미 나간상태라면 (채팅으로 거래하기 시)
-                this.setSellerDeleted(0);
-            }
+        }else if(this.getSeller().getId() == userId){
             this.setSellerEntranceDate(currentDateTime);
+        }
+    }
+
+
+    // 채팅방 나가기 상태에서 메시지를 하나 보냈을 시점에 만약 내가 나감상태라는 것은 채팅으로 거래하기를 통해 해당 화면에 들어왔을 경우 뿐이다.
+    public void leave2enterForFirstMessage(Member member, LocalDateTime now){
+        if(this.getConsumer() == member && this.getConsumerDeleted() == 1){ // 소비자면 소비자영역에 바꾸어줌
+            this.setConsumerDeleted(0); // 나감유무 1에서0으로 바꿈
+            this.setConsumerEntranceDate(now); // 입장일 갱신
+        }else if(this.getSeller() == member && this.getSellerDeleted() == 1){ // 판매자면 판매자의 영역에서 바꾸어줌
+            this.setSellerDeleted(0); // 나감유무 1에서0으로 바꿈
+            this.setSellerEntranceDate(now); // 입장일 갱신
         }
     }
 

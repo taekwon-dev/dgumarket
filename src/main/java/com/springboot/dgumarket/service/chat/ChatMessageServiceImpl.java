@@ -179,8 +179,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             if(redisChatRoom.isPresent()){
 
                 if(redisChatRoom.get().isSomeoneInChatRoom(String.valueOf(sendMessage.getReceiverId()))){ // 상대방이 채팅방에 들어와있는 경우
+                    // 채팅방 나감 유무 1과 0은 레디스의 채팅방 나감유무와 별개이다
+
 
                     logger.info("[/MESSAGE] someone is in chat room in (redis)chatroom");
+                    LocalDateTime entranceDate = LocalDateTime.now();
 
                     // 채팅메시지를 저장시 '읽음'상태로 저장한다.
                     savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(
@@ -199,12 +202,20 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                     responseMessage.setMessage_type(savedMessage.getMsgType());
                     responseMessage.setMessageStatus(savedMessage.getMsgStatus());
 
+
+                    // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
+                    chatRoom.changeExitToJoin(sendMessage.getReceiverId());
+
+                    // 로직 추가, 보내기 전에 만약 내가 해당 채팅방에서 나가기 상태(1) -> 나가지않은상태(0)으로 바꾸어 준다
+                    chatRoom.leave2enterForFirstMessage(sender, entranceDate);
                     this.template.convertAndSend("/topic/room/" + responseMessage.getRoomId(), responseMessage); // 룸에 있는 사람에게 전달
 
                     logger.info("[/MESSAGE], [SEND] /topic/room/{}, {}", responseMessage.getRoomId(), responseMessage);
                     logger.info("[/MESSAGE] save chat message (status 0 -> 1) : {}, 읽음 상태 : {}", savedMessage, savedMessage.getMsgStatus());
                 }else {
                     logger.info("[/MESSAGE] someone isn't in chat room in (redis)chatroom");
+
+                    LocalDateTime entranceDate = LocalDateTime.now(); // 입장일
 
                     savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(
                             UNREAD,
@@ -213,7 +224,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                             receiver,
                             sender));
 
-                    chatRoom.changeExitToJoin(sendMessage.getReceiverId()); // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
                     logger.info("[/MESSAGE] save chat message (status 0 -> 0) : {}, 읽음 상태 : {}", savedMessage, savedMessage.getMsgStatus());
 
                     // 매핑하기
@@ -227,7 +237,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                     responseMessage.setMessageStatus(savedMessage.getMsgStatus());
 
 
-
+                    // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
+                    chatRoom.changeExitToJoin(sendMessage.getReceiverId());
+                    // 로직 추가, 보내기 전에 만약 내가 해당 채팅방에서 나가기 상태(1) -> 나가지않은상태(0)으로 바꾸어 준다
+                    chatRoom.leave2enterForFirstMessage(sender, entranceDate);
 
                     this.template.convertAndSend("/topic/room/" + responseMessage.getRoomId(), responseMessage); // 룸으로 메시지 전달
                     this.template.convertAndSend("/topic/chat/" + sendMessage.getReceiverId(), responseMessage); // 상대방에게 메시지 전달
