@@ -261,10 +261,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
 
         if(chatRoom.getMemberOpponent(member).getIsEnabled()==1){
-            throw new CustomControllerExecption("관리자로 부터 이용제재 받고 있는 유저입니다.", HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND);
         }
         if(chatRoom.getMemberOpponent(member) == null || chatRoom.getMemberOpponent(member).getIsWithdrawn()==1){
-            throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("탈퇴한 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND);
         }
 
 
