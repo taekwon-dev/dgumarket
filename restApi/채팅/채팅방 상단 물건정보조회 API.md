@@ -72,18 +72,17 @@ ___
 **만약 삭제된 경우라면 ? ** 예전에는 `transaction_status_id` : 4 라는 값으로 응답을 줬다면 이제는 그게 아니라
 
 
-```json
-
+````json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-11T03:56:40.100+00:00",
-    "message": "존재하지 않은 상품입니다.",
-    "description": "uri=/api/chatroom/product/4"
+  "statusCode": 404,
+  "timestamp": "2021-03-26T11:37:17.968+00:00",
+  "message": "판매자에 의해 삭제처리된 중고물품 입니다.",
+  "requestPath": "uri=/api/chatroom/product/27",
+  "pathToMove": null
 }
 
-
-```
+````
 
 
 와 같은 응답메시지가 내려온다.
@@ -134,6 +133,8 @@ ex)
 
 
 ## 예외 응답
+<span style="color:red">*예외응답 메시지 내용이 수정되었습니다(3.26) 확인바랍니다.*</span>.
+참고로 json 안에 메시지를 붉게 하고 싶었으나. 그건 안됨..
 
 1. 물건 비공개 처리조치 된 물건일 경우
 2. 탈퇴한유저의 물건일 경우
@@ -146,12 +147,12 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-11T03:57:31.079+00:00",
-    "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
-    "description": "uri=/api/chatroom/product/4"
+  "statusCode": 404,
+  "timestamp": "2021-03-26T11:35:49.637+00:00",
+  "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
+  "requestPath": "uri=/api/chatroom/product/27",
+  "pathToMove": null
 }
-
 
 ```
 
@@ -162,26 +163,28 @@ ex)
 ```json
 
 {
-    "statusCode": 400,
-    "timestamp": "2021-03-11T03:58:31.134+00:00",
-    "message": "탈퇴한 유저의 물건은 조회할 수 없습니다.",
-    "description": "uri=/api/chatroom/product/4"
+  "statusCode": 400,
+  "timestamp": "2021-03-26T11:36:25.878+00:00",
+  "message": "탈퇴한 유저의 물건은 조회할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/product/27",
+  "pathToMove": null
 }
 
 ```
 
 
 
-### 3. 이용제재조치 당한 유저의 물건일 경우
+### 3. 관리자에 의해 이용제재 조치 당한 유저의 물건일 경우
 
 
 ```json
 
 {
-    "statusCode": 400,
-    "timestamp": "2021-03-11T03:58:46.957+00:00",
-    "message": "이용제재를 받고 있는 유저의 물건은 조회할 수 없습니다.",
-    "description": "uri=/api/chatroom/product/4"
+  "statusCode": 400,
+  "timestamp": "2021-03-26T11:36:43.267+00:00",
+  "message": "관리자에 의해 이용제재 받고 있는 유저의 물건은 조회할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/product/27",
+  "pathToMove": null
 }
 
 ```
@@ -193,10 +196,11 @@ ex)
 ````json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-11T03:56:40.100+00:00",
-    "message": "해당 중고물품은 삭제처리 되었습니다.",
-    "description": "uri=/api/chatroom/product/4"
+  "statusCode": 404,
+  "timestamp": "2021-03-26T11:37:17.968+00:00",
+  "message": "판매자에 의해 삭제처리된 중고물품 입니다.",
+  "requestPath": "uri=/api/chatroom/product/27",
+  "pathToMove": null
 }
 
 
