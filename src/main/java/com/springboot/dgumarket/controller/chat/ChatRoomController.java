@@ -128,7 +128,7 @@ public class ChatRoomController {
 
     // 채팅방 상태 확인하기
     @GetMapping("/{roomId}/status")
-    public ChatRoomStatusDto checkRoom(@PathVariable("roomId") int roomId, Authentication authentication){
+    public ChatRoomStatusDto checkRoom(@PathVariable("roomId") int roomId, Authentication authentication) throws CustomControllerExecption {
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             ChatRoomStatusDto chatRoomStatusDto = chatRoomService.getChatRoomStatus(roomId, userDetails.getId());

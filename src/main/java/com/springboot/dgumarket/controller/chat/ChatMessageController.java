@@ -47,9 +47,6 @@ public class ChatMessageController {
     // [STOMP] SEND Frame 메시지 받는 곳
     @MessageMapping("/message")
     public void handleSendMessage(SendMessage sendMessage, SimpMessageHeaderAccessor accessor) throws StompErrorException {
-        BlockStatusDto blockStatus = userBlockService.checkBlockStatus(sendMessage.getSenderId(), sendMessage.getReceiverId());
-        logger.info("메시지를 받습니다.");
-        logger.info("blockStatus : {}", blockStatus.getBlock_status());
 
         Member user = memberRepository.findById(sendMessage.getSenderId()); // 이미 여기서 탈퇴한 유저는 거른다.
         if(user == null || user.getIsWithdrawn()==1) {
@@ -57,7 +54,7 @@ public class ChatMessageController {
         }
 
         if(user.getIsEnabled()==1){
-            throw StompErrorException.builder().ERR_CODE(4).ERR_MESSAGE("관리자로부터 이용제재를 받고있습니다. 더 이상 서십스를 이용하실 수 없습니다.").build();
+            throw StompErrorException.builder().ERR_CODE(4).ERR_MESSAGE("관리자로부터 이용제재를 받고있습니다. 더 이상 서비스를 이용하실 수 없습니다.").build();
         }
 
 
@@ -70,6 +67,9 @@ public class ChatMessageController {
             throw StompErrorException.builder().ERR_CODE(6).ERR_MESSAGE("관리자로부터 제재를 받고있는 유저에게 메시지를 전달할 수 없습니다.").build();
         }
 
+        BlockStatusDto blockStatus = userBlockService.checkBlockStatus(sendMessage.getSenderId(), sendMessage.getReceiverId());
+        logger.info("메시지를 받습니다.");
+        logger.info("blockStatus : {}", blockStatus.getBlock_status());
         switch (blockStatus.getBlock_status()){
             case 1:
                 throw StompErrorException.builder().ERR_CODE(1).ERR_MESSAGE("You block target user, so can't send message").build();
