@@ -22,8 +22,7 @@
 
 **URL** : `/api/chatroom/check-validate`
 
-**Request param(path)** :
-`roomId` : 채팅방번호
+**Request param(body)** : (자세한 건 아래 참조)
 
 **Method** : `POST`
 
@@ -33,7 +32,7 @@
 ### request body(json)
 두 가지 케이스가 있다.
 
-1. 채팅방 상단의 물건을 클릭하여 해당 페이지를 요청하기 전
+1. 채팅방 상단의 물건을 클릭했을 경우
 
 ex)
 
@@ -46,7 +45,7 @@ ex)
 ```
 
 
-2.채팅메시지 중 상대방 프로필을 클릭하여 해당 페이지를 요청하기 전
+2.채팅메시지 중 상대방 프로필을 클릭했을 경우
 
 ex)
 
@@ -74,7 +73,7 @@ ex)
 
 
 ## **경고**
-관리자 재량으로 유저에게 **경고**를 줍니다. 이때 경고는 말그대로 한 번 기회를 더 주는 것이며, 경고누적3회가 될 경우, 1주일간 경고패널티를 먹게됩니다.(**경고문구노출**)
+관리자가 유저에게 **경고**를 줍니다. 이때 경고는 말그대로 한 번 기회를 더 주는 것이며, 경고누적3회가 될 경우, 1주일간 경고패널티를 먹게됩니다.(**경고문구노출**)
 경고누적 5회가 될 경우 **유저제재** 와 같은 효과를 지니는 패널티를 가지게 됩니다( 유저제재 된다고 생각하면 됨 )
 
 
@@ -85,91 +84,90 @@ ex)
 제재 당한 유저의 물건 역시 다른 유저에게 보여지지 않으며 조회불가능하다.
 
 
-## **블라인드**
+## **비공개**
 한마디로 물건을 일시적으로 보이지 않도록 하는 것입니다. 가령 불건전한 물건, 동국마켓에서 지정한 업로드금지품목, 또는 사회통념과 어긋나는 물건 등을 업로드 하였을 경우 관리자 재량으로 해당 물건을 보이지 않게 처리하는 것을 의미합니다.
-
-
-
-그 외 접근이 불가능할 경우에는 예외가 나오게 된다. 예시로 왼쪽에 모두 나와있다.
 
 
 
 ## 예외 상항 response
 
 (상품/프로필) 이렇게 쓰여져 있는 것은 상품 또는 프로필 이라는 의미입니다.
-즉, 상품을 클릭한 결과 프로픽 클릭했을 때 나오는 응답값이 똑같다는 의미입니다.
+즉, 상품을 클릭한 결과 프로필을 클릭했을 때 나오는 응답값이 똑같다는 의미입니다.
 
 만약 아래와 같은 응답결과를 받게 된다면 클라이언트는 적절한 유아이 화면으로 바꿔줘야 합니다!
 
 
-### 1.탈퇴한유저일 경우(상품/프로필)
+### 1.탈퇴한유저일 경우(상품/프로필) - 확인
 
 ```json
 
 {
     "statusCode": 404,
     "timestamp": "2021-03-10T13:05:47.217+00:00",
-    "message": "탈퇴한 유저입니다.",
-    "description": "uri=/api/chatroom/check-validate"
+    "message": "탈퇴한 유저의 정보에 접근할 수 없습니다.",
+    "description": "uri=/api/chatroom/check-validate",
+    "pathToMove": null
 }
 
 ```
 
 
-### 2.내가 상대방을 차단했을 경우(상품)
+### 2.내가 상대방을 차단했을 경우(상품/프로필) - 확인
+
+```json
+
+{
+  "statusCode": 403,
+  "timestamp": "2021-03-26T00:44:55.532+00:00",
+  "message": "차단한 유저의 정보에 접근할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
+}
+
+
+```
+
+
+### 3. 상대방으로 부터 차단당했을 경우(상품/프로필) - 확인
+
+```json
+
+{
+  "statusCode": 403,
+  "timestamp": "2021-03-26T00:44:31.269+00:00",
+  "message": "차단당한 유저의 정보에 접근할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
+}
+
+```
+
+
+### 4.관리자로부터 이용제재 받고 있는 유저조회(상품/프로필) - 확인
 
 ```json
 
 {
     "statusCode": 404,
     "timestamp": "2021-03-10T13:05:47.217+00:00",
-    "message": "차단한 유저의 물건은 조회하실 수 없습니다.",
-    "description": "uri=/api/chatroom/check-validate"
-}
-
-
-```
-
-
-### 3. 상대방으로 부터 차단당했을 경우(상품)
-
-```json
-
-{
-    "statusCode": 403,
-    "timestamp": "2021-03-10T12:45:18.946+00:00",
-    "message": "차단당한 유저의 물건은 조회할 수 없습니다.",
-    "description": "uri=/api/chatroom/check-validate"
-}
-
-
-
-```
-
-
-### 4.관리자로부터 제재당한 유저조회(상품)
-
-```json
-
-{
-    "statusCode": 404,
-    "timestamp": "2021-03-10T13:05:47.217+00:00",
-    "message": "관리자로부터 제재를 받고 있는 유저의 물건은 조회하실 수 없습니다.",
-    "description": "uri=/api/chatroom/check-validate"
+    "message": "관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.",
+    "description": "uri=/api/chatroom/check-validate",
+    "pathToMove": null
 }
 
 ```
 
 
-### 5. 관리자에 의해 블라인드 처리된경우(상품)
+### 5. 관리자에 의해 상품이 비공개 처리된경우(상품) - 확인
 
 ```json
 
 {
     "statusCode": 404,
     "timestamp": "2021-03-10T12:46:52.623+00:00",
-    "message": "해당물건은 관리자에의해 블라인드 처리되었습니다.",
-    "description": "uri=/api/chatroom/check-validate"
+    "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
+    "description": "uri=/api/chatroom/check-validate",
+    "pathToMove": null
 }
 
 
@@ -177,15 +175,16 @@ ex)
 ```
 
 
-### 6. 물건이 삭제된경우(상품)
+### 6. 물건이 삭제된경우(상품) 
 
 ```json
 
 {
     "statusCode": 404,
     "timestamp": "2021-03-10T12:47:57.513+00:00",
-    "message": "해당물건은 존재하지 않습니다.",
-    "description": "uri=/api/chatroom/check-validate"
+    "message": "해당 중고물품은 판매자에 의해 삭제되었습니다.",
+    "description": "uri=/api/chatroom/check-validate",
+    "pathToMove": null
 }
 
 ```

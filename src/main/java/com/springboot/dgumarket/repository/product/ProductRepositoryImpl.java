@@ -116,9 +116,9 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         long totalCount = query.fetchCount();
         // 리뷰 최신순 / 오래된 순
         for (Sort.Order order : pageable.getSort()) {
-            if(order.getProperty().equals("createDatetime") && order.getDirection().isDescending()){
+            if(order.getProperty().equals("ReviewRegistrationDate") && order.getDirection().isDescending()){
                 query.orderBy(productReview.ReviewRegistrationDate.desc());
-            }else if(order.getProperty().equals("createDatetime") && order.getDirection().isAscending()){
+            }else if(order.getProperty().equals("ReviewRegistrationDate") && order.getDirection().isAscending()){
                 query.orderBy(productReview.ReviewRegistrationDate.asc());
             }
         }
@@ -133,13 +133,26 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         JPQLQuery<Product> query = from(product);
         query.join(productLike).on(product.id.eq(productLike.product.id))
                 .where(productLike.member.eq(loginMember)
-                    .and(product.productStatus.eq(0)
-                    .and(product.member.isEnabled.eq(0)
-                    .and(product.member.isWithdrawn.eq(0))
-                    .and(notContainBlocks(loginMember, product.member)))));
+                    .and(product.productStatus.eq(0) // 삭제, 비공개 처리 안되고
+                    .and(product.member.isEnabled.eq(0) // 해당 물건의 소유자가 유저제재처리도 안되었고
+                    .and(product.member.isWithdrawn.eq(0)) // 해당 물건의 소유자가 탈퇴도 안되였고
+                    .and(notContainBlocks(loginMember, product.member))))) // 해당 물건의 소유자가 나와 차단관계도 아닌경우
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
+        // 관심물건중 물건 업로드 최신순 / 오래된 순
+        for (Sort.Order order : pageable.getSort()) {
+            if(order.getProperty().equals("createdDate") && order.getDirection().isDescending()){
+                query.orderBy(product.createDatetime.desc());
+            }else if(order.getProperty().equals("createdDate") && order.getDirection().isAscending()){
+                query.orderBy(product.createDatetime.asc());
+            }
+        }
+
         long totalCount = query.fetchCount();
-        List<Product> products = getQuerydsl().applyPagination(pageable, query).fetch();
-        return new PageImpl<>(products, pageable, totalCount);
+        QueryResults<Product> productLikes = query.fetchResults();
+//        List<Product> products = getQuerydsl().applyPagination(pageable, query).fetch();
+        return new PageImpl<>(productLikes.getResults(), pageable, totalCount);
     }
 
     // 유저구매물건들 조회(물건삭제/블라인드처리/상대방차단/상대방제재조치/상대방탈퇴)
@@ -158,9 +171,9 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                                             .limit(pageable.getPageSize());
         // 정렬
         for (Sort.Order order : pageable.getSort()) {
-            if(order.getProperty().equals("createDatetime") && order.getDirection().isAscending()){
+            if(order.getProperty().equals("createdDate") && order.getDirection().isAscending()){ // 거래완료 최신순
                 query.orderBy(productReview.createdDate.asc());
-            }else if(order.getProperty().equals("createDatetime") && order.getDirection().isDescending()){
+            }else if(order.getProperty().equals("createdDate") && order.getDirection().isDescending()){ // 거래완료 오래된 순
                 query.orderBy(productReview.createdDate.desc());
             }
         }

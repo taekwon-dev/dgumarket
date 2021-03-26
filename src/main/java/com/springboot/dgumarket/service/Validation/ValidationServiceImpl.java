@@ -6,12 +6,14 @@ import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.payload.request.chat.ValidationRequest;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class ValidationServiceImpl implements ValidationService {
 
@@ -33,27 +35,35 @@ public class ValidationServiceImpl implements ValidationService {
     @Override
     public String checkValidateForChatroom(int userId, ValidationRequest validationRequest) throws CustomControllerExecption {
         Member member = memberRepository.findById(userId);
+        //탈퇴한 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
+        //차단한 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
+        //차단 당한 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
+        //관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
+        //해당 중고물품은 관리자에 의해 비공개 처리되었습니다. ( 상품 )
+        //해당 중고물품은 판매자에 의해 삭제되었습니다. ( 상품 )
 
         // 물건이미지클릭시
         if (validationRequest.getProduct_id().isPresent()) {
             int productId = validationRequest.getProduct_id().get();
+            log.info("product Id : {}", productId);
 
             Optional<Product> product = productRepository.findById(productId);
-            product.orElseThrow(() -> new CustomControllerExecption("해당물건은 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-            if (product.get().getProductStatus() == PRODUCT_REMOVE) { throw new CustomControllerExecption("해당물건은 존재하지 않습니다.", HttpStatus.NOT_FOUND); }
-            if (product.get().getProductStatus() == PRODUCT_BLIND) { throw new CustomControllerExecption("해당물건은 관리자에의해 블라인드 처리되었습니다.", HttpStatus.NOT_FOUND); }
-            if (product.get().getProductStatus() == PRODUCT_SALE) {
-
+            product.orElseThrow(() -> new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND));
+            log.info("product.get().getProductStatus() : {}", product.get().getProductStatus());
+            if (product.get().getProductStatus() == PRODUCT_REMOVE) { throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND); }
+            if (product.get().getProductStatus() == PRODUCT_BLIND) { throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.NOT_FOUND); }
                 // 해당물건의 유저의 유효성체크
-                return isValidateUser(member, product.get().getMember(), true);
-            }
+            return isValidateUser(member, product.get().getMember());
         }
 
         // 유저프로필클릭시
         if (validationRequest.getUser_id().isPresent()) {
             System.out.println("유저프로필클릭 : " + validationRequest.getUser_id().get());
             Member targetUser = memberRepository.findById(validationRequest.getUser_id().get().intValue());
-            return isValidateUser(member, targetUser, false);
+            if(targetUser == null || targetUser.getIsWithdrawn()==1){
+                throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND);
+            }
+            return isValidateUser(member, targetUser);
         }
         return null;
     }
@@ -61,40 +71,40 @@ public class ValidationServiceImpl implements ValidationService {
 
 
 
-    public String isValidateUser(Member member, Member targetUser, boolean fromProduct) throws CustomControllerExecption {
+    public String isValidateUser(Member member, Member targetUser) throws CustomControllerExecption {
+        //탈퇴한 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
+        //차단한 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
+        // 차단 당한 유저의 정보에 접근할 수 없습니다.
+        // 관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다. ( 프로필 / 상품 )
 
         // 유저제재확인, 유저탈퇴확인, 차단까지 확인
-        if (targetUser == null) { throw new CustomControllerExecption("해당유저는 존재하지 않습니다.", HttpStatus.NOT_FOUND); }
-        if (targetUser.getIsEnabled() == USER_NOT_ENABLED) {
-            if(fromProduct){
-                throw new CustomControllerExecption("관리자로부터 제재를 받고 있는 유저의 물건은 조회하실 수 없습니다.", HttpStatus.NOT_FOUND);
-            }
-            throw new CustomControllerExecption("관리자로부터 제재를 받고 있는 유저의 상점을 조회할 수 없습니다.", HttpStatus.NOT_FOUND);
+        if (targetUser == null || targetUser.getIsWithdrawn() == 1) {
+            throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND);
         }
-        if (targetUser.getIsWithdrawn() == USER_WITHDRAWN) {
-            if(fromProduct){
-                throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);
-            }
-            throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);
-        }
-        if (targetUser.getIsWithdrawn() == USER_NOT_WITHDRAWN && member.getIsEnabled() == USER_ENABLED){ // 유저제재X, 탈퇴X
 
+        if (targetUser.getIsEnabled() == 1) {
+            throw new CustomControllerExecption("관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        if (targetUser.getIsWithdrawn() == 0 && targetUser.getIsEnabled() == 0){ // 유저제재X, 탈퇴X
+            log.info("target :  {} ", targetUser.getIsWithdrawn());
+            log.info("memberId : {} , target :  {} ", member.getId(), targetUser.getId());
             if(member.getBlockUsers().contains(targetUser)){
-                if(fromProduct){
-                    throw new CustomControllerExecption("차단한 유저의 물건은 조회하실 수 없습니다.", HttpStatus.FORBIDDEN);
-                }
-                throw new CustomControllerExecption("차단한 유저의 상점은 조회하실 수 없습니다.", HttpStatus.FORBIDDEN);
+                System.out.println(member.getId() + " 번 유저가 " + targetUser.getId() + " 에게 메시지를 보냄 1 ");
+                log.info("상대방을 차단했니? {}", member.getBlockUsers().contains(targetUser));
+                throw new CustomControllerExecption("차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
             if(member.getUserBlockedMe().contains(targetUser)){
-                if(fromProduct){
-                    throw new CustomControllerExecption("차단당한 유저의 물건은 조회할 수 없습니다.", HttpStatus.FORBIDDEN);
-                }
-                throw new CustomControllerExecption("차단당한 유저의 상점은 조회할 수 없습니다.", HttpStatus.FORBIDDEN);
+                System.out.println(member.getId() + " 번 유저가 " + targetUser.getId() + " 에게 메시지를 보냄 2 ");
+                log.info("상대방이 날 차단했니? {}", member.getUserBlockedMe().contains(targetUser));
+                throw new CustomControllerExecption("차단당한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
-            // 차단하거나 차단된 유저도 아닐 경우
-            if(!(member.getBlockUsers().contains(targetUser)) && !(member.getUserBlockedMe().contains(targetUser))){
-                return "ok";
-            }
+//            // 차단하거나 차단된 유저도 아닐 경우
+//            if(!(member.getBlockUsers().contains(targetUser)) && !(member.getUserBlockedMe().contains(targetUser))){
+//                System.out.println(member.getId() + " 번 유저가 " + targetUser.getId() + " 에게 메시지를 보냄 3 ");
+//                log.info("아무도 차단 안함");
+//                return "ok";
+//            }
         }
         return null;
     }

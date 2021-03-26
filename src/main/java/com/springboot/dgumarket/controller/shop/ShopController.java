@@ -175,7 +175,7 @@ public class ShopController {
             Authentication authentication,
             @RequestParam(value = "purchase_set", defaultValue = "total", required = false) String purchase_set,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
+            @SortDefault(sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userDetails.getId(), purchase_set, pageable);
@@ -193,7 +193,8 @@ public class ShopController {
     public ResponseEntity<?> getUserFavorites(
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(direction = Sort.Direction.DESC) Pageable pageable) {
+            @SortDefault(sort="createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        // 기본은 관심물건의 업로드 순
 
         if (authentication != null){
             log.info("로그인성공");

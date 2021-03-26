@@ -254,11 +254,18 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
     // 채팅방 상태 가져오기
     @Override
-//    @UserValidationForChatRoom
-    public ChatRoomStatusDto getChatRoomStatus(int roomId, int userId) {
+    public ChatRoomStatusDto getChatRoomStatus(int roomId, int userId) throws CustomControllerExecption {
         Member member = memberRepository.findById(userId); // 본인
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
         Optional<ProductReview> productReview = productReviewRepository.findByChatRoom(chatRoom);
+
+
+        if(chatRoom.getMemberOpponent(member).getIsEnabled()==1){
+            throw new CustomControllerExecption("관리자로 부터 이용제재 받고 있는 유저입니다.", HttpStatus.NOT_FOUND);
+        }
+        if(chatRoom.getMemberOpponent(member) == null || chatRoom.getMemberOpponent(member).getIsWithdrawn()==1){
+            throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);
+        }
 
 
         // 물건삭제되었을 경우
