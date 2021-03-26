@@ -216,7 +216,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         if(opponentMember.getIsWithdrawn()==1 || opponentMember == null){throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST);}
 
         if(chatRoom.getSeller() == member){ // 반드시 채팅방의 판매자가 요청한것이여야함
-            if (member.getBlockUsers().contains(chatRoom.getConsumer()) || member.getUserBlockedMe().contains(chatRoom.getConsumer())){ // 서로 차단 중이라면
+            if (member.getBlockUsers().contains(chatRoom.getConsumer())){
+                throw new CustomControllerExecption("차단한 유저와 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
+            if(member.getUserBlockedMe().contains(chatRoom.getConsumer())){ // 서로 차단 중이라면
                 throw new CustomControllerExecption("차단된 유저와는 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
             if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 거래완료
