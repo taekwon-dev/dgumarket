@@ -39,6 +39,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     private static final int PRODUCT_STATUS_CONSUMER = 1;
     private static final int PRODUCT_STATUS_SELLER = 2;
     private static final int PRODUCT_STATUS_PRODUCT_DELETE = 3;
+    private static final int PRODUCT_STATUS_PRODUCT_BLIEND = 4;
 
 
     private static final int SOLD_BY_ANOTHER_ROOM = 2;
@@ -275,6 +276,15 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         if( chatRoom.getProduct().getProductStatus() == 1){
             return ChatRoomStatusDto.builder()
                     .productStatus(PRODUCT_STATUS_PRODUCT_DELETE) // 3
+                    .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
+                    .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                    .build();
+        }
+
+        // 물건 비공개 처리 되었을 경우
+        if (chatRoom.getProduct().getProductStatus() == 2){
+            return ChatRoomStatusDto.builder()
+                    .productStatus(PRODUCT_STATUS_PRODUCT_BLIEND) // 4
                     .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
                     .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
                     .build();
