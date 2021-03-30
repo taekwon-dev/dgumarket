@@ -20,6 +20,29 @@ app2.js 에 변경된 샘플 클라이언트 코드 참조
 채팅방의 메시지들 정보 가져올 때 roomId 필드 추가
 기존 messageType 필드 -> message_type 로 바뀜
 
+<span style="color:red">**21-03-30**</span>
+
+`[SUBSCRIBE] /user/queue/room/event` 에서 모든 채팅메시지들을 불러올 때
+상대방이 유저제재나 탈퇴일 경우 불러오는 메시지들 중 상대방의 메시지들은 다음과 같은 형태로 내려옵니다
+`chatMessageUserDto` 의 `nickName` : "이름없음" , `profileImgPath` 존재하지 않음
+
+```json
+
+{
+    "roomId": 1,
+    "message_type": 0,
+    "messageStatus": 1,
+    "message": "minshik2233",
+    "messageDate": "2021-01-12T17:22:23",
+    "chatMessageUserDto": {
+      "userId": 24,
+      "nickName": "이름없음"
+    }
+}
+
+```
+
+
 
 
 수정사항 (첨부내용)
@@ -132,9 +155,9 @@ content-length:83
 
 ​		`userId` : 메시지 보낸 이 고유 유저 아이디
 
-​		`nickName` : 메시지 보낸 유저의 닉네임
+​		`nickName` : 메시지 보낸 유저의 닉네임 
 
-​		`profileImgPath` : 메시지 보낸 유저의 닉네임의 프로필 경로
+​		`profileImgPath`(optional) : 메시지 보낸 유저의 닉네임의 프로필 경로( 이미지 없을 경우 필드자체가 존재하지 않음, 즉 null 이렇게 오지 않음 )
 
 ```json
 [
