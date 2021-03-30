@@ -1,5 +1,9 @@
 ### 리프레시 API
 
+리프레시 API는 상태코드만 변경 후 리프레시 API 정상 반환하는 지 까지만 확인해주세요.
+
+토큰 유효기간 관련해서 테스트 하는 부분은 서버 측에서 진행하겠습니다. 
+
 
 
 리프레시 API를 요청하는 경우는 다음과 같습니다.
@@ -11,14 +15,16 @@
 
 리프레시 API를 통해서 클라이언트 측에서 A토큰을 반환 받고, 서비스 이용 기간 내에서 계속적으로 로그인 상태를 유지시키는 역할을 합니다.
 
+**(A 토큰의 유효기간은 발급시점부터 15분입니다.)**
+
 리프레시 API 로직 설명하고, 각각의 경우의 응답 예시를 설명하겠습니다. 
 
-먼저 각 응답 상황 별 'resultCode'를 먼저 정리하겠습니다. 
+먼저 각 응답 상황 별 `statusCode`를 먼저 정리하겠습니다. 
 
 ```json
 Refresh API 응답 코드 
 
-'resultCode'
+'statusCode'
 
 200 : JWT 토큰 갱신 성공 
 
@@ -26,8 +32,9 @@ Refresh API 응답 코드
 
 1 : R 토큰이 없고, A 토큰이 유효한 경우 : 로그인 상태로 현재 페이지 유지
 2 : R 토큰이 없고 A 토큰 유효하지 않은 경우 : 비로그인 상태로 현재 페이지 유지
-3 : R 토큰이 없고, Authorization Header가 NULL인 경우 : 비로그인 상태로 현재 페이지 유지 
-4 : 블랙리스트에 포함된 R 토큰(갱신실패) : 비로그인 상태로 현재 페이지 유지
+3 : 블랙리스트에 포함된 R 토큰(갱신실패) : 비로그인 상태로 현재 페이지 유지
+4 : R 토큰이 없고, Authorization Header가 ""인 경우 : 비로그인 상태로 현재 페이지 유지 
+
 
 (중요!) 
 리프레시 API 요청 결과 '로그인' 페이지로 리다이렉트되는 경우는 아래와 같습니다. 
@@ -35,10 +42,12 @@ Refresh API 응답 코드
 
 - R 토큰이 없고 (= R 토큰이 유효하지 않아서 소멸) A 토큰이 유효하지 않은 경우 
 - R 토큰이 유효하지만 블랙리스트에 포함된 경우
-- R 토큰, Authorization Header가 NULL인 경우 
+- R 토큰이 없고, Authorization Header가 "" 경우 
+
+// 위에서 블랙리스트 관련된 테스트 statusCode 3을 응답 받았다고 가정하고 테스트하시면 됩니다. 
 
 
-(중요!) 아래 두 상황의 'resultCode'는 모두 401 입니다. 
+(중요!) 아래 두 상황의 'statusCode'는 모두 401 입니다. 
 
 401 : 회원탈퇴한 유저가 리프레시 API 요청한 경우
 401 : 이용제재 받은 유저가 리프레시 API 요청한 경우
@@ -54,19 +63,17 @@ Refresh API 응답 코드
 
 [HTTP/1.1 200]
 {
-    "resultCode": 200,
     "message": "JWT 토큰 갱신 성공",
+    "statusCode": 200,
     "responseData": {
         "tokenType": "Bearer",
         "accessToken": "A 토큰 값",
-        "userId": 2,
-        "userNickName": "fgh0296",
-        "userProfileImgDir": null
+        "userId": 1,
+        "userNickName": "example",
+        "userProfileImgDir": "example.jpg"
     }
 }
 ```
-
-
 
 
 
@@ -74,9 +81,10 @@ Refresh API 응답 코드
 
 ```json
 // A 토큰이 만료 전 까지 유저는 인증 상태로 서비스 이용이 가능하다. 
+// 인증 요구 여부와 상관 없이 A 토큰이 유효한 경우는 해당 페이지에 로그인 상태로 페이지 유지된다. 
 [HTTP/1.1 200]
 {
-    "resultCode": 1,
+    "statusCode": 1,
     "message": "R 토큰이 없고, A 토큰이 유효한 경우 : 로그인 상태로 현재 페이지 유지",
     "responseData": "A 토큰 값"
 }
@@ -85,9 +93,10 @@ Refresh API 응답 코드
 **<응답 예시>**
 
 ```json
+// 인증이 요구되지 않는 페이지에서 리프레시 API 요청하는 경우
 [HTTP/1.1 200]
 {
-    "resultCode": 2,
+    "statusCode": 2,
     "message": "R 토큰이 없고 A 토큰 유효하지 않은 경우 : 비로그인 상태로 현재 페이지 유지",
     "responseData": null
 }
@@ -100,10 +109,25 @@ Refresh API 응답 코드
 // Redis 블랙리스트에 포함된 R 토큰으로 리프레시 API 요청 
 [HTTP/1.1 200]
 {
-    "resultCode": 3,
+ 	  "statusCode": 3,
     "message": "블랙리스트에 포함된 R 토큰(갱신실패) : 비로그인 상태로 현재 페이지 유지",
     "responseData": null
 }
+
+   ```
+
+**<응답 예시>**
+
+   ```json
+// 인증이 요구되지 않는 페이지에서 리프레시 API 요청하는 경우
+// R 토큰 없고 (R 토큰 만료), A 토큰도 없는 경우 (= 클라이언트에서 ""로 들어온 경우) 
+[HTTP/1.1 200]
+{
+ 	  "statusCode": 4,
+    "message": "R 토큰이 없고, Authorization Header가 ''인 경우 : 비로그인 상태로 현재 페이지 유지 ",
+    "responseData": null
+}
+
    ```
 
 
@@ -115,8 +139,8 @@ Refresh API 응답 코드
 ```json
 [HTTP/1.1 200]
 {
-    "resultCode": 401,
-    "timestamp": "2021-03-23 06:23:59",
+    "statusCode": 401,
+    "timestamp": "2021-03-25 11:27:43",
     "message": "가입하지 않은 아이디이거나, 잘못된 비밀번호입니다.",
     "requestPath": "/auth/refresh"
 }
@@ -127,8 +151,8 @@ Refresh API 응답 코드
 ```json
 [HTTP/1.1 200]
 {
-    "resultCode": 401,
-    "timestamp": "2021-03-23 06:24:30",
+    "statusCode": 401,
+    "timestamp": "2021-03-25 11:28:29",
     "message": "관리자에 의해서 서비스 이용이 제재된 웹메일 계정입니다. 로그인 문의는 관리자 메일을 통해 연락해주세요.",
     "requestPath": "/auth/refresh"
 }
