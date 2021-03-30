@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.service.chat;
 
+import com.amazonaws.services.devicefarm.model.transform.OfferingJsonUnmarshaller;
 import com.springboot.dgumarket.dto.chat.ChatMessageDto;
 import com.springboot.dgumarket.dto.chat.ChatMessageUserDto;
 import com.springboot.dgumarket.dto.chat.ChatRoomProductDto;
@@ -15,8 +16,11 @@ import com.springboot.dgumarket.repository.chat.ChatMessageRepository;
 import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
+import org.modelmapper.AbstractConverter;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
+import org.modelmapper.spi.MappingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +29,7 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -81,6 +86,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     public List<ChatMessageDto> getAllMessages(int roomId, Member member) {
         ModelMapper modelMapper = new ModelMapper();
 
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId); // 후에 null 체크 필요
+        Member targetUser = chatRoom.get().getMemberOpponent(member);
+        Boolean isDisable =isTargerUserDisable(targetUser);
+
         // chatmessage entitiy -> message dto
         PropertyMap<ChatMessage, ChatMessageDto> messageMap = new PropertyMap<ChatMessage, ChatMessageDto>() {
             @Override
@@ -108,9 +117,16 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         // EntityList -> DTOList
         List<ChatMessageDto> chatMessageDtos = new ArrayList<>();
         for (ChatMessage chatMessageEntity : chatMessageEntitys) {
+            ChatMessageUserDto chatMessageUserDto = modelMapper.map(chatMessageEntity.getSender(), ChatMessageUserDto.class);
+            if(isDisable){ // 상대방이 유저제재 또는 탈퇴일 경우
+                if(chatMessageUserDto.getUserId() == targetUser.getId()){
+                    chatMessageUserDto.setNickName("이름없음");
+                    chatMessageUserDto.setProfileImgPath(null);
+                }
+            }
             ChatMessageDto chatMessageDto = new ChatMessageDto();
             chatMessageDto.setRoomId(chatMessageEntity.getRoomId());
-            chatMessageDto.setChatMessageUserDto(modelMapper.map(chatMessageEntity.getSender(), ChatMessageUserDto.class)); // 보내는이 정보
+            chatMessageDto.setChatMessageUserDto(chatMessageUserDto); // 보내는이 정보
             chatMessageDto.setMessageDate(chatMessageEntity.getMsgDate());
             chatMessageDto.setMessage(chatMessageEntity.getMessage());
             chatMessageDto.setMessage_type(chatMessageEntity.getMsgType());
@@ -348,4 +364,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return null;
     }
 
+    // 상대방이 탈퇴 또는 유저제재일 경우를 체크함.
+    public boolean isTargerUserDisable(Member targetMember){
+        if(targetMember.getIsWithdrawn() == 1 || targetMember.getIsEnabled() == 1){ // null 체크필요
+            return true;
+        }
+        return false;
+    }
 }
