@@ -35,12 +35,15 @@ public class HandlerExceptionResolverComposite implements HandlerExceptionResolv
 
     @Override
     public int getOrder() {
-        log.info("HandlerExceptionResolverComposite : {}",  "getOrder()");
+        log.info("HandlerExceptionResolverComposite : {}",  this.order);
+
+        // HandlerExceptionResolverComposite : HandlerExceptionResolverComposite : 2147483647
+        // HandlerExceptionResolverComposite : HandlerExceptionResolverComposite : 2147483647
+        // HandlerExceptionResolverComposite : HandlerExceptionResolverComposite : 2147483647
         return this.order;
     }
 
     public void setOrder(int order) {
-        log.info("HandlerExceptionResolverComposite : {}",  "setOrder()");
         log.info("order : {}", order);
         this.order = order;
     }
@@ -62,6 +65,7 @@ public class HandlerExceptionResolverComposite implements HandlerExceptionResolv
                 }
             }
         }
+
         return null;
     }
 

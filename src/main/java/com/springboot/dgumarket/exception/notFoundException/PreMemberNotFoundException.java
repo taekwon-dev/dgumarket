@@ -1,4 +1,4 @@
-package com.springboot.dgumarket.exception.NotFoundException;
+package com.springboot.dgumarket.exception.notFoundException;
 
 public class PreMemberNotFoundException extends RuntimeException {
 
