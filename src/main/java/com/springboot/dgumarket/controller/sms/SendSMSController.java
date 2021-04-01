@@ -1,13 +1,16 @@
 package com.springboot.dgumarket.controller.sms;
 
+import com.springboot.dgumarket.dto.member.ChangePhoneDto;
 import com.springboot.dgumarket.dto.member.VerifyPhoneDto;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
+import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.sms.SMSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,4 +39,17 @@ public class SendSMSController {
 
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
+
+    // 핸드폰 번호 변경 API
+    @PostMapping(value = "/change-phone", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApiResultEntity> doSendSMSForChangePhone(Authentication authentication, @RequestBody ChangePhoneDto changePhoneDto) {
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        ApiResultEntity apiResultEntity = smsService.doSendSMSForChangePhone(userDetails.getId(), changePhoneDto);
+        return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
+
+    }
+
+
+
 }

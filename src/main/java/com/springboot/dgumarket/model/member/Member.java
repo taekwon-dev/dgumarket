@@ -165,6 +165,10 @@ public class Member {
         this.password = password;
     }
 
+    public void updatePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
     // [회원탈퇴시 모든 회원과 관련된 모든 채팅방 나가도록 하는 함수 3/5, by ms]
     /**
      * @param chatRooms 회원과 관련된 채팅방들

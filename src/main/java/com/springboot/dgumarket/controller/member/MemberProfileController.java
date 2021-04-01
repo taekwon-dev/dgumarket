@@ -1,19 +1,20 @@
 package com.springboot.dgumarket.controller.member;
 
+import com.springboot.dgumarket.dto.member.ChangePhoneDto;
+import com.springboot.dgumarket.dto.member.ChangePwdDto;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.model.member.redis.RedisJwtToken;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.member.MemberProfileService;
-import com.springboot.dgumarket.utils.CookieUtil;
-import com.springboot.dgumarket.utils.JwtUtils;
+import com.springboot.dgumarket.service.sms.SMSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,58 +38,84 @@ public class MemberProfileController {
     private MemberProfileService memberService;
 
     @Autowired
+    private SMSService smsService;
+
+    @Autowired
     private RedisJwtTokenRepository redisJwtTokenRepository;
 
     // [회원정보 불러오기 : 프로필 사진, 닉네임, 관심 카테고리]
     @GetMapping("/read")
-    public ResponseEntity<ApiResponseEntity> getMemberInfo(Authentication authentication) {
+    public ResponseEntity<ApiResultEntity> getMemberInfo(Authentication authentication) {
 
         if (authentication != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userDetails.getId());
 
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
                     .message("회원 정보 조회")
-                    .data(memberInfoDto)
-                    .status(200)
+                    .responseData(memberInfoDto)
+                    .statusCode(200)
                     .build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        } else {
-            // Exceptions (auth)
         }
-
         return null;
     }
 
     // 회원 정보 (프로필 사진, 닉네임, 관심카테고리) 수정
     @PostMapping("/update")
-    public ResponseEntity<ApiResponseEntity> updateInfo(@Valid @RequestBody MemberUpdateDto memberUpdateInfoDto, Authentication authentication) {
+    public ResponseEntity<ApiResultEntity> updateInfo(@Valid @RequestBody MemberUpdateDto memberUpdateInfoDto, Authentication authentication) {
 
 
         if (authentication != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             memberService.updateMemberInfo(userDetails.getId(), memberUpdateInfoDto);
 
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
                     .message("회원 정보 수정")
-                    .data(null)
-                    .status(200)
+                    .responseData(null)
+                    .statusCode(200)
                     .build();
 
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        } else {
-
         }
         return null;
     }
+
+
+
+    // 회원 비밀번호 변경
+    @PostMapping("/change-pwd")
+    public ResponseEntity<ApiResultEntity> updatePwd(@RequestBody ChangePwdDto changePwdDto, Authentication authentication) {
+
+
+        if (authentication != null) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            ApiResultEntity apiResponseEntity = memberService.updatePassword(userDetails.getId(), changePwdDto);
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        }
+        return null;
+    }
+
+    // 회원 핸드폰번호 변경
+    @PostMapping("/change-phone")
+    public ResponseEntity<ApiResultEntity> updatePhone(@RequestBody ChangePhoneDto changePhoneDto, Authentication authentication) {
+
+        // Authentication 객체가 주입되는 과정에서 예외가 발생하는 경우, 인터셉터에서 처리
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        ApiResultEntity apiResponseEntity = memberService.checkVerificationNunberForPhone(userDetails.getId(), changePhoneDto);
+
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+    }
+
+
+
 
     // 유저 프로필 이미지 업로드 (1장)
     // 예외처리
     // Unsupported Media Type
     @PostMapping("/image-upload")
-    public ResponseEntity<ApiResponseEntity> uploadProfileImg(Authentication authentication, @RequestParam("prevFileName") String prevFileName, @RequestParam("file") MultipartFile multipartFile) throws Exception {
+    public ResponseEntity<ApiResultEntity> uploadProfileImg(Authentication authentication, @RequestParam("prevFileName") String prevFileName, @RequestParam("file") MultipartFile multipartFile) throws Exception {
 
-        boolean result = false;
         String fileName = null;
         String fileType = null;
 
@@ -113,33 +140,16 @@ public class MemberProfileController {
                 fileName = UUID.randomUUID().toString().replace("-", "")+"."+fileType;
             }
 
+            memberService.uploadProfileImgtoS3(multipartFile, fileName);
 
-
-            // result (boolean) 값에 업르도 결과 값 (true: 성공)
-            result = memberService.uploadProfileImgtoS3(multipartFile, fileName);
-
-            if (result) {
-                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                        .message("유저 프로필 사진 업로드 성공")
-                        .data(fileName) // AWS S3 업로드된 파일명 반환
-                        .status(200)
-                        .build();
-                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-            } else {
-                // 프로필 사진 업로드를 실패하는 경우 어떻게 처리할 지
-                // 재요청 또는 ..
-                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                        .message("유저 프로필 사진 업로드 실패")
-                        .data(null)
-                        .status(200)
-                        .build();
-                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-            }
-
-        } else {
-            // 게이트 웨이 인증 절차 통과 후
-            // 다운스트림에서 인증실패하는 경우 예외처리
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .message("유저 프로필 사진 업로드 성공")
+                    .responseData(fileName) // AWS S3 업로드된 파일명 반환
+                    .statusCode(200)
+                    .build();
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
+        // if Authentication object is NULL (It isn't our case)
         return null;
     }
 
@@ -149,103 +159,71 @@ public class MemberProfileController {
 
     // 없는 경우 예외 처리는 어떻게? (클라이언트 측 / 서버 측)
     @PostMapping("/image-delete")
-    public ResponseEntity<ApiResponseEntity> deleteProfileImg(Authentication authentication, @RequestParam("deleteFileName") String deleteFileName) {
+    public ResponseEntity<ApiResultEntity> deleteProfileImg(Authentication authentication, @RequestParam("deleteFileName") String deleteFileName) {
 
-        // init
-        boolean result = false;
 
         if (authentication != null) {
 
             // S3에 저장되어 있는 프로필 사진 삭제 로직 수행 서비스 호출
-            result = memberService.deleteProfileImgInS3(deleteFileName);
+            memberService.deleteProfileImgInS3(deleteFileName);
 
-            if (result) {
-                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                        .message("유저 프로필 사진 삭제 성공")
-                        .data(null) // AWS S3 업로드된 파일명 반환
-                        .status(200)
-                        .build();
-                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-            } else {
-                // 프로필 사진 삭제를 실패하는 경우 어떻게 처리할 지
-                // 재요청 또는 ..
-                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                        .message("유저 프로필 사진 삭제 실패")
-                        .data(null)
-                        .status(200)
-                        .build();
-                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-            }
-
-        } else {
+            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                    .message("유저 프로필 사진 삭제 성공")
+                    .responseData(null) // AWS S3 업로드된 파일명 반환
+                    .statusCode(200)
+                    .build();
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
 
         }
         return null;
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<ApiResponseEntity> doWithdraw(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResultEntity> doWithdraw(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
 
         // UserDetails - 회원탈퇴 요청 유저 정보 -> User 고유 ID 추출 -> 서비스 레이어 파라미터로 전달.
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        // 탈퇴 서비스 Layer 결과 값
-        boolean result = false;
+        // 리프레시 토큰 값 init
         String refreshToken = null;
+
 
         Cookie[] cookies = request.getCookies();
 
         for (int i = 0; i < cookies.length; i++) {
-
             if (cookies[i].getName().equals("refreshToken")) {
                 refreshToken = cookies[i].getValue();
             }
         }
 
-
-
-
         // Service
-        result = memberService.doWithdraw(userDetails.getId());
+        memberService.doWithdraw(userDetails.getId());
 
-        if (result) {
-            
-            RedisJwtToken redisJwtToken = RedisJwtToken.builder()
-                    .id(refreshToken)
-                    .build();
+        RedisJwtToken redisJwtToken = RedisJwtToken.builder()
+                .id(refreshToken)
+                .build();
 
-            // Redis - R 토큰 삭제
-            redisJwtTokenRepository.delete(redisJwtToken);
+        // Redis - R 토큰 삭제
+        redisJwtTokenRepository.delete(redisJwtToken);
 
-            // R 토큰 쿠키 삭제
-            // create a cookie
-            Cookie cookie = new Cookie("refreshToken", null);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            // https 적용 상황에서 주석 풀고 테스트 하기.
-            // cookie.setSecure(true);
-            cookie.setMaxAge(0);
+        // R 토큰 쿠키 삭제
+        // create a cookie
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        // https 적용 상황에서 주석 풀고 테스트 하기.
+        // cookie.setSecure(true);
+        cookie.setMaxAge(0);
 
-            // add cookie to response
-            response.addCookie(cookie);
+        // add cookie to response
+        response.addCookie(cookie);
 
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                    .message("유저 탈퇴 요청 처리 성공")
-                    .data(null)
-                    .status(200)
-                    .build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                .message("유저 탈퇴 요청 처리 성공")
+                .responseData(null)
+                .statusCode(200)
+                .build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
 
-
-        } else {
-            // 탈퇴 요청 처리 실패 시 예외처리 추후 추가 예정
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                    .message("유저 탈퇴 요청 처리 실패")
-                    .data(null)
-                    .status(200)
-                    .build();
-
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,22 +26,8 @@ public class ControllerExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
-
-    @ExceptionHandler(JwtException.class)
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public ErrorMessage resourceNotFoundException(JwtException ex, WebRequest request) {
-
-        ErrorMessage message = new ErrorMessage(
-                HttpStatus.NOT_FOUND.value(),
-                new Date(),
-                ex.getMessage(),
-                request.getDescription(false));
-
-        return message;
-    }
-
     // RuntimeException
-    @ExceptionHandler({RuntimeException.class, IncorrectResultSizeDataAccessException.class})
+    @ExceptionHandler({RuntimeException.class})
 //    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorMessage globalExceptionHandler(Exception ex) {
 
@@ -50,7 +37,7 @@ public class ControllerExceptionHandler {
         // {"errorCode":-1,"timestamp":"Mar 19, 2021 6:30:35 PM","message":"이미 회원가입한 유저가 회원가입 API 요청한 경우","requestPath":"/api/user/signup","pathToMove":"/shop/main/index"}
         // pathToMove 요소는 nullable
 
-        int resultCode = -100;
+        int resultCode = 0;
         String errorMessage = null;
         String requestPath = null;
         String pathToMove = null;
@@ -90,7 +77,7 @@ public class ControllerExceptionHandler {
             return errorObject;
 
         } catch (ParseException e) {
-            throw new JsonParseFailedException(errorResponse("RuntimeException 에러 메시지 파싱 과정에서 예외 발생(ControllerExceptionHandler)", 500, ""));
+            throw new JsonParseFailedException(errorResponse("RuntimeException 에러 메시지 파싱 과정에서 예외 발생(ControllerExceptionHandler)", 500, "특정할 수 없습니다."));
         }
     }
 

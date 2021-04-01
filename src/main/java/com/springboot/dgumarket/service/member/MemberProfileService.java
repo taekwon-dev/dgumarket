@@ -1,8 +1,7 @@
 package com.springboot.dgumarket.service.member;
 
-import com.springboot.dgumarket.dto.member.MemberInfoDto;
-import com.springboot.dgumarket.dto.member.MemberUpdateDto;
-import com.springboot.dgumarket.dto.member.SignUpDto;
+import com.springboot.dgumarket.dto.member.*;
+import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -20,7 +19,7 @@ public interface MemberProfileService {
 
     // 회원 탈퇴
     // userId : 탈퇴 요청을 한 유저의 고유 아이디 값
-    boolean doWithdraw(int userId);
+    void doWithdraw(int userId);
 
     boolean doCheckWebMail(String webMail);
 
@@ -30,11 +29,20 @@ public interface MemberProfileService {
     // 회원정보 수정 - 프로필 사진 디렉토리, 닉네임, 관심 카테고리s
     void updateMemberInfo(int userId, MemberUpdateDto memberUpdateInfoDto);
 
-    // 회원 프로필 사진 DELETE
-    boolean uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) throws Exception;
+    // 비밀번호 변경
+    ApiResultEntity updatePassword(int userId, ChangePwdDto changePwdDto);
+
+    // 핸드폰 번호 변경 (인증 번호 확인)
+    // members 테이블 핸드폰번호 변경
+    // phone_verification status 값 변경
+    ApiResultEntity checkVerificationNunberForPhone(int userId, ChangePhoneDto changePhoneDto);
+
+
+    // 회원 프로필 사진 UPLOAD
+    void uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName);
 
     // 회원 프로필 사진 DELETE
-    boolean deleteProfileImgInS3(String deleteName);
+    void deleteProfileImgInS3(String deleteName);
 
 
 

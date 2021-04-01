@@ -43,6 +43,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
                     // 내 거래정보
                     "/api/user/profile/**", // 유저 API [인증 필요]
+                    "/api/send-sms/change-phone", // 유저 핸드폰 변경 시 핸드폰 인증 문자 전송[인증 필요]
                     "/api/user/purchase/**", // 유저샾 구매물건 보기 [인증 필요]
                     "/api/user/*/**", // 유저 차단하기(user/1/shop-profile), 판매물건(/user/1/product), 리뷰 조회(/user/1/reviews) [ 인증선택 jwt interceptor 예외 추가 ]
 

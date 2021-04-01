@@ -9,30 +9,24 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.springboot.dgumarket.exception.CustomControllerExecption;
+import com.springboot.dgumarket.dto.member.*;
 import com.springboot.dgumarket.exception.ErrorMessage;
-import com.springboot.dgumarket.exception.NotFoundException.MemberNotFoundException;
-import com.springboot.dgumarket.exception.NotFoundException.PreMemberNotFoundException;
+import com.springboot.dgumarket.exception.InappropriateRequestException;
+import com.springboot.dgumarket.exception.aws.AWSProfileImageException;
+import com.springboot.dgumarket.exception.notFoundException.PreMemberNotFoundException;
+import com.springboot.dgumarket.model.member.PhoneVerification;
 import com.springboot.dgumarket.model.member.PreMember;
-import com.springboot.dgumarket.repository.member.PreMemberRepository;
+import com.springboot.dgumarket.payload.response.ApiResultEntity;
+import com.springboot.dgumarket.repository.member.*;
 import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
-import com.springboot.dgumarket.dto.member.MemberInfoDto;
-import com.springboot.dgumarket.dto.member.MemberUpdateDto;
-import com.springboot.dgumarket.dto.member.SignUpDto;
 import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import com.springboot.dgumarket.model.Role;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.User;
 import com.springboot.dgumarket.model.product.ProductCategory;
-import com.springboot.dgumarket.repository.member.MemberRepository;
-import com.springboot.dgumarket.repository.member.RoleRepository;
-import com.springboot.dgumarket.repository.member.UserRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -40,12 +34,14 @@ import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
@@ -82,6 +78,9 @@ public class MemeberServiceImpl implements MemberProfileService {
     private PreMemberRepository preMemberRepository;
 
     @Autowired
+    private PhoneVerificationRepository phoneVerificationRepository;
+
+    @Autowired
     private RedisJwtTokenRepository redisJwtTokenRepository;
 
     @Autowired
@@ -96,6 +95,9 @@ public class MemeberServiceImpl implements MemberProfileService {
     @Autowired
     private BCryptPasswordEncoder encoder;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     @Override
     public void doSignUp(SignUpDto signUpDto) {
@@ -105,46 +107,39 @@ public class MemeberServiceImpl implements MemberProfileService {
         mapDtoToEntityDoSignup(signUpDto);
     }
 
-    // 2021-03-19 boolean 타입을 리턴하게 되면 예외 상황이 생겼을 때, 정확한 원인 파악이 힘듬
-    // 특히 Transaction 작업이 있는 상황이라면 더더욱.
     @Transactional
     @Override
-    public boolean doWithdraw(int userId) {
+    public void doWithdraw(int userId) {
 
-        // 예외처리 시 서비스 레이어에서 처리 하도록 변경 예정 (boolean 값으로 처리하지 않도록)
-
-        // 회원탈퇴 요청한 유저의 정보를 갖고 있는 객체를 불러온다.
+        // [예외처리]
+        // 회원탈퇴 및 이용제재를 받은 유저가 요청한 경우, SCG 서버에서 필터링
+        // 회원 식별 체크는 이미 Interceptor에서 진행하고 이 곳으로 넘어온 상황
         Member member = memberRepository.findById(userId);
 
-        if (member == null) return false;
         // [members] 테이블
-        // 개인정보보호지침에 따라서 회원의 핸드폰, 이메일 정보는 일정기간 보호 후 삭제한다. (script)
+        // 개인정보보호지침에 따라서 회원의 핸드폰, 이메일 정보는 일정기간 보호 후 삭제한다.
         // - 회원 상태 변경 (isWithdrawn = 1)
         // 회원 상태 변경 시점 (마지막 수정 시간) --> MySQL 스크립트 / 마지막 수정 시간 & 회원 상태 (1) -> 개인정보 삭제 시점
         member.updateMemberStatus(1);
 
-
         // [users] 테이블 : SCG 인증/인가 로직에서 활용 / 연관관계 없는 테이블
         User user = userRepository.findByWebMail(member.getWebMail());
+
         // 탈퇴 유저의 회원 여부 상태 값을 -> 회원 탈퇴(1)로 변경
-        if (user != null) user.updateUserStatus(1);
+        user.updateUserStatus(1);
 
         // 예비 회원을 관리하는 pre-members에 회원 상태 값을 변경해야 하는 이유는 다음과 같다.
         // 회원탈퇴한 유저는 다시 동일한 웹메일을 통해 회원가입을 진행할 수 있다.
         // pre-members에 이전 웹메일 정보가 남아 있는 경우, 새로운 로우를 생성하지 않고 기존 로우를 그대로 활용하는데,
         // 해당 웹메일을 통해 회원절차를 진행하려면 회원상태가 (비회원 또는 탈퇴한 인원)이어야 하기 때문이다.
-
-        // 추후 pre-members에서 해당 정보를 삭제하는 것과 관련해서 이 부분의 로직은 수정될 수 있다.
         // 따라서 2021-03-22에서 premember가 null이어도 회원 탈퇴 로직에는 영향을 끼치지 않는다.
         PreMember preMember = preMemberRepository.findByWebMail(member.getWebMail());
 
-        // preMember == null -> RuntimeException -> Rollback -> 예외처리 할 것 (2021-03-19)
         if (preMember != null) {
             // (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
             preMember.updatePreMemberStatus(2);
         }
 
-        return true;
     }
 
     @Override
@@ -168,6 +163,11 @@ public class MemeberServiceImpl implements MemberProfileService {
     @Override
     public MemberInfoDto fetchMemberInfo(int userId) {
         Member member = memberRepository.findById(userId);
+
+        // [예외처리]
+        // 회원탈퇴 및 이용제재를 받은 유저가 요청한 경우, SCG 서버에서 필터링
+        // 회원 식별 체크는 이미 Interceptor에서 진행하고 이 곳으로 넘어온 상황
+
 
         org.modelmapper.PropertyMap<ProductCategory, ProductCategoryDto> map_category = new PropertyMap<ProductCategory, ProductCategoryDto>() {
             @Override
@@ -196,7 +196,9 @@ public class MemeberServiceImpl implements MemberProfileService {
     public void updateMemberInfo(int userId, MemberUpdateDto memberUpdateInfoDto) {
             Member member = memberRepository.findById(userId);
 
-            // [Exception]
+            // [예외처리]
+            // 회원탈퇴 및 이용제재를 받은 유저가 요청한 경우, SCG 서버에서 필터링
+            // 회원 식별 체크는 이미 Interceptor에서 진행하고 이 곳으로 넘어온 상황
 
             if (memberUpdateInfoDto.getProfileImageDir().isPresent()) {
                 member.updateProfileImgDir(memberUpdateInfoDto.getProfileImageDir().get());
@@ -220,6 +222,9 @@ public class MemeberServiceImpl implements MemberProfileService {
 
                 Set<ProductCategory> productCategorySet = new HashSet<>();
                 memberUpdateInfoDto.getProductCategories().get().forEach(productCategoryDto -> {
+
+                    // [예외처리]
+                    // 주어진 카테고리 ID로 DB에 있는 카테고리 식별 불가능한 경우 (추후보완)
                     ProductCategory productCategory = productCategoryRepository.findById(productCategoryDto.getCategory_id());
                     productCategorySet.add(productCategory);
                 });
@@ -230,8 +235,133 @@ public class MemeberServiceImpl implements MemberProfileService {
             memberRepository.save(member);
     }
 
+    @Transactional
     @Override
-    public boolean uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) throws Exception {
+    public ApiResultEntity updatePassword(int userId, ChangePwdDto changePwdDto) {
+
+        // init
+        ApiResultEntity apiResultEntity = null;
+
+        Member member = memberRepository.findByIdForChange(userId);
+
+        // 1. 기존 비밀번호 번호가 일치하는 지 확인 (틀린 경우 -> 변경 실패)
+
+        if (!passwordEncoder.matches(changePwdDto.getPrevPassword(), member.getPassword())){
+            apiResultEntity = ApiResultEntity
+                    .builder()
+                    .statusCode(1)
+                    .message("기존 비밀번호의 값이 일치하지 않은 경우")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        // 2. 변경하려는 비밀번호, 새 비밀번호 확인 두 필드의 값이 일치하는 지 확인 (서로 다른 경우 -> 변경 실패)
+        if (!changePwdDto.getNewPassword().equals(changePwdDto.getCheckNewPassword())) {
+            apiResultEntity = ApiResultEntity
+                    .builder()
+                    .statusCode(2)
+                    .message("새 비밀번호와 새 비밀번호 확인 값이 서로 다릅니다.")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        // 회원 비밀번호 값 변경
+        member.updatePassword(encoder.encode(changePwdDto.getNewPassword()));
+        memberRepository.save(member);
+
+        apiResultEntity = ApiResultEntity
+                .builder()
+                .statusCode(200)
+                .message("회원 비밀번호 변경 성공")
+                .responseData(null)
+                .build();
+
+        return apiResultEntity;
+    }
+
+    @Transactional
+    @Override
+    public ApiResultEntity checkVerificationNunberForPhone(int userId, ChangePhoneDto changePhoneDto) {
+
+        // init
+        ApiResultEntity apiResultEntity = null;
+        String comparisonValue = null;  // DB에 저장된 인증번호 값
+        String inputValue = null;       // 유저가 입력한 인증번호 값
+
+        // status {0 : 인증대기, 1: 인증완료}
+        PhoneVerification phoneVerification = phoneVerificationRepository.findByPhoneNumberAndStatusIs(changePhoneDto.getPhoneNumber(), 0);
+
+        if (phoneVerification == null) {
+            apiResultEntity = ApiResultEntity
+                    .builder()
+                    .statusCode(1)
+                    .message("[인증 실패]핸드폰 인증 절차 초기화")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        comparisonValue = phoneVerification.getPhoneVerificationNumber();
+        inputValue = changePhoneDto.getVerificationNumber();
+
+        if (comparisonValue.equals(inputValue)) {
+            Member member = memberRepository.findByIdForChange(userId);
+
+            // 핸드폰 번호 변경을 요청한 유저의 이전 핸드폰 번호와 동일한 경우 예외처리 필터
+            if (member.getPhoneNumber().equals(changePhoneDto.getPhoneNumber())) {
+                apiResultEntity = ApiResultEntity
+                        .builder()
+                        .statusCode(3)
+                        .message("[인증 실패]기존 핸드폰 번호와 동일한 번호로 수정할 수 없습니다.")
+                        .responseData(null)
+                        .build();
+
+                return apiResultEntity;
+            }
+
+            // 핸드폰 번호 변경 처리
+            member.updatePhoneNumber(changePhoneDto.getPhoneNumber());
+            memberRepository.save(member);
+
+            phoneVerification.updateStatus(1);
+            phoneVerificationRepository.save(phoneVerification);
+
+        } else {
+            apiResultEntity = ApiResultEntity
+                    .builder()
+                    .statusCode(2)
+                    .message("[인증 실패]인증번호가 틀렸습니다.")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        apiResultEntity = ApiResultEntity
+                .builder()
+                .statusCode(200)
+                .message("[인증 성공]회원 핸드폰번호 변경 성공")
+                .responseData(null)
+                .build();
+
+        return apiResultEntity;
+    }
+
+    @Override
+    public void uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) {
+
+        // [예외처리]
+        // 회원탈퇴 및 이용제재를 받은 유저가 요청한 경우, SCG 서버에서 필터링
+        // 회원 식별 체크는 이미 Interceptor에서 진행하고 이 곳으로 넘어온 상황
+
+        // [예외 & 로그]
+        // 예외가 발생했을 때 어떻게 빠른 대처를 할 수 있을까? (주제)
+
 
         try {
             // https://docs.aws.amazon.com/ko_kr/AmazonS3/latest/userguide/UsingMetadata.html#object-metadata502
@@ -259,23 +389,43 @@ public class MemeberServiceImpl implements MemberProfileService {
 
 
 
+
+        } catch (IOException e) {
+            // MultipartFile (클라이언트로부터 전달 받은)
+            // multipartFile.getInputStream() 예외
+            // AWS S3에 Call을 보내기 전 시점에서 예외가 발생하는 경우
+            e.printStackTrace();
+            throw new AWSProfileImageException(errorResponse("IOException, 회원 프로필 사진 업로드 API", 350, "/api/user/profile/image-upload"));
+
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
             e.printStackTrace();
-            return false;
+            throw new AWSProfileImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 업로드 API", 351, "/api/user/profile/image-upload"));
+
+
         } catch (SdkClientException e) {
             // Amazon S3 couldn't be contacted for a response, or the client
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
-            return false;
+            throw new AWSProfileImageException(errorResponse("SdkClientException, 회원 프로필 사진 업로드 API", 351, "/api/user/profile/image-upload"));
+
+
+        } catch (InterruptedException e) {
+            // void waitForCompletion() throws InterruptedException;
+            e.printStackTrace();
+            throw new AWSProfileImageException(errorResponse("InterruptedException, 회원 프로필 사진 업로드 API", 351, "/api/user/profile/image-upload"));
+
         }
 
-        return true;
     }
 
     @Override
-    public boolean deleteProfileImgInS3(String deleteName) {
+    public void deleteProfileImgInS3(String deleteName) {
+
+        // [예외처리]
+        // 회원탈퇴 및 이용제재를 받은 유저가 요청한 경우, SCG 서버에서 필터링
+        // 따라서 유저 인증에 대한 절차는 필요하지 않다.
 
         // 프로필 사진의 삭제 경우 -> 원본 사진 삭제 -> (Trigger) -> AWS Lambda로 리사이즈된 사진 삭제
         // origin/user-profile/파일명
@@ -284,19 +434,18 @@ public class MemeberServiceImpl implements MemberProfileService {
         // DeleteObjetctRequest 활용
         DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, originFileKey);
 
-        try {
-            // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
-            s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
-        } catch (AmazonServiceException e) {
-            log.error("프로필 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
-            return false;
-        }
 
-        // 예외 없이 이미지 삭제가 된 경우
-        return true;
+        try {
+
+            s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
+
+        } catch (AmazonServiceException e) {
+            // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다. (참고)
+            e.printStackTrace();
+            throw new AWSProfileImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 삭제 API", 351, "/api/user/profile/image-delete"));
+        }
     }
 
-    @SneakyThrows
     @Transactional
     public void mapDtoToEntityDoSignup(SignUpDto signUpDto) {
         // 회원가입 시점에 마지막에 이미 회원인 유저가 재가입 못하도록 처리
@@ -322,7 +471,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
 
         // [Exception]
-        if (member.isPresent()) throw new MemberNotFoundException(errorResponse("이미 회원가입한 유저가 회원가입 API 요청한 경우", 300));
+        if (member.isPresent()) throw new InappropriateRequestException(errorResponse("이미 회원가입한 유저가 회원가입 API 요청한 경우", 300, "/api/user/signup"));
 
 
         Member newMember = new Member()
@@ -353,7 +502,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
         // [Exception]
         // preMember == null -> RuntimeException -> Rollback -> 예외처리
-        if (preMember == null) throw new PreMemberNotFoundException(errorResponse("회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우", 301));
+        if (preMember == null) throw new PreMemberNotFoundException(errorResponse("회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우", 301, "/api/user/signup"));
 
 
         // 회원가입 1차 피드백 수정되면 그 때 처리.
@@ -369,9 +518,8 @@ public class MemeberServiceImpl implements MemberProfileService {
         userRepository.save(user);
     }
 
-
     // 유저 프로필 관련 API 예외 메시지 오브젝트 생성 및 리턴
-    public String errorResponse(String errMsg, int resultCode) {
+    public String errorResponse(String errMsg, int resultCode, String requestPath) {
 
         // [ErrorMessage]
         // {
@@ -392,20 +540,20 @@ public class MemeberServiceImpl implements MemberProfileService {
         String errorResponse = null;
 
         // 예외 처리 결과 클라이언트가 이동시킬 페이지 참조 값을 반환해야 하는 경우 에러 코드 범위
-        // (300 - 319)
+        // (300 - 349)
         // 300 : 이미 회원가입한 유저가 회원가입 API 요청한 경우
         // 301 : 회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우
         // 302 : 회원가입 2단계, 3단계 페이지 요청 시, 토큰 유효하지 않거나 토큰 없이 접근한 경우
 
         // 예외처리 결과 클라이언트가 __페이지를 요청해야 하는 경우
         // 해당 페이지 정보 포함해서 에러 메시지 반환
-        if (resultCode >= 300 && resultCode < 320) {
+        if (resultCode >= 300 && resultCode < 350) {
             errorMessage = ErrorMessage
                     .builder()
                     .statusCode(resultCode)
                     .timestamp(new Date())
                     .message(errMsg)
-                    .requestPath("/api/user/signup")
+                    .requestPath(requestPath)
                     .pathToMove("/shop/main/index") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
                     .build();
         } else {
@@ -414,7 +562,7 @@ public class MemeberServiceImpl implements MemberProfileService {
                     .statusCode(resultCode)
                     .timestamp(new Date())
                     .message(errMsg)
-                    .requestPath("/api/user/signup")
+                    .requestPath(requestPath)
                     .build();
 
         }

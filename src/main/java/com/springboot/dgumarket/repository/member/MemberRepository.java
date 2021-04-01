@@ -30,6 +30,10 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     // 회원으로 등록된 닉네임 중 중복되는 것이 있는 지 체크
     Member findByNickNameAndIsWithdrawnIs(String nickname, int isWithdrawn);
 
+    @Query("Select m From Member m Where m.id =:id and m.isWithdrawn = 0")
+    Member findByIdForChange(int id);
+
+
 
     // [회원 정보 조회] - 포로필 사진경로, 닉네임, 관심 카테고리
     // 추후에 신고 제제 추가
