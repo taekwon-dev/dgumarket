@@ -269,8 +269,6 @@ public class ProductServiceImpl implements ProductService {
         Member loginMember = null;
         Member targerMember = null;
         Product exceptProduct = null; // 유저가 올린 다른 물건들조회시 제외할 물건
-        boolean isPriceDesc; // 가격 내림차순(고가순)
-        boolean isPriceAsc; // 가격 오름차순(저가순)
 
         if(userId != null){ // 로그인한유저가 본인것조회
             targerMember = memberRepository.findById(userId.intValue());
@@ -301,16 +299,10 @@ public class ProductServiceImpl implements ProductService {
         };
         modelMapper.addMappings(listDtoPropertyMap);
 
-        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
         PageImpl<Product> userProducts = customProductRepository.findUserProducts(loginMember, targerMember, productSet, pageable, exceptProduct);
         List<ProductReadListDto> productReadListDtos = userProducts.getContent().stream()
                 .map(product -> modelMapper.map(product, ProductReadListDto.class))
                 .collect(Collectors.toList());
-
-        // 정렬 중 price 가 있을 경우
-        isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
-        isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
-        checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
 
 
         return ShopProductListDto.builder()
@@ -326,7 +318,6 @@ public class ProductServiceImpl implements ProductService {
     public ShopFavoriteListDto getFavoriteProducts(UserDetailsImpl userDetails, Pageable pageable) {
 
         Member member = memberRepository.findById(userDetails.getId());
-        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
         PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
             @Override
             protected void configure() {
@@ -356,13 +347,6 @@ public class ProductServiceImpl implements ProductService {
                         .map(product -> modelMapper.map(product, ProductReadListDto.class))
                         .collect(Collectors.toList());
 
-        // 정렬 중 price 가 있을 경우
-        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
-            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
-            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
-            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
-        };
-
         return ShopFavoriteListDto.builder()
                 .productsList(productReadListDtos)
                 .page_size(productReadListDtos.size())
@@ -389,7 +373,6 @@ public class ProductServiceImpl implements ProductService {
         }
 
         ModelMapper modelMapper = new ModelMapper();
-        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
         // Product -> ProductReadListDto
         org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
             @Override
@@ -412,13 +395,6 @@ public class ProductServiceImpl implements ProductService {
                 .map(product -> modelMapper.map(product, ProductReadListDto.class))
                 .collect(Collectors.toList());
 
-        // 정렬 중 price 가 있을 경우
-        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){
-            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
-            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
-            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
-        };
-
         ShopProductListDto shopProductListDto = ShopProductListDto.builder()
                 .page_size(productReadListDtos.size())
                 .productsList(productReadListDtos).build();
@@ -438,7 +414,6 @@ public class ProductServiceImpl implements ProductService {
         if(userDetails != null){
             member = memberRepository.findById(userDetails.getId());
         }
-        Comparator<ProductReadListDto> readListDtosComparator = Comparator.comparing((ProductReadListDto o) -> parseStringToInt(o.getPrice()));
         // Product -> ProductReadListDto
         org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
             @Override
@@ -461,12 +436,6 @@ public class ProductServiceImpl implements ProductService {
                 .stream()
                 .map(product -> modelMapper.map(product, ProductReadListDto.class))
                 .collect(Collectors.toList());
-
-        if (pageable.getSort().stream().anyMatch(e->e.getProperty().contentEquals("price"))){ // 정렬중 가격이 있을 경우
-            boolean isPriceDesc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isDescending());
-            boolean isPriceAsc = pageable.getSort().stream().anyMatch(e -> e.getProperty().contentEquals("price") && e.getDirection().isAscending());
-            checkPriceDescAsc(productReadListDtos, readListDtosComparator, isPriceDesc, isPriceAsc);
-        };
         return ShopProductListDto.builder()
                 .page_size(products.getNumberOfElements())
                 .productsList(productReadListDtos).build();
@@ -547,39 +516,5 @@ public class ProductServiceImpl implements ProductService {
             member.unlike(product); // 좋아요 취소
             return "nolike";
         }
-    }
-
-    // sort 중 price 가 있을 경우 정렬함 (price string + 원화 가 포함되어있어 어쩔 수 없다)
-    private void checkPriceDescAsc(List<ProductReadListDto> productReadListDtos, Comparator<ProductReadListDto> readListDtosComparator, boolean isPriceDesc, boolean isPriceAsc) {
-        if(isPriceAsc){ // 저가순
-            productReadListDtos.sort(readListDtosComparator);
-            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
-        }else if(isPriceDesc){ // 고가순
-            productReadListDtos.sort(readListDtosComparator.reversed());
-            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
-        }
-    }
-
-
-    public static int parseStringToInt(String priceString){
-        priceString = priceString.replaceAll("￦|,", ""); //remove commas
-        return (int)Math.round(Double.parseDouble(priceString)); //return rounded double cast to int
-    }
-
-
-
-    // 유저 탈퇴 / 물건 삭제 체크
-    public static void globalCheck(Product product) throws CustomControllerExecption {
-
-        // 탈퇴체크
-        if(product.getMember().getIsWithdrawn() == 1){
-            throw new CustomControllerExecption("탈퇴한 유저의 물건은 조회할 수 없습니다.", HttpStatus.NOT_FOUND);
-        }
-
-        // 삭제된 물건
-        if(product.getProductStatus() == 1){
-            throw new CustomControllerExecption("해당 물건은 삭제되었습니다.", HttpStatus.NOT_FOUND);
-        }
-
     }
 }
