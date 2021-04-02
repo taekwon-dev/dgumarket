@@ -2,7 +2,9 @@ package com.springboot.dgumarket.repository.product;
 
 
 import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.QMember;
@@ -32,8 +34,6 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
     public ProductRepositoryImpl() {
         super(Product.class); // domain class
     }
-
-
     // 전체 물건리스트조회
     @Override
     public PageImpl<Product> findAllPaging(Member loginMember, Pageable pageable) {
@@ -48,6 +48,14 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         if(loginMember != null) { // 로그인할경우(조건추가)
             query.where(notContainBlocks(loginMember, product.member)); // 물건들 중 내가 차단하거나/차단당한유저가 올린 물건제외
         }
+
+        for (Sort.Order order : pageable.getSort()) { // 물건의 경우 cast 과정을 거친다.
+            if(order.getProperty().equals("price")){ // price 의 경우에는 order by 과정에서 cast 과정을 거친다.
+                PathBuilder orderByExpression = new PathBuilder(Product.class, "product");
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, orderByExpression.getString(order.getProperty()).castToNum(Integer.class)));
+            }
+        }
+
         long totalCount = query.fetchCount();
         List products = Objects.requireNonNull(getQuerydsl()).applyPagination(pageable, query).fetch();
         return new PageImpl<>(products, pageable, totalCount);
@@ -66,6 +74,14 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         if(loginMember != null) { // 로그인할경우(조건추가)
             query.where(notContainBlocks(loginMember, product.member)); // 물건들 중 내가 차단하거나/차단당한유저가 올린 물건제외
         }
+
+        for (Sort.Order order : pageable.getSort()) {
+            if(order.getProperty().equals("price")){ // price(저가/고가 정렬) 의 경우에는 order by 과정에서 cast 과정을 거친다.
+                PathBuilder orderByExpression = new PathBuilder(Product.class, "product");
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, orderByExpression.getString(order.getProperty()).castToNum(Integer.class)));
+            }
+        }
+
         if(exceptProduct != null && pageable.getPageSize()==4){ // 상세페이지의 해당 유저의 다른 물건보기
             query.where(product.ne(exceptProduct)); // 상세물건페이지에서 보고 있는 물건 제외
         }
@@ -83,15 +99,23 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
        JPQLQuery<Product> query =  from(product); // 물건 등 중에서
        query.where(product.productStatus.eq(0) // 판매중인 것들만
                     .and(product.member.eq(user)) // 특정 유저의 물건들만
-                    .and(eqProductSet(productSet))); // 크게, 전체, 판매중, 판매완료
+                    .and(eqProductSet(productSet))) // 전체, 판매중, 판매완료
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize());
        if(loginMember != null){ // 로그인 한 유저의 경우, 차단고려(나오면 안됨)
            query.where(notContainBlocks(loginMember, product.member));
        }
+        for (Sort.Order order : pageable.getSort()) { // 물건의 경우 cast 과정을 거친다.
+            if(order.getProperty().equals("price")){ // price 의 경우에는 order by 과정에서 cast 과정을 거친다.
+                PathBuilder orderByExpression = new PathBuilder(Product.class, "product");
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, orderByExpression.getString(order.getProperty()).castToNum(Integer.class)));
+            }
+        }
+
 
        if(exceptProduct != null && pageable.getPageSize()==4){ // 상세페이지의 해당 유저의 다른 물건보기
            log.info("상세페이지의 해당유저의 다른 물건보기 물건 : {} ", exceptProduct.getId());
            query.where(product.ne(exceptProduct));
-//           query.where(product.ne(exceptProduct)); // 상세물건페이지에서 보고 있는 물건 제외
        }
        long totalCount = query.fetchCount();
        List products = getQuerydsl().applyPagination(pageable, query).fetch();
@@ -140,18 +164,25 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
-        // 관심물건중 물건 업로드 최신순 / 오래된 순
+        // 관심물건중 물건 업로드 최신순 / 오래된 순 / 가격순
         for (Sort.Order order : pageable.getSort()) {
             if(order.getProperty().equals("createdDate") && order.getDirection().isDescending()){
                 query.orderBy(product.createDatetime.desc());
             }else if(order.getProperty().equals("createdDate") && order.getDirection().isAscending()){
                 query.orderBy(product.createDatetime.asc());
+            }else if(order.getProperty().equals("price")){ // price 의 경우에는 order by 과정에서 cast 과정을 거친다.
+                PathBuilder orderByExpression = new PathBuilder(Product.class, "product");
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, orderByExpression.getString(order.getProperty()).castToNum(Integer.class)));
+            }else if(order.getProperty().equals("likeNums")){
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, product.likeNums));
+            }else if(order.getProperty().equals("chatroomNums")){
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, product.chatroomNums));
             }
         }
 
         long totalCount = query.fetchCount();
+//        List products = getQuerydsl().applyPagination(pageable, query).fetch();
         QueryResults<Product> productLikes = query.fetchResults();
-//        List<Product> products = getQuerydsl().applyPagination(pageable, query).fetch();
         return new PageImpl<>(productLikes.getResults(), pageable, totalCount);
     }
 
