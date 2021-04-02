@@ -15,6 +15,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
@@ -207,10 +208,12 @@ public class Member {
     // 유저 경고유무
     public boolean checkWarnActive(){
         if(this.getAlertNum() >= 3){ // 경고횟수가 3회 이상
+            System.out.println("[체크] 경고가 3회 이상");
             LocalDateTime today = LocalDateTime.now();
             if(this.getAlertDate() != null){ // 경고받은일이 있고
-                Period period = Period.between(this.getAlertDate().toLocalDate(), today.toLocalDate());
-                if(period.getDays() <= 7){ // 패널티기간 지나지 않았다면
+                System.out.println("[체크] 경고받은일이 있고");
+                Duration period = Duration.between(this.getAlertDate(), today);
+                if(period.abs().toDays() <= 7){ // 패널티기간 지나지 않았다면
                     return true;
                 }
             }
@@ -243,9 +246,6 @@ public class Member {
     public void unPunish(){
         this.setIsEnabled(0);
     }
-
-
-
 
     public int checkBlockStatus(Member targetUser){
         if(this.getBlockUsers().contains(targetUser)){

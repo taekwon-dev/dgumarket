@@ -30,17 +30,6 @@ import org.springframework.web.socket.config.annotation.*;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
-//    @Autowired
-//    private CustomStompJwtInterceptor stompHandler;
-//
-////    @Autowired
-////    private CustomOutboundChannelInterceptor customOutboundChannelInterceptor;
-//
-//    @Autowired
-//    private StompHandler inboundChannelStompHandler;
-//
-//    @Autowired
-////    private CustomErrorHandler customErrorHandler;
 
     @Autowired
     RedisChatRoomService redisChatRoomService;
@@ -102,10 +91,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             }
         });
     }
-
-//    @Override
-//    public void configureClientOutboundChannel(ChannelRegistration registration) {
-//        registration.interceptors(customOutboundChannelInterceptor);
-//    }
 
 }
