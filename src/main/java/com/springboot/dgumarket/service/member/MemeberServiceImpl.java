@@ -184,6 +184,7 @@ public class MemeberServiceImpl implements MemberProfileService {
                 .collect(Collectors.toSet());
 
         MemberInfoDto memberInfoDto = modelMapper.map(member, MemberInfoDto.class);
+        memberInfoDto.setWarn(member.checkWarnActive()); // 경고 유무 추가(by ms)
         memberInfoDto.setProductCategories(productCategoryDtoSet);
 
         // 회원 관심 카테고리의 ID 리스트로 매핑
