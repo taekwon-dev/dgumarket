@@ -49,7 +49,7 @@ prevFileName : 기존 파일명 (example.jpg)
 // 350 : SdkClientException, 회원 프로필 사진 업로드 API
 // 350 : InterruptedException, 회원 프로필 사진 업로드 API
 
-// 위 statusCode 응답 시, "요청하신 작업을 수행하지 못했습니다. 일시적인 현상이니 잠시 후 다시 시도해주세요. (오류코드 : statusCode)" Alert 띄어주고 해당 페이지(상품 업로드 페이지)에 그대로 유지 해주시면 됩니다. 
+// 위 statusCode 응답 시, "요청하신 작업을 수행하지 못했습니다. 일시적인 현상이니 잠시 후 다시 시도해주세요. (오류코드 : statusCode)" Alert 띄어주고 회원 정보 조회 페이지로 이동해주시면 됩니다.
 
 [HTTP/1.1 200]
 {
@@ -119,7 +119,7 @@ deleteFileName: 삭제할 파일명 (example.jpg)
 [프로필 사진 삭제 실패]
 // 351 : AmazonServiceException, 회원 프로필 사진 삭제 API
 
-// 위 statusCode 응답 시, "요청하신 작업을 수행하지 못했습니다. 일시적인 현상이니 잠시 후 다시 시도해주세요. (오류코드 : statusCode)" Alert 띄어주고 해당 페이지(상품 업로드 페이지)에 그대로 유지 해주시면 됩니다. 
+// 위 statusCode 응답 시, "요청하신 작업을 수행하지 못했습니다. 일시적인 현상이니 잠시 후 다시 시도해주세요. (오류코드 : statusCode)" Alert 띄어주고 회원 정보 조회 페이지로 이동해주시면 됩니다.
 
 [HTTP/1.1 200]
 {
