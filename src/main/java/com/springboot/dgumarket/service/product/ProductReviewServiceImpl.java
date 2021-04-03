@@ -76,7 +76,6 @@ public class ProductReviewServiceImpl implements ProductReviewService{
             throw new CustomControllerExecption("해당 유저에게 차단 당하여 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
-
         // 상대방 물건이 블라인드 또는 삭제 되었을 경우 예외처리하기
         if(product==null || product.getProductStatus()==1){throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.NOT_FOUND);}
         if(product.getProductStatus()==2){throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되어 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST);}
@@ -85,6 +84,10 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         Optional<ProductReview> productReview = productReviewRepository.findByProduct(product);
         log.info("addProductComment 실행");
         if(productReview.isPresent()){
+            if(productReview.get().getReviewMessage() != null){ // 이미 메시지가 작성되어 있는 상태라면
+                throw new CustomControllerExecption("이미 거래후기를 작성하였습니다.", HttpStatus.BAD_REQUEST);
+            }
+
             if(productReview.get().getConsumer() == member){ // 정말 리뷰어 자격인지 확인
                 LocalDateTime currentDate = LocalDateTime.now();
                 productReview.get().setReviewMessage(productCommentRequest.getProduct_comment()); // 리뷰 추가

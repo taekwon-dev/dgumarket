@@ -520,18 +520,6 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-
-    // sort 중 price 가 있을 경우 정렬함 (price string + 원화 가 포함되어있어 어쩔 수 없다)
-    private void checkPriceDescAsc(List<ProductReadListDto> productReadListDtos, Comparator<ProductReadListDto> readListDtosComparator, boolean isPriceDesc, boolean isPriceAsc) {
-        if(isPriceAsc){ // 저가순
-            productReadListDtos.sort(readListDtosComparator);
-            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
-        }else if(isPriceDesc){ // 고가순
-            productReadListDtos.sort(readListDtosComparator.reversed());
-            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
-        }
-    }
-
     public String errorResponse(String errMsg, int resultCode, String requestPath) {
 
         // [ErrorMessage]
