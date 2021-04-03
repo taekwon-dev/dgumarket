@@ -99,5 +99,40 @@ public class Product {
         this.productStatus = productStatus;
     }
 
+    public void updateProductTitle(String title) {
+        this.title = title;
+    }
+
+    public void updateProductPrice(String price) {
+        this.price = price;
+    }
+
+    public void updateProductInfo(String information) {
+        this.information = information;
+    }
+
+    public void updateProductImgDir(String imgDirectory) {
+        this.imgDirectory = imgDirectory;
+    }
+
+    public void updateProductIsNego(int isNego) {
+        this.isNego = isNego;
+    }
+
+    public void updateProductTranactionMode(int transactionModeId) {
+        this.transactionModeId = transactionModeId;
+    }
+
+    public void updateProductTransactionStatus(int transactionStatusId) {
+        this.transactionStatusId = transactionStatusId;
+    }
+
+    public void updateProductCategory(ProductCategory productCategory) {
+        this.productCategory = productCategory;
+    }
+
+
+
+
 
 }

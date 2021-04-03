@@ -14,7 +14,7 @@ import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.dto.member.*;
 import com.springboot.dgumarket.exception.ErrorMessage;
 import com.springboot.dgumarket.exception.InappropriateRequestException;
-import com.springboot.dgumarket.exception.aws.AWSProfileImageException;
+import com.springboot.dgumarket.exception.aws.AWSImageException;
 import com.springboot.dgumarket.exception.notFoundException.PreMemberNotFoundException;
 import com.springboot.dgumarket.model.member.PhoneVerification;
 import com.springboot.dgumarket.model.member.PreMember;
@@ -34,7 +34,6 @@ import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -395,26 +394,26 @@ public class MemeberServiceImpl implements MemberProfileService {
             // multipartFile.getInputStream() 예외
             // AWS S3에 Call을 보내기 전 시점에서 예외가 발생하는 경우
             e.printStackTrace();
-            throw new AWSProfileImageException(errorResponse("IOException, 회원 프로필 사진 업로드 API", 350, "/api/user/profile/image-upload"));
+            throw new AWSImageException(errorResponse("IOException, 회원 프로필 사진 업로드 API", 350, "/api/user/profile/image-upload"));
 
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
             e.printStackTrace();
-            throw new AWSProfileImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 업로드 API", 351, "/api/user/profile/image-upload"));
+            throw new AWSImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 업로드 API", 350, "/api/user/profile/image-upload"));
 
 
         } catch (SdkClientException e) {
             // Amazon S3 couldn't be contacted for a response, or the client
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
-            throw new AWSProfileImageException(errorResponse("SdkClientException, 회원 프로필 사진 업로드 API", 351, "/api/user/profile/image-upload"));
+            throw new AWSImageException(errorResponse("SdkClientException, 회원 프로필 사진 업로드 API", 350, "/api/user/profile/image-upload"));
 
 
         } catch (InterruptedException e) {
             // void waitForCompletion() throws InterruptedException;
             e.printStackTrace();
-            throw new AWSProfileImageException(errorResponse("InterruptedException, 회원 프로필 사진 업로드 API", 351, "/api/user/profile/image-upload"));
+            throw new AWSImageException(errorResponse("InterruptedException, 회원 프로필 사진 업로드 API", 350, "/api/user/profile/image-upload"));
 
         }
 
@@ -442,7 +441,7 @@ public class MemeberServiceImpl implements MemberProfileService {
         } catch (AmazonServiceException e) {
             // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다. (참고)
             e.printStackTrace();
-            throw new AWSProfileImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 삭제 API", 351, "/api/user/profile/image-delete"));
+            throw new AWSImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 삭제 API", 351, "/api/user/profile/image-delete"));
         }
     }
 

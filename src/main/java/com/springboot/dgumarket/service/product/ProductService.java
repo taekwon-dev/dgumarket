@@ -28,7 +28,7 @@ public interface ProductService {
     Product doUplaodProduct(ProductCreateDto productCreateDto);
 
     // 상품 정보 수정
-    Optional<Product> doUpdateProduct(ProductModifyDto productModifyDto);
+    Product doUpdateProduct(ProductModifyDto productModifyDto);
 
     void doDeleteProduct(int productId);
 

@@ -44,8 +44,12 @@ prevFileName : 기존 파일명 (example.jpg)
 }
 
 [프로필 사진 업로드 실패]
-회원 프로필 사진 업로드 API 예외 응답코드는 350, 351 입니다. (참고 : 351 코드에 포함된 예외는 총 3 가지 입니다.) 
-우선 이 예외 코드를 받은 경우는 결과적으로 프로필 사진을 제외한 나머지 정보만을 수정하도록 처리합니다. 자세한 내용은 아래 응답 코드 밑에 설명되어 있습니다.
+// 350 : IOException, 회원 프로필 사진 업로드 API
+// 350 : AmazonServiceException, 회원 프로필 사진 업로드 API
+// 350 : SdkClientException, 회원 프로필 사진 업로드 API
+// 350 : InterruptedException, 회원 프로필 사진 업로드 API
+
+// 위 statusCode 응답 시, "요청하신 작업을 수행하지 못했습니다. 일시적인 현상이니 잠시 후 다시 시도해주세요. (오류코드 : statusCode)" Alert 띄어주고 해당 페이지(상품 업로드 페이지)에 그대로 유지 해주시면 됩니다. 
 
 [HTTP/1.1 200]
 {
@@ -58,7 +62,7 @@ prevFileName : 기존 파일명 (example.jpg)
 
 [HTTP/1.1 200]
 {
-    "statusCode": 351,
+    "statusCode": 350,
     "timestamp": "2021-03-29T01:08:27.438+00:00",
     "message": "AmazonServiceException, 회원 프로필 사진 업로드 API",
     "requestPath": "/api/user/profile/image-upload",
@@ -67,7 +71,7 @@ prevFileName : 기존 파일명 (example.jpg)
 
 [HTTP/1.1 200]
 {
-    "statusCode": 351,
+    "statusCode": 350,
     "timestamp": "2021-03-29T01:08:27.438+00:00",
     "message": "SdkClientException, 회원 프로필 사진 업로드 API",
     "requestPath": "/api/user/profile/image-upload",
@@ -76,40 +80,11 @@ prevFileName : 기존 파일명 (example.jpg)
 
 [HTTP/1.1 200]
 {
-    "statusCode": 351,
+    "statusCode": 350,
     "timestamp": "2021-03-29T01:08:27.438+00:00",
     "message": "InterruptedException, 회원 프로필 사진 업로드 API",
     "requestPath": "/api/user/profile/image-upload",
     "pathToMove": null
-}
-
-
-유저 프로필 사진 업로드 과정에서 예외가 발생하는 경우는 다음과 같이 처리됩니다. 기존 프로필 사진의 상태를 그대로 유지하고 나머지 '닉네임', '관심 카테고리'를 수정처리합니다. 따라서 이 예외 응답을 받는 경우 회원정보 수정 API 요청을 위한 RequestBody는 아래와 같습니다.
-
-(태권 -> 진영) 직접 논의할 내용 (문서 외 직접 설명할 예정)
-아래와 같이 회원정보 수정 API 요청을 보내고, 성공 응답을 받은 경우 위 예외에 대한 상황을 유저에게 공유하기 위해 토스트 메시지 또는 Alert를 활용해서 "회원 프로필 사진 처리과정에서 예외가 발생했습니다. 다시 시도 후 예외가 반복되는 경우 관리자에게 문의바랍니다." 메시지를 안내합니다. 
-
-{
- "nickName" : "수정된 닉네임",
- "productCategories" :  
-    [ 
-                            {
-                                "category_id" : 1, 
-                                "category_name" : "도서"
-                            },
-                            {
-                                "category_id" : 12, 
-                                "category_name" : "홈 인테리어"
-                            },
-                                                    {
-                                "category_id" : 13, 
-                                "category_name" : "반려동물 용품"
-                            },
-                                                    {
-                                "category_id" : 14, 
-                                "category_name" : "기타"
-                            }
-    ]
 }
 ```
 
@@ -142,8 +117,10 @@ deleteFileName: 삭제할 파일명 (example.jpg)
 }
 
 [프로필 사진 삭제 실패]
-회원 프로필 사진 삭제 API 예외 응답코드는 351 입니다.
-우선 이 예외 코드를 받은 경우는 결과적으로 프로필 사진을 제외한 나머지 정보만을 수정하도록 처리합니다. 자세한 내용은 아래 응답 코드 밑에 설명되어 있습니다.
+// 351 : AmazonServiceException, 회원 프로필 사진 삭제 API
+
+// 위 statusCode 응답 시, "요청하신 작업을 수행하지 못했습니다. 일시적인 현상이니 잠시 후 다시 시도해주세요. (오류코드 : statusCode)" Alert 띄어주고 해당 페이지(상품 업로드 페이지)에 그대로 유지 해주시면 됩니다. 
+
 [HTTP/1.1 200]
 {
     "statusCode": 351,
@@ -151,34 +128,6 @@ deleteFileName: 삭제할 파일명 (example.jpg)
     "message": "AmazonServiceException, 회원 프로필 사진 삭제 API",
     "requestPath": "/api/user/profile/image-delete",
     "pathToMove": null
-}
-
-유저 프로필 사진 삭제 과정에서 예외가 발생하는 경우는 다음과 같이 처리됩니다. 기존 프로필 사진의 상태를 그대로 유지하고 나머지 '닉네임', '관심 카테고리'를 수정처리합니다. 따라서 이 예외 응답을 받는 경우 회원정보 수정 API 요청을 위한 RequestBody는 아래와 같습니다.
-
-(태권 -> 진영) 직접 논의할 내용 (문서 외 직접 설명할 예정)
-아래와 같이 회원정보 수정 API 요청을 보내고, 성공 응답을 받은 경우 위 예외에 대한 상황을 유저에게 공유하기 위해 토스트 메시지 또는 Alert를 활용해서 "회원 프로필 사진 처리과정에서 예외가 발생했습니다. 다시 시도 후 예외가 반복되는 경우 관리자에게 문의바랍니다." 메시지를 안내합니다. 
-
-{
- "nickName" : "수정된 닉네임",
- "productCategories" :  
-    [ 
-                            {
-                                "category_id" : 1, 
-                                "category_name" : "도서"
-                            },
-                            {
-                                "category_id" : 12, 
-                                "category_name" : "홈 인테리어"
-                            },
-                                                    {
-                                "category_id" : 13, 
-                                "category_name" : "반려동물 용품"
-                            },
-                                                    {
-                                "category_id" : 14, 
-                                "category_name" : "기타"
-                            }
-    ]
 }
 ```
 
