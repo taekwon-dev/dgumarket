@@ -26,4 +26,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 
     // 상품 정보가 데이터베이스에 저장된 시점 이후, 해당 상품의 고유 ID를 반환 -> 해당 상품 상세 페이지로 이동시키기 위함
     Product findTopByMemberOrderByCreateDatetimeDesc(Member member);
+
+    @Query("Select p from Product p Where p.id = :id And p.productStatus = 0")
+    Product findByIdNotOptional(int id);
 }

@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.service.awss3;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -7,6 +8,10 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.springboot.dgumarket.exception.ErrorMessage;
+import com.springboot.dgumarket.exception.aws.AWSImageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,12 +79,27 @@ public class AWSS3MultiImgService {
                 upload.waitForCompletion();
 
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
+                // DirectoryNotFoundException
+                // EndOfStreamException
+                // FileNotFoundException
+                // FileLoadException
+                // PathTooLongException
+
+                // MultipartFile - getInputStream()
                 e.printStackTrace();
+                throw new AWSImageException(errorResponse("IOException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
             } catch (InterruptedException e) {
+                // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
+                throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
+            } catch (AmazonServiceException e) {
+                // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
+                e.printStackTrace();
+                throw new AWSImageException(errorResponse("InterruptedException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
             }
         }
 
@@ -129,7 +150,8 @@ public class AWSS3MultiImgService {
                     // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
                     s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
                 } catch (AmazonServiceException e) {
-                    log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                    e.printStackTrace();
+                    throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API, 파일 타입 문제로 이미지 삭제 API 처리과정에서 예외발생", 352, "/api/multi-img/upload"));
                 }
             }
 
@@ -158,12 +180,27 @@ public class AWSS3MultiImgService {
                 // Optionally, wait for the upload to finish before continuing.
                 upload.waitForCompletion();
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
+                // DirectoryNotFoundException
+                // EndOfStreamException
+                // FileNotFoundException
+                // FileLoadException
+                // PathTooLongException
+
+                // MultipartFile - getInputStream()
                 e.printStackTrace();
+                throw new AWSImageException(errorResponse("IOException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
             } catch (InterruptedException e) {
+                // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
+                throw new AWSImageException(errorResponse("InterruptedException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
+            } catch (AmazonServiceException e) {
+                // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
+                e.printStackTrace();
+                throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
             }
         }
         return fileNameLists;
@@ -224,7 +261,8 @@ public class AWSS3MultiImgService {
                         // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
                         s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
                     } catch (AmazonServiceException e) {
-                        log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                        e.printStackTrace();
+                        throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API, 파일 타입 문제로 이미지 삭제 API 처리과정에서 예외발생", 352, "/api/multi-img/upload"));
                     }
                 }
 
@@ -254,12 +292,27 @@ public class AWSS3MultiImgService {
                 // Optionally, wait for the upload to finish before continuing.
                 upload.waitForCompletion();
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
+                // DirectoryNotFoundException
+                // EndOfStreamException
+                // FileNotFoundException
+                // FileLoadException
+                // PathTooLongException
+
+                // MultipartFile - getInputStream()
                 e.printStackTrace();
+                throw new AWSImageException(errorResponse("IOException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
             } catch (InterruptedException e) {
+                // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
+                throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
+            } catch (AmazonServiceException e) {
+                // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
+                e.printStackTrace();
+                throw new AWSImageException(errorResponse("InterruptedException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
+
             }
         }
         return fileNameLists;
@@ -290,7 +343,9 @@ public class AWSS3MultiImgService {
                 // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
                 s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
             } catch (AmazonServiceException e) {
-                log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                e.printStackTrace();
+                throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 삭제 API", 353, "/api/multi-img/delete"));
+
             }
 
         }
@@ -342,7 +397,9 @@ public class AWSS3MultiImgService {
                     // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
                     s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
                 } catch (AmazonServiceException e) {
-                    log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                    e.printStackTrace();
+                    throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 수정 API, 기존 파일명 수보다 큰 인덱스 사진의 원본 삭제 과정", 354, "/api/multi-img/patch"));
+
                 }
 
 
@@ -371,7 +428,9 @@ public class AWSS3MultiImgService {
                         // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
                         s3Client.deleteObject(deleteObjectRequest); // Could throw SdkClientException, AmazonServiceException.
                     } catch (AmazonServiceException e) {
-                        log.error("복수 이미지 삭제 요청 중 에러 / 에러 메시지 : " + e.getErrorMessage());
+                        e.printStackTrace();
+                        throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 수 API, 파일 타입 문제로 이미지 삭제 API 처리과정에서 예외발생", 354, "/api/multi-img/upload"));
+
                     }
                 }
 
@@ -401,12 +460,27 @@ public class AWSS3MultiImgService {
                     // Optionally, wait for the upload to finish before continuing.
                     upload.waitForCompletion();
 
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
+                    // DirectoryNotFoundException
+                    // EndOfStreamException
+                    // FileNotFoundException
+                    // FileLoadException
+                    // PathTooLongException
+
+                    // MultipartFile - getInputStream()
                     e.printStackTrace();
+                    throw new AWSImageException(errorResponse("IOException, 복수 이미지 사진 수정 API", 354, "/api/multi-img/patch"));
+
                 } catch (InterruptedException e) {
+                    // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                     e.printStackTrace();
+                    throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 수정 API", 354, "/api/multi-img/patch"));
+
+                } catch (AmazonServiceException e) {
+                    // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
+                    e.printStackTrace();
+                    throw new AWSImageException(errorResponse("InterruptedException, 복수 이미지 사진 수정 API", 354, "/api/multi-img/patch"));
+
                 }
 
             }
@@ -414,4 +488,60 @@ public class AWSS3MultiImgService {
         }
         return fileNameLists;
     }
+
+    public String errorResponse(String errMsg, int resultCode, String requestPath) {
+
+        // [ErrorMessage]
+        // {
+        //     int statusCode;
+        //     Date timestamp;
+        //     String message;
+        //     String requestPath;
+        //     String pathToMove;
+        // }
+
+        // errorCode에 따라서 예외 결과 클라이언트가 특정 페이지로 요청해야 하는 경우가 있다.
+        // 그 경우 pathToMove 항목을 채운다.
+
+        // init
+        ErrorMessage errorMessage = null;
+
+        // 최종 클라이언트에 반환 될 예외 메시지 (JsonObject as String)
+        String errorResponse = null;
+
+        // 예외 처리 결과 클라이언트가 이동시킬 페이지 참조 값을 반환해야 하는 경우 에러 코드 범위
+        // 예외처리 결과 클라이언트가 __페이지를 요청해야 하는 경우
+        // 해당 페이지 정보 포함해서 에러 메시지 반환
+        if (resultCode >= 300 && resultCode < 350) {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .pathToMove("/shop/main/index") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
+                    .build();
+        } else {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .build();
+
+        }
+
+        Gson gson = new GsonBuilder().create();
+
+        errorResponse = gson.toJson(errorMessage);
+
+        return errorResponse;
+    }
+
+
+
+
+
+
 }

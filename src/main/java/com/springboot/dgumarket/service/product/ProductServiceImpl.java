@@ -1,9 +1,13 @@
 package com.springboot.dgumarket.service.product;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.dto.product.*;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
+import com.springboot.dgumarket.exception.ErrorMessage;
+import com.springboot.dgumarket.exception.NotFoundException.ProductNotFoundException;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
@@ -26,10 +30,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,11 +67,15 @@ public class ProductServiceImpl implements ProductService {
 
         ProductCategory productCategory = productCategoryRepository.findById(productCreateDto.getProductCategory());
 
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Authentication 객체 NPE 미리 방지 (= JwtInterceptor)
+        // Authentication Provider가 객체 주입을 실패하는 경우 -> Spring Cloud Gateway 서버에서 미리 점검
+        // 예외적인 상황으로 Dgumarket 서버로 직접 접근하는 경우에도 JwtInterceptor에서 필터 역학을 한다. (인증 실패로 Authentication 주입 실패 시 -> 로그인 페이지 리다이렉트)
+        // 단, 로그인 페이지 JS 파일이 참조하는 경로가 SCG로 향할 수 있게 조치해야 할 것
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-
-        // 예외처리
         Member member = Member.builder()
                 .id(userDetails.getId())
                 .build();
@@ -84,42 +90,39 @@ public class ProductServiceImpl implements ProductService {
                 .isNego(productCreateDto.getIsNego())                           // 가격 조율 가능 여부 (0 : 가능, 1 : 불가능)
                 .transactionStatusId(productCreateDto.getTransactionStatusId()) // 거래 상태 코드
                 .transactionModeId(productCreateDto.getTransactionModeId())     // 거래 방식 코드
-                .selfProductStatus(productCreateDto.getSelfProductStatus())     // 판매자 자체 상품 상태 평가
+                .selfProductStatus(1)                                           // 판매자 자체 상품 상태 평가 (1로 고정 - 활용X)
                 .build();
 
-        // 예외처리
         productRepository.save(product);
-
         // 응답 -> 업로드한 상푸의 고유 아이디를 반환
-        Product productForId = productRepository.findTopByMemberOrderByCreateDatetimeDesc(member); // 예외처리
+
+        Product productForId = productRepository.findTopByMemberOrderByCreateDatetimeDesc(member);
         return productForId;
     }
 
     // 상품 수정
     @Transactional
     @Override
-    public Optional<Product> doUpdateProduct(ProductModifyDto productModifyDto) {
+    public Product doUpdateProduct(ProductModifyDto productModifyDto) {
 
-        // 예외처리 해당 상품을 찾을 수 없는 경우 예외처리 포인트 (orElseThorw 활용)
-        Optional<Product> product = productRepository.findById(productModifyDto.getProductId());
+        // 예외처리 해당 상품을 찾을 수 없는 경우 예외처리 포인트 (NPE)
+        Product product = productRepository.findByIdNotOptional(productModifyDto.getProductId());
+
+        if (product == null) throw new ProductNotFoundException(errorResponse("수정하려는 상품 정보를 찾을 수 없는 경우", 305, "/api/product/modify"));
 
         // 상품의 '카테고리'를 수정
         // 바뀐 카테고리 코드 값을 활용해서 카테고리 오브젝트를 불러온 후 수정
         ProductCategory updatedCategory = productCategoryRepository.findById(productModifyDto.getProductCategory());
 
-        // @Transactional -> Update Query 확인
-        // 엔티티 영속성 및 JPA 관련 공부 필수
-        product.ifPresent(productForUpdate -> {
-            productForUpdate.setTitle(productModifyDto.getTitle());
-            productForUpdate.setPrice(productModifyDto.getPrice());
-            productForUpdate.setInformation(productModifyDto.getInformation());
-            productForUpdate.setImgDirectory(productModifyDto.getImgDirectory());
-            productForUpdate.setProductCategory(updatedCategory);
-            productForUpdate.setIsNego(productModifyDto.getIsNego());
-            productForUpdate.setTransactionModeId(productModifyDto.getTransactionModeId());
-            productForUpdate.setTransactionStatusId(productModifyDto.getTransactionStatusId());
-            productForUpdate.setSelfProductStatus(productModifyDto.getSelfProductStatus());
-        });
+        // @Transactional -> Update Query 확인 (데이터가 다른 경우)
+        product.updateProductTitle(productModifyDto.getTitle());
+        product.updateProductPrice(productModifyDto.getPrice());
+        product.updateProductInfo(productModifyDto.getInformation());
+        product.updateProductImgDir(productModifyDto.getImgDirectory());
+        product.updateProductIsNego(productModifyDto.getIsNego());
+        product.updateProductTranactionMode(productModifyDto.getTransactionModeId());
+        product.updateProductTransactionStatus(productModifyDto.getTransactionStatusId());
+        product.updateProductCategory(updatedCategory);
 
         return product;
     }
@@ -130,13 +133,12 @@ public class ProductServiceImpl implements ProductService {
 
         // 예외 해당 상품에 맞는 데이터가 없는 경우 (예외처리)
         // 상품 고유 아이디로 해당 엔티티를 불러온다.
-        Optional<Product> product = productRepository.findById(productId);
+        Product product = productRepository.findByIdNotOptional(productId);
 
-        // 컨트롤러에서 인자로 받은 상품 고유아이디의 Status 값을 변경
-        product.ifPresent(productForDelete -> {
-            // {productStatus : 1 ; 삭제}
-            productForDelete.setProductStatus(1);
-        });
+        if (product == null) throw new ProductNotFoundException(errorResponse("삭제하려는 상품 정보를 찾을 수 없는 경우", 305, "/api/product/delete"));
+
+        // productStatus {0 : 등록, 1 : 삭제}
+        product.updateProductStatus(1);
 
     }
 
@@ -516,5 +518,67 @@ public class ProductServiceImpl implements ProductService {
             member.unlike(product); // 좋아요 취소
             return "nolike";
         }
+    }
+
+
+    // sort 중 price 가 있을 경우 정렬함 (price string + 원화 가 포함되어있어 어쩔 수 없다)
+    private void checkPriceDescAsc(List<ProductReadListDto> productReadListDtos, Comparator<ProductReadListDto> readListDtosComparator, boolean isPriceDesc, boolean isPriceAsc) {
+        if(isPriceAsc){ // 저가순
+            productReadListDtos.sort(readListDtosComparator);
+            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
+        }else if(isPriceDesc){ // 고가순
+            productReadListDtos.sort(readListDtosComparator.reversed());
+            productReadListDtos.forEach(e -> log.info("after : {}", e.getPrice()));
+        }
+    }
+
+    public String errorResponse(String errMsg, int resultCode, String requestPath) {
+
+        // [ErrorMessage]
+        // {
+        //     int statusCode;
+        //     Date timestamp;
+        //     String message;
+        //     String requestPath;
+        //     String pathToMove;
+        // }
+
+        // errorCode에 따라서 예외 결과 클라이언트가 특정 페이지로 요청해야 하는 경우가 있다.
+        // 그 경우 pathToMove 항목을 채운다.
+
+        // init
+        ErrorMessage errorMessage = null;
+
+        // 최종 클라이언트에 반환 될 예외 메시지 (JsonObject as String)
+        String errorResponse = null;
+
+        // 예외 처리 결과 클라이언트가 이동시킬 페이지 참조 값을 반환해야 하는 경우 에러 코드 범위
+        // 예외처리 결과 클라이언트가 __페이지를 요청해야 하는 경우
+        // 해당 페이지 정보 포함해서 에러 메시지 반환
+        if (resultCode >= 300 && resultCode < 350) {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .pathToMove("/shop/main/index") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
+                    .build();
+        } else {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .build();
+
+        }
+
+        Gson gson = new GsonBuilder().create();
+
+        errorResponse = gson.toJson(errorMessage);
+
+        return errorResponse;
     }
 }

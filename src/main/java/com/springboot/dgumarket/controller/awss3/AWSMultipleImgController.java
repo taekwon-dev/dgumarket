@@ -1,6 +1,7 @@
 package com.springboot.dgumarket.controller.awss3;
 
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.awss3.AWSS3MultiImgService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class AWSMultipleImgController {
     private AWSS3MultiImgService awss3MultiImgService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ApiResponseEntity> uploadMultiImage(
+    public ResponseEntity<ApiResultEntity> uploadMultiImage(
             Authentication authentication
             , @RequestParam("uploadDirPrefix") String uploadDirPrefix
             , @RequestParam(value = "prevFileNames", required = false) String prevFileNames
@@ -84,24 +85,20 @@ public class AWSMultipleImgController {
             }
         }
 
-        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
                 .message("AWS 복수 이미지 업로드 성공")
-                .data(fileNameLists.toString()) // 업로드 된 이미지 파일명 리스트 (to String)
-                .status(200)
+                .responseData(fileNameLists.toString()) // 업로드 된 이미지 파일명 리스트 (to String)
+                .statusCode(200)
                 .build();
 
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<ApiResponseEntity> deleteMultiImage(
-            Authentication authentication
-            , @RequestParam("prevFileNames") String prevFileNames     // 삭제할 이미지 파일명 리스트
-            , @RequestParam("uploadDirPrefix") String uploadDirPrefix // 삭제할 이미지의 원본이 저장된 위치 Prefix (리사이즈 이미지 -> AWS Lambda)
+    public ResponseEntity<ApiResultEntity> deleteMultiImage(
+            @RequestParam("prevFileNames") String prevFileNames,     // 삭제할 이미지 파일명 리스트
+            @RequestParam("uploadDirPrefix") String uploadDirPrefix  // 삭제할 이미지의 원본이 저장된 위치 Prefix (리사이즈 이미지 -> AWS Lambda)
             ) {
-
-        // 인증 관련 예외처리
-        if (authentication == null) return null;
 
         // prevFileName -> 공백 제거
         prevFileNames = prevFileNames.replace(" ", "");
@@ -117,10 +114,10 @@ public class AWSMultipleImgController {
         awss3MultiImgService.doDeleteAllImgViaPrevNamesAll(prevFileNameList, uploadDirPrefix);
 
 
-        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
                 .message("AWS 복수 이미지 삭제 성공")
-                .data(null) // 삭제 이후, (상품) 이미지 저장 경로 값을 null로 지정하기 위해 null 반환
-                .status(200)
+                .responseData(null) // 삭제 이후, (상품) 이미지 저장 경로 값을 null로 지정하기 위해 null 반환
+                .statusCode(200)
                 .build();
 
         // 삭제 후 이미지 경로 값을 null로 반환한다.
@@ -130,15 +127,12 @@ public class AWSMultipleImgController {
 
 
     @PostMapping("/patch")
-    public ResponseEntity<ApiResponseEntity> patchMultiImage(
-            Authentication authentication
-            , @RequestParam("prevFileNames") String prevFileNames     // 기존 이미지 파일명 리스트
-            , @RequestParam("uploadDirPrefix") String uploadDirPrefix // 업로드 또는 삭제할 이미지의 원본이 저장된 위치 Prefix (업로드 -> 리사이즈 Lambda, 삭제 -> 삭제 Lambda)
-            , @RequestParam("files") MultipartFile[] multipartFiles   // 이미지 파일s
+    public ResponseEntity<ApiResultEntity> patchMultiImage(
+            @RequestParam("prevFileNames") String prevFileNames,     // 기존 이미지 파일명 리스트
+            @RequestParam("uploadDirPrefix") String uploadDirPrefix, // 업로드 또는 삭제할 이미지의 원본이 저장된 위치 Prefix (업로드 -> 리사이즈 Lambda, 삭제 -> 삭제 Lambda)
+            @RequestParam("files") MultipartFile[] multipartFiles    // 이미지 파일s
     ) {
 
-        // 인증 관련 예외처리
-        if (authentication == null) return null;
 
         // init
         List<String> fileNameLists = null; // AWS 복수 이미지 업로드 반환 값 (파일명 리스트)
@@ -158,10 +152,10 @@ public class AWSMultipleImgController {
         fileNameLists = awss3MultiImgService.doPatchImgViaPrevNames(multipartFiles, prevFileNameList, uploadDirPrefix);
 
 
-        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                .message("AWS 복수 업로드 + 삭제 성공 : N -> N - M")
-                .data(fileNameLists.toString()) // 업로드 된 이미지 파일명 리스트 (to String)
-                .status(200)
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                .message("AWS 복수 이미지 수정 성공 (=복수 업로드 + 삭제 성공)")
+                .responseData(fileNameLists.toString()) // 업로드 된 이미지 파일명 리스트 (to String)
+                .statusCode(200)
                 .build();
 
         // 삭제 후 이미지 경로 값을 null로 반환한다.
