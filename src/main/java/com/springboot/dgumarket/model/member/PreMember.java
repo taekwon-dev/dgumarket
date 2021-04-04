@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -30,6 +32,12 @@ public class PreMember {
     @NotBlank
     private String webmailJwt;
 
+    // 핸드폰 번호 인증 문자 1일 최대 5회 제한 처리를 위한 count
+    private int count;
+
+    // 인증문자 발송 시간
+    private LocalDateTime smsSendDatetime;
+
     // 웹메일을 통해 가입한 회원 여부를 식별 (0 : 비회원, 1 : 회원, 2: 탈퇴 회원)
     // default : 0 (= 최초 웹메일 인증 API 요청 시점에는 비회원 상태이므로)
     private int status;
@@ -48,6 +56,7 @@ public class PreMember {
     // 웹메일 인증 API 또는 핸드폰 인증 과정에서 일부 컬럼이 마지막으로 업데이트 된 시점
     @UpdateTimestamp
     private LocalDateTime updateDatetime;
+
 
 
     // 웹메일 인증 API 요청 시 웹메일과 해당 웹메일에 1:1 대응되는 고유 식별값 객체 생성 -> save() or init()
@@ -75,8 +84,16 @@ public class PreMember {
         this.phoneVerificationNumber = phoneVerificationNumber;
     }
 
+    public void updateSmsSendDatetime(LocalDateTime smsSendDatetime) {
+        this.smsSendDatetime = smsSendDatetime;
+    }
+
     public void updatePreMemberStatus(int status) {
         this.status = status;
+    }
+
+    public void updateCount(int count) {
+        this.count = count;
     }
 
     public void initPhoneNumber() {
@@ -85,6 +102,10 @@ public class PreMember {
 
     public void initPhoneVerificationNumber() {
         this.phoneVerificationNumber = null;
+    }
+
+    public void initCount() {
+        this.count = 1;
     }
 
 

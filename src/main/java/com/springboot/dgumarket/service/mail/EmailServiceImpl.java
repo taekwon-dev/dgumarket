@@ -67,6 +67,7 @@ public class EmailServiceImpl implements EmailService {
             preMember.initPhoneNumber();
             preMember.initPhoneVerificationNumber();
 
+
             // 기존 정보 중 -> 웹메일, 웹메일 대응 고유값 -> 값 변경
             preMember.updateWebMailJwt(webMailJwt);
 

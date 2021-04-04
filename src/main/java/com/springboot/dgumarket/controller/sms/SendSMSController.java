@@ -28,16 +28,8 @@ public class SendSMSController {
     @PostMapping(value = "/verify-phone", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResultEntity> doSendSMSForPhone(@RequestBody VerifyPhoneDto verifyPhoneDto) {
 
-        smsService.doSendSMSForPhone(verifyPhoneDto);
-
-        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                .statusCode(200)
-                .message("인증문자가 발송되었습니다.")
-                .responseData(null)
-                .build();
-
-
-        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        ApiResultEntity apiResultEntity = smsService.doSendSMSForPhone(verifyPhoneDto);
+        return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
     }
 
     // 핸드폰 번호 변경 API

@@ -250,7 +250,7 @@ public class MemeberServiceImpl implements MemberProfileService {
             apiResultEntity = ApiResultEntity
                     .builder()
                     .statusCode(1)
-                    .message("기존 비밀번호의 값이 일치하지 않은 경우")
+                    .message("[비밀번호 변경 실패]기존 비밀번호의 값이 일치하지 않은 경우")
                     .responseData(null)
                     .build();
 
@@ -262,7 +262,20 @@ public class MemeberServiceImpl implements MemberProfileService {
             apiResultEntity = ApiResultEntity
                     .builder()
                     .statusCode(2)
-                    .message("새 비밀번호와 새 비밀번호 확인 값이 서로 다릅니다.")
+                    .message("[비밀번호 변경 실패]새 비밀번호와 새 비밀번호 확인 값이 서로 일치하지 않은 경우")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        // 3. 기존(=현재) 비밀번호와 새 비밀번호가 동일한 경우 (-> 변경 실패)
+        // 새로 지정할 비밀번호가 서로 일치하는 것 전제
+        if (changePwdDto.getPrevPassword().equals(changePwdDto.getNewPassword())) {
+            apiResultEntity = ApiResultEntity
+                    .builder()
+                    .statusCode(3)
+                    .message("[비밀번호 변경 실패]기존 비밀번호와 새 비밀번호가 동일한 경우")
                     .responseData(null)
                     .build();
 
@@ -299,7 +312,7 @@ public class MemeberServiceImpl implements MemberProfileService {
             apiResultEntity = ApiResultEntity
                     .builder()
                     .statusCode(1)
-                    .message("[인증 실패]핸드폰 인증 절차 초기화")
+                    .message("[인증 실패]인증 대기 중인 핸드폰 번호, 인증 번호 정보를 찾을 수 없습니다.")
                     .responseData(null)
                     .build();
 

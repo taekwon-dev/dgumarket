@@ -44,7 +44,7 @@ ___
 // 인증문자 발송된 경우 -> 메시지 값을 그래도 안내 메시지로 띄어 주시면 됩니다. 
 {
     "statusCode": 200,
-    "message": "인증문자가 발송되었습니다.",
+    "message": "인증문자가 발송됐습니다.",
     "responseData": null
 }
 
@@ -79,6 +79,15 @@ ___
     "message": "알리고 문자 전송 실패, 실패 사유 : '실패사유'",
     "requestPath": "/api/send-sms/verify-phone",
     "pathToMove": null
+}
+
+
+// * 2021-04-03 추가된 부분 *
+// 1일 최대 5회 인증문자 발송 제한 관련 응답
+{
+    "statusCode": 1,
+    "message": "1일 5회 이상 요청 제한으로 인증문자 발송 실패",
+    "responseData": null
 }
 
 ```
