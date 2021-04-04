@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 public interface SMSService {
 
-    void doSendSMSForPhone(VerifyPhoneDto verifyPhoneDto);
+    ApiResultEntity doSendSMSForPhone(VerifyPhoneDto verifyPhoneDto);
 
     ApiResultEntity doSendSMSForChangePhone(int userId, ChangePhoneDto changePhoneDto);
 

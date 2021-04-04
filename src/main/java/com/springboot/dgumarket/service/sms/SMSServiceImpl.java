@@ -50,10 +50,17 @@ public class SMSServiceImpl implements SMSService {
 
     @Transactional
     @Override
-    public void doSendSMSForPhone(VerifyPhoneDto verifyPhoneDto) {
+    public ApiResultEntity doSendSMSForPhone(VerifyPhoneDto verifyPhoneDto) {
 
-        // init
-        int resultValue = 0;
+        // ResponseEntity
+        ApiResultEntity apiResultEntity = null;
+
+        // 핸드폰 인증 요청 횟수 (1일 5회 제한)
+        // 초기화 1 (인증문자 발송 API 요청 시점)
+        int count = 1;
+
+        // 마지막 요청 날짜 (1일 5회 제한)
+        LocalDateTime lastUpadateDateTime = null;
 
         // 수신자 웹메일 (회원가입 절차 중)
         String webMail = verifyPhoneDto.getWebMail();
@@ -72,54 +79,70 @@ public class SMSServiceImpl implements SMSService {
         // {errorCode : 0 -> 메인 페이지로 이동 시키기 위해 클라이언트에게 메인 페이지 경로 응답}
         if (preMember == null) throw new AligoSendException(errorResponse("회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우", 301, "/api/send-sms/verify-phone"));
 
-        preMember.updatePhoneNumber(phoneNumber);
-        preMember.updatePhoneVerificationNumber(verificationNumber);
+        // 인증문자 발송 횟수 (1일 기준)
+        count = preMember.getCount();
+
+        if (count < 5) {
+            // 웹메일 인증 시 해당 로우가 이미 생성됐으므로, null인 핸드폰 번호, 인증번호 컬럼에 값 지정
+            preMember.updatePhoneNumber(phoneNumber);
+            preMember.updatePhoneVerificationNumber(verificationNumber);
+
+            // 현재 count ++ 값
+            count++;
+            preMember.updateCount(count);
+            // 인증문자 발송 시간 업데이트
+            preMember.updateSmsSendDatetime(LocalDateTime.now());
+
+            // 인증문자 발송
+            sendSMS(verificationNumber, phoneNumber);
+        } else {
+
+            // 마지막 요청 DateTime
+            lastUpadateDateTime = preMember.getSmsSendDatetime();
+
+            // ex) 20210330
+            String lastUpdateDate = lastUpadateDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String nowDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
 
-        // 문자 본문 내용 (인증문자 포함)
-        String text = "[인증번호 : " + verificationNumber + "] - 동대방네 (타인노출금지)";
+            if (Integer.parseInt(lastUpdateDate) < Integer.parseInt(nowDate)) {
+                // 웹메일 인증 시 해당 로우가 이미 생성됐으므로, null인 핸드폰 번호, 인증번호 컬럼에 값 지정
+                preMember.updatePhoneNumber(phoneNumber);
+                preMember.updatePhoneVerificationNumber(verificationNumber);
 
+                // count 1로 초기화
+                preMember.initCount();
+                // 인증문자 발송 시간 업데이트
+                preMember.updateSmsSendDatetime(LocalDateTime.now());
 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("key", "god7s23jii5u2whi3ymlezr9jinfzxao"); // application.yml 값으로 재설정
-        params.add("user_id", "dgumarket");                    // application.yml 값으로 재설정
-        params.add("sender", "01022292983");                   // application.yml 값으로 재설정
-        params.add("receiver", phoneNumber);
-        params.add("msg", text);
-//        params.add("testmode_yn", "Y");
+                // 인증문자 발송
+                sendSMS(verificationNumber, phoneNumber);
 
+            } else {
+                // 1일 5회 초과하는 경우
+                // 문자 전송 실패
+                apiResultEntity = ApiResultEntity
+                        .builder()
+                        .statusCode(1)
+                        .message("1일 5회 이상 요청 제한으로 인증문자 발송 실패")
+                        .responseData(null)
+                        .build();
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(BASE_URL, params, String.class);
-
-        // 문자 응답 값 파싱 예외
-        try {
-
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(responseEntity.getBody());
-
-            // 결과 메세지( result_code 가 0 보다 작은경우 실패사유 표기)
-            // https://smartsms.aligo.in/admin/api/spec.html
-            resultValue = Integer.parseInt(jsonObject.get("result_code").toString());
-
-
-            // Rollback 처리
-            if (resultValue < 0) {
-
-                // [Exception]
-                // {errorCode < 0 : 인증문자 발송이 실패했습니다. 다시 한 번 시도하시고 계속 문제가 있는 경우 관리자에게 문의해주세요. (클라이언트 측 안내)}
-                throw new AligoSendException(errorResponse("알리고 문자 전송 실패, 실패 사유 : " + jsonObject.get("message").toString(), resultValue, "/api/send-sms/verify-phone"));
+                return apiResultEntity;
             }
-
-        } catch (ParseException e) {
-            // ParseException (Not RuntimeException = Checked Exception)
-            // Unchecked Exception -> RuntimeException
-
-
-            // [Exception]
-            // {errorCode < 0 : 인증문자 발송이 실패했습니다. 다시 한 번 시도하시고 계속 문제가 있는 경우 관리자에게 문의해주세요. (클라이언트 측 안내)}
-            throw new JsonParseFailedException(errorResponse("알리고 문자 전송 API 응답 ParseException", -100, "/api/send-sms/verify-phone"));
         }
+
+        apiResultEntity = ApiResultEntity
+                .builder()
+                .statusCode(200)
+                .message("인증문자가 발송됐습니다.")
+                .responseData(null)
+                .build();
+
+        return apiResultEntity;
+
+
+
     }
 
     @Transactional
@@ -129,10 +152,8 @@ public class SMSServiceImpl implements SMSService {
         // ResponseEntity
         ApiResultEntity apiResultEntity = null;
 
-        // 알리고 API 서버 응답 코드
-        int resultCode = 0;
-
         // 핸드폰 인증 요청 횟수 (1일 5회 제한)
+        // 초기화 1 (인증문자 발송 API 요청 시점)
         int count = 1;
 
         // 마지막 요청 날짜 (1일 5회 제한)
@@ -302,7 +323,7 @@ public class SMSServiceImpl implements SMSService {
 
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("key", "god7s23jii5u2whi3ymlezr9jinfzxaoㅇ"); // application.yml 값으로 재설정
+        params.add("key", "god7s23jii5u2whi3ymlezr9jinfzxao"); // application.yml 값으로 재설정
         params.add("user_id", "dgumarket");                    // application.yml 값으로 재설정
         params.add("sender", "01022292983");                   // application.yml 값으로 재설정
         params.add("receiver", phoneNumber);
