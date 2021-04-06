@@ -278,41 +278,80 @@ public class ChatMessageServiceImpl implements ChatMessageService {
              *              * ( 사용자는 어떻게 구독을 할 것인가. , 새로운 액션을 보내자,
              *              *      [v1 // 여기서 구조가 다르다. , 기존 만들어진 채팅방(이미 누군가 대화하여 생긴 채팅방)에 들어갈 떄 서버에 채팅방 가입하도록 하는 메시지를 전달하는 구조 ]
              *      [v2 사용자로부터 메시지를 받자마자 채팅방에 가입시킨다. ]
+             *
+             *      4/5 추가
+             *      [채팅으로 거래하기 시, 여러개의 이미지파일을 업로드를 통해 채팅방을 개설하는 경우]
              */
             logger.info("[/MESSAGE] room is not existed, room : {}", chatRoom);
+
             ChatRoom newChatRoom = ChatRoom.builder()
                     .consumer(sender)
                     .seller(receiver)
                     .product(product.get())
                     .build();
             ChatRoom savedChatroom = chatRoomRepository.save(newChatRoom);
+            List<StompReceivedMessage> chatMessageDtoList = new ArrayList<>();
+            if(sendMessage.getMessageType() == 1){ // 채팅으로 거래시 최초로 파일을 올리는 경우
+                String[] filelist = sendMessage.getMessage()
+                        .replace("[", "")
+                        .replace("]", "")
+                        .split(", ");
+                System.out.println("filelist4.length = " + filelist.length);
+                for (int i = 0; i < filelist.length; i++) {
 
+                    ChatMessage chatMessage = chatMessageRepository.save(ChatMessage.builder() // 메시지 저장
+                                    .message(filelist[i])
+                                    .msgDate(LocalDateTime.now())
+                                    .msgStatus(UNREAD)
+                                    .msgType(1)
+                                    .receiver(sender)
+                                    .sender(sender)
+                                    .product(product.get())
+                                    .roomId(savedChatroom.getRoomId()).build());
+                    StompReceivedMessage stompReceivedMessage = new StompReceivedMessage();
+                    // 매핑
+                    stompReceivedMessage.setChatMessageUserDto(modelMapper.map(chatMessage.getSender(), ChatMessageUserDto.class)); // 보내는이 정보
+                    stompReceivedMessage.setChatRoomProductDto(modelMapper.map(product.get(), ChatRoomProductDto.class));
+                    stompReceivedMessage.setRoomId(chatMessage.getRoomId());
+                    stompReceivedMessage.setMessageDate(chatMessage.getMsgDate());
+                    stompReceivedMessage.setMessage(chatMessage.getMessage());
+                    stompReceivedMessage.setMessage_type(chatMessage.getMsgType());
+                    stompReceivedMessage.setMessageStatus(chatMessage.getMsgStatus());
 
-            logger.info("[/MESSAGE] create new chat mysql chat room by message - chatroom : {}, message: {}}", newChatRoom.toString(), sendMessage.getMessage());
-            savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(UNREAD, savedChatroom.getRoomId(), product.get(), receiver, sender));
-            logger.info("[/MESSAGE] save the message : {}}", savedMessage.toString());
+                    // 전달할 메시지리스트에 추가
+                    chatMessageDtoList.add(stompReceivedMessage);
+                }
+            }else{
+                logger.info("[/MESSAGE] create new chat mysql chat room by message - chatroom : {}, message: {}}", newChatRoom.toString(), sendMessage.getMessage());
+                savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(UNREAD, savedChatroom.getRoomId(), product.get(), receiver, sender));
+                logger.info("[/MESSAGE] save the message : {}}", savedMessage.toString());
 
-            // 매핑
-            responseMessage.setChatMessageUserDto(modelMapper.map(savedMessage.getSender(), ChatMessageUserDto.class)); // 보내는이 정보
-            responseMessage.setChatRoomProductDto(modelMapper.map(product.get(), ChatRoomProductDto.class));
-            responseMessage.setRoomId(savedMessage.getRoomId());
-            responseMessage.setMessageDate(savedMessage.getMsgDate());
-            responseMessage.setMessage(savedMessage.getMessage());
-            responseMessage.setMessage_type(savedMessage.getMsgType());
-            responseMessage.setMessageStatus(savedMessage.getMsgStatus());
+                // 매핑
+                responseMessage.setChatMessageUserDto(modelMapper.map(savedMessage.getSender(), ChatMessageUserDto.class)); // 보내는이 정보
+                responseMessage.setChatRoomProductDto(modelMapper.map(product.get(), ChatRoomProductDto.class));
+                responseMessage.setRoomId(savedMessage.getRoomId());
+                responseMessage.setMessageDate(savedMessage.getMsgDate());
+                responseMessage.setMessage(savedMessage.getMessage());
+                responseMessage.setMessage_type(savedMessage.getMsgType());
+                responseMessage.setMessageStatus(savedMessage.getMsgStatus());
+                this.template.convertAndSend("/topic/chat/" + sendMessage.getReceiverId(), responseMessage); // 상대방에게 채팅 메시지를 보낸다
 
+//                logger.info("[/MESSAGE] [SEND] 룸정보를 줍니다, {}", stompRoomInfo.toString());
+//                logger.info("[/MESSAGE] [SEND] /queue/room/event, sessionId : {} message: {}", sessionId, stompRoomInfo);
+                logger.info("[/MESSAGE] [SEND] /topic/chat/{}, messages : {}", sendMessage.getReceiverId(), responseMessage);
+            }
 
-
-            StompRoomInfo stompRoomInfo = new StompRoomInfo(String.valueOf(savedMessage.getRoomId()));
+            // 모든 메시지 다 저장한 후에 채팅방 정보를 준다.
             SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
             headerAccessor.setSessionId(sessionId);
             headerAccessor.setLeaveMutable(true);
+            StompRoomInfo stompRoomInfo = new StompRoomInfo(String.valueOf(savedChatroom.getRoomId()));
             this.template.convertAndSendToUser(sessionId,"/queue/room/event", stompRoomInfo, headerAccessor.getMessageHeaders());
-            this.template.convertAndSend("/topic/chat/" + sendMessage.getReceiverId(), responseMessage); // 상대방에게 채팅 메시지를 보낸다
 
-            logger.info("[/MESSAGE] [SEND] 룸정보를 줍니다, {}", stompRoomInfo.toString());
-            logger.info("[/MESSAGE] [SEND] /queue/room/event, sessionId : {} message: {}", sessionId, stompRoomInfo);
-            logger.info("[/MESSAGE] [SEND] /topic/chat/{}, messages : {}", sendMessage.getReceiverId(), responseMessage);
+            // 상대방에게 메시지를 보냄
+            if(sendMessage.getMessageType() == 1){
+                chatMessageDtoList.forEach(responseMsg -> this.template.convertAndSend("/topic/chat/" + sendMessage.getReceiverId(), responseMsg));
+            }
         }
 
         return null;

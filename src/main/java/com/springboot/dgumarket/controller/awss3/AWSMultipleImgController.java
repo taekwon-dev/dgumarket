@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.controller.awss3;
 
-import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.awss3.AWSS3MultiImgService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.util.annotation.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by TK YOUN (2021-03-06 오후 2:43)
@@ -33,11 +31,15 @@ public class AWSMultipleImgController {
     private AWSS3MultiImgService awss3MultiImgService;
 
     @PostMapping("/upload")
+    @CheckTargetUserValidate
     public ResponseEntity<ApiResultEntity> uploadMultiImage(
             Authentication authentication
+            , @RequestParam(value = "targetId", required = false) Integer targetId
             , @RequestParam("uploadDirPrefix") String uploadDirPrefix
             , @RequestParam(value = "prevFileNames", required = false) String prevFileNames
-            , @RequestParam("files") MultipartFile[] multipartFiles) {
+            , @RequestParam("files") MultipartFile[] multipartFiles){
+
+        System.out.println("AWSMultipleImgController.uploadMultiImage, targetId : " + targetId);
 
         // 인증 관련 예외처리
         if (authentication == null) return null;

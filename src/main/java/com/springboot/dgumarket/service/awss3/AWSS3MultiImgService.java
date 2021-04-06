@@ -85,17 +85,29 @@ public class AWSS3MultiImgService {
                 // FileNotFoundException
                 // FileLoadException
                 // PathTooLongException
-
                 // MultipartFile - getInputStream()
+                if(uploadDirPrefix.equals("origin/chat")){ // 채팅 이미지 업로드시
+                    e.printStackTrace();
+                    throw new AWSImageException(errorResponse("IOException, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                }
                 e.printStackTrace();
                 throw new AWSImageException(errorResponse("IOException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
 
+
             } catch (InterruptedException e) {
+                if(uploadDirPrefix.equals("origin/chat")){ // 채팅 이미지 업로드시
+                    e.printStackTrace();
+                    throw new AWSImageException(errorResponse("InterruptedException, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                }
                 // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
                 throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
 
             } catch (AmazonServiceException e) {
+                if(uploadDirPrefix.equals("origin/chat")){ // 채팅 이미지 업로드시
+                    e.printStackTrace();
+                    throw new AWSImageException(errorResponse("AmazonServiceException, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                }
                 // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
                 throw new AWSImageException(errorResponse("InterruptedException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
@@ -538,10 +550,5 @@ public class AWSS3MultiImgService {
 
         return errorResponse;
     }
-
-
-
-
-
 
 }

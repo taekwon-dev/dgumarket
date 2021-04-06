@@ -18,6 +18,10 @@
     <div class="row">
         <div class="col-md-6">
             <form class="form-inline">
+                <div id="auth">
+                    <input type="text" id="bearer" placeholder="bear">
+                    <input type="text" id="refresh" placeholder="refresh">
+                </div>
                 <div class="form-group">
                     <label for="connect">WebSocket connection:</label>
                     <button id="connect" class="btn btn-default" type="submit">Connect</button>
@@ -63,7 +67,8 @@
             <div id="chat_message">
 
             </div>
-            <img src="#" id="image">
+            <div id="image_container">
+            </div>
         </div>
     </div>
 </div>

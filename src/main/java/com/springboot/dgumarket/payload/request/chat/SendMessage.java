@@ -4,9 +4,7 @@ package com.springboot.dgumarket.payload.request.chat;
 import com.springboot.dgumarket.model.chat.ChatMessage;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import javax.sound.midi.Receiver;
 import java.time.LocalDateTime;
@@ -37,4 +35,21 @@ public class SendMessage {
                 .msgDate(localDateTime)
                 .receiver(receiver).build(); // 주입
     }
+
+    public ChatMessage toEntityWith(int status, int roomId, Product product, Member receiver, Member sender, String message){
+        LocalDateTime localDateTime = LocalDateTime.now();
+        System.out.println("메시지 저장시 localDateTime : " + localDateTime.toString());
+
+
+        return ChatMessage.builder()
+                .msgType(status)
+                .message(message)
+                .roomId(roomId) // 주입
+                .product(product) // 주입
+                .msgStatus(status) // 주입
+                .sender(sender) // 주입
+                .msgDate(localDateTime)
+                .receiver(receiver).build(); // 주입
+    }
+
 }
