@@ -6,6 +6,9 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
+import com.springboot.dgumarket.exception.CustomJwtException;
+import com.springboot.dgumarket.exception.NotFoundException.ProductNotFoundException;
+import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.QMember;
 import com.springboot.dgumarket.model.product.Product;
@@ -244,6 +247,66 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                         product.member.isWithdrawn.eq(0) // 탈퇴
                 ).limit(4).orderBy(product.createDatetime.desc()); // 업로드 최신순
         return query.fetch();
+    }
+
+    // 검색 결과 조회
+
+
+    @Override
+    public PageImpl<Product> findAllPagingBySearch(Member loginMember, Pageable pageable, String categoryId, String keyword) {
+
+        if (categoryId == null || keyword == null || keyword.trim().length() == 0) {
+            // [예외처리] 카테고리, 키워드 @RequestParam을 임의로 수정한 경우 예외처리
+            // [예외처리] 빈 값을 검색하는 경우 예외처리 (클라 측에서도 공란 상태로 검색할 수 없도록 처리)
+            throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러 페이지 반환");
+        }
+
+
+        JPQLQuery query = from(product);
+        query.where(product.member.isWithdrawn.eq(0)            // 상품을 업로드한 유저가 탈퇴 상태가 아닌 경우
+                .and(product.member.isEnabled.eq(0)             // 상품을 업로드한 유저가 이용제재 대상이 아닌 경우
+               .and(product.transactionStatusId.eq(0)          // 업로드 된 상품이 거래 중인 경우
+                .and(product.productStatus.eq(0)                // 업로드 된 상품이 삭제되지 않은 경우
+                .and((product.title.contains(keyword).or(product.information.contains(keyword)))))))); // 업로드 된 상품의 타이틀 또는 설명 내용 중 유저가 검색한 키워드를 포함하는 경우
+
+        // 검색 시 카테고리 값을 따로 지정하지 않은 경우 -> '전체' 카테고리에서 검색하는 상황이고, 쿼리에 추가적인 조건이 붙지 않는다.
+        try {
+            // categoryId = "" 인 경우 -> 전체 카테고리
+            if (categoryId != "") {
+                // category params에 값이 있는 경우
+                if ((Integer.parseInt(categoryId) < 16 && Integer.parseInt(categoryId) > 0)) {
+                    // categoryId 1~15인 경우,
+                    query.where(product.productCategory.id.eq(Integer.parseInt(categoryId)));
+                } else {
+                    // [예외처리] 카테고리가 지정된 범위 밖으로 임의로 수정한 경우
+                    throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러 페이지 반환");
+                }
+            }
+        } catch (NumberFormatException e) {
+            // from parseInt() method
+            throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러 페이지 반환");
+        }
+
+
+        // 로그인 상태로 검색하는 경우 -> 추가 조건 (via notContainBlocks) :
+        // 1. 로그인 한 유저가(검색 주체) 차단한 유저의 상품을 제외
+        // 2. 로그인 한 유저(검색 주체)를 차단한 유저의 상품을 제외
+        if (loginMember != null) {
+            query.where(notContainBlocks(loginMember, product.member));
+        }
+
+        for (Sort.Order order : pageable.getSort()) {
+
+            // 가격 순 ( 고가순, 저가순 ) 정렬이 varchar 타입으로 지정된 상황이므로
+            // order by 조건을 적용하기 위해 integer로 casting 작업 추가
+            if(order.getProperty().equals("price")){
+                PathBuilder orderByExpression = new PathBuilder(Product.class, "product");
+                query.orderBy(new OrderSpecifier(order.isAscending() ? Order.ASC : Order.DESC, orderByExpression.getString(order.getProperty()).castToNum(Integer.class)));
+            }
+        }
+        long totalCount = query.fetchCount();
+        List products = Objects.requireNonNull(getQuerydsl()).applyPagination(pageable, query).fetch();
+        return new PageImpl<>(products, pageable, totalCount);
     }
 
     // 차단하거나 차단당한 것들은 제외(로그인, 공통)

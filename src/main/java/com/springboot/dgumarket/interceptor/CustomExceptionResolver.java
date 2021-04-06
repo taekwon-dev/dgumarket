@@ -1,6 +1,7 @@
 package com.springboot.dgumarket.interceptor;
 
 import com.springboot.dgumarket.exception.CustomJwtException;
+import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Slf4j
 @Component
-public class JwtExceptionResolver extends AbstractHandlerExceptionResolver {
+public class CustomExceptionResolver extends AbstractHandlerExceptionResolver {
 
 
 
@@ -28,26 +29,18 @@ public class JwtExceptionResolver extends AbstractHandlerExceptionResolver {
             Object handler,
             Exception ex) {
 
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("/shop/account/login");
-        modelAndView.addObject("exception", ex.getMessage());
         try {
-            if (ex instanceof CustomJwtException) {
-                log.error("[JWT ExpiredJwtException]");
+            if (ex instanceof ResultNotFoundException) {
+                ModelAndView modelAndView = new ModelAndView();
+                modelAndView.setViewName("/exception/error");
+                modelAndView.addObject("exception", ex.getMessage());
                 return modelAndView;
             }
 
-            if (ex instanceof IncorrectResultSizeDataAccessException) {
-                // Error 페이지 반환
-                // 이전 입력 했던 내용 불러오기 기능 부탁
-                log.error("IncorrectResultSizeDataAccessException");
-            }
-
-        } catch (Exception handlerException) {
-            log.error("Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
+        } catch (Exception e) {
+            log.error("Handling of [" + ex.getClass().getName() + "] resulted in Exception", e);
         }
 
-        // return null -> Error Object
         return null;
     }
 

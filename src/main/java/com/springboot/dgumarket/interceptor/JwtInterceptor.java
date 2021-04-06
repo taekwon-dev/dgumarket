@@ -50,6 +50,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     // 물건
     private static final String API_PRODUCT_INFO = "/api/product/\\d+/info"; // 물건 조회
     private static final String API_PRODUCT_TOTAL = "/api/product/all"; // 물건들 조회
+    private static final String API_PRODUCT_SEARCH = "/api/product/search"; // 검색 결과 조회
     // 유저 샵
     private static final String API_SHOP = "/api(/user/\\d+/)(shop-profile|products|reviews)"; // 유저샵프로필/유저샵판매물건/유저샵리뷰
 
@@ -68,11 +69,29 @@ public class JwtInterceptor implements HandlerInterceptor {
         String accessToken = null;
         String username = null;
 
-        // NPE
+
+
+        // 비로그인 상태 ->| A 토큰 null OR A 토큰 "null" |
         if (request.getHeader("Authorization") != null) {
+
+            // API_PRODUCT_INDEX
+            // API_SHOP
+            // API_PRODUCT_CATEGORY
+            // API_PRODUCT_INFO
+            // API_PRODUCT_TOTAL
+            // API_PRODUCT_SEARCH
+
+            // 위 경로에 해당하는 경우에 "null" Auth 헤더가 오는 경우 -> 유효하지 않은 A 토큰으로 요청한 경우
+            // 비로그인 상태로 해당 요청을 처리한다.
+            // 인터셉터 통과
+            if (request.getHeader("Authorization").equals("null")) return true;
+
+            // 위 경로 포함해서 인증이 필요한 API 요청에 한해서 A 토큰의 값이 있는 경우는
+            // 이미 SCG 서버에서 토큰 유효성이 통과한 경우
+            // 따라서, 이 경우는 이미 유저의 로그인 상태로 전제 가능
             accessToken = request.getHeader("Authorization");
             accessToken = accessToken.split(" ")[1];
-            log.info("accessToken : " + accessToken);
+
         } else {
             // 인증되지 않은 상태에서 요청 (API_PRODUCT_INDEX, API_SHOP, API_PRODUCT_CATEGORY, API_PRODUCT_INFO, API_PRODUCT_TOTAL)
             // 인터셉터 통과
@@ -81,6 +100,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             if (getRequestURI.matches(API_PRODUCT_CATEGORY)) return true;
             if (getRequestURI.matches(API_PRODUCT_INFO)) return true;
             if (getRequestURI.equals(API_PRODUCT_TOTAL)) return true;
+            if (getRequestURI.equals(API_PRODUCT_SEARCH)) return true;
 
             // cookie (리프레시 토큰) 삭제
             removeRefreshCookie(response);

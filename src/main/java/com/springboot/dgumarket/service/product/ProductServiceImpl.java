@@ -520,6 +520,64 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    @Override
+    public ShopProductListDto getProductBySearch(Authentication authentication, Pageable pageable, String categoryId, String keyword) {
+
+        // init
+        Member member = null;
+
+        // ShopProductListDto
+        // total_size : 검색을 통해 조회된 전체 상품 수
+        // page_size
+        // List<ProductReadListDto> productsList : 상품 정보 DTO 리스트
+
+        // (로그인) ----- (리프레시 토큰 발급) ---- (리프레시 API) ---- (A 토큰 발급) ...
+        // 로그인 이후 클라이언트가 A 토큰 없는 상태로 요청을 보낼 수 없는 구조
+
+        // 로그인 여부 확인 (via Access Token)
+        // JwtInterceptor를 통과한 시점
+        // 로그인 상태(=A 토큰 수반한 상태로 요청)에서 서비스 레이어에 도달한 경우 로그인 상태임을 전제할 수 있다.
+
+        // [예외처리] 요청한 유저의 회원탈퇴, 이용제재 또는 A 토큰이 유효하지 않은 경우는 SCG에서 처리
+
+        // 로그인 상태의 경우
+        if (authentication != null) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            member = memberRepository.findById(userDetails.getId());
+        }
+
+        ModelMapper modelMapper = new ModelMapper();
+        // Product -> ProductReadListDto
+        org.modelmapper.PropertyMap<Product, ProductReadListDto> listDtoPropertyMap = new PropertyMap<Product, ProductReadListDto>() {
+            @Override
+            protected void configure() {
+                // [이미지 디렉토리] source (= product)에서 메인 이미지 출력 후 thumbnail에 매핑.
+                map().setThumbnailImg(source.getImgDirectory());
+                map().setTitle(source.getTitle());
+                map().setPrice(source.getPrice());
+                map().setId(source.getId());
+                map().setChatroomNums(source.getChatroomNums());
+                map().setLikeNums(source.getLikeNums());
+                map().setUploadDatetime(source.getCreateDatetime());
+                map().setLastUpdatedDatetime(source.getUpdateDatetime());
+                map().setTransaction_status_id(source.getTransactionStatusId());
+            }
+        };
+        modelMapper.addMappings(listDtoPropertyMap);
+
+        PageImpl<Product> products = customProductRepository.findAllPagingBySearch(member, pageable, categoryId, keyword);
+
+        List<ProductReadListDto> productReadListDtos = products.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, ProductReadListDto.class))
+                .collect(Collectors.toList());
+
+        return ShopProductListDto.builder()
+                .total_size((int)products.getTotalElements())
+                .page_size(products.getNumberOfElements())
+                .productsList(productReadListDtos).build();
+    }
+
     public String errorResponse(String errMsg, int resultCode, String requestPath) {
 
         // [ErrorMessage]

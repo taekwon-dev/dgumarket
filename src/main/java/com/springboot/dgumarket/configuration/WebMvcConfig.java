@@ -1,9 +1,8 @@
 package com.springboot.dgumarket.configuration;
 
-import com.springboot.dgumarket.interceptor.JwtExceptionResolver;
+import com.springboot.dgumarket.interceptor.CustomExceptionResolver;
 import com.springboot.dgumarket.interceptor.JwtInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -30,6 +29,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     // 물건 상세
                     "/api/product/*/info", // 개별물건정보 [ 인증선택, jwt interceptor 예외 추가]
                     "/api/product/all", // 전체 물건보기 [ 인증선택, jwt interceptor 예외 추가 ]
+                    "/api/product/search", // 검색 결과 [ 인증선택, jwt interceptor 예외 추가]
                     "/api/product/like", // 좋아요 및 좋아요 취소하기 [ 인증 필요 ]
                     "/api/product/*/comment", // 구매후기보기(get),남기기(post) [인증 필요]
                     "/api/product/upload", // 상품 업로드
@@ -67,11 +67,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
             };
 
     private JwtInterceptor jwtInterceptor;
-    private JwtExceptionResolver jwtExceptionResolver;
+    private CustomExceptionResolver customExceptionResolver;
 
-    public WebMvcConfig(JwtInterceptor jwtInterceptor, JwtExceptionResolver jwtExceptionResolver) {
+    public WebMvcConfig(JwtInterceptor jwtInterceptor, CustomExceptionResolver customExceptionResolver) {
         this.jwtInterceptor = jwtInterceptor;
-        this.jwtExceptionResolver = jwtExceptionResolver;
+        this.customExceptionResolver = customExceptionResolver;
     }
 
 
@@ -90,7 +90,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
         HandlerExceptionResolver exceptionHandlerExceptionResolver = resolvers.stream().filter(x -> x instanceof ExceptionHandlerExceptionResolver).findAny().get();
         int index = resolvers.indexOf(exceptionHandlerExceptionResolver);
-        resolvers.add(index, jwtExceptionResolver);
+        resolvers.add(index, customExceptionResolver);
         WebMvcConfigurer.super.extendHandlerExceptionResolvers(resolvers);
     }
 
@@ -99,6 +99,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     public void addViewControllers(ViewControllerRegistry registry) {
         // 웹 소켓 테스트 페이지 지정 (http://localhost:8080) 으로 접속하면 해당 페이지 로드
+        registry.addViewController("/exception/error").setViewName("exception/error");
         registry.addViewController("/").setViewName("websocket_test");
         registry.addViewController("/ms").setViewName("websocket_test_ms");
         registry.addViewController("/shop/component/nav").setViewName("shop/component/nav");
