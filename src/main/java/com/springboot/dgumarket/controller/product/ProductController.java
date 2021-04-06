@@ -26,6 +26,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
@@ -222,5 +223,26 @@ public class ProductController {
 
 
         return null;
+    }
+
+    // 검색 조회
+    // 최초 검색 시점 : 유저가 입력한 카테고리/검색어 + 최신순 + 사이즈 12 (Create Object of Pageable via Annotaion)
+    @GetMapping("/search")
+    public ResponseEntity<?> doSearch(
+            Authentication authentication,
+            @RequestParam(value = "category", required = false) String categoryId,
+            @RequestParam(value = "q", required = false) String keyword,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        ShopProductListDto shopProductListDto = productService.getProductBySearch(authentication, pageable, categoryId, keyword);
+
+        ApiResultEntity apiResultEntity = ApiResultEntity
+                .builder()
+                .statusCode(200)
+                .responseData(shopProductListDto)
+                .message("카테고리 고유 ID : '" + categoryId + "' 검색 키워드 : '" + keyword + "' 에 대한 검색 결과")
+                .build();
+
+        return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
     }
 }

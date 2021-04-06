@@ -13,6 +13,7 @@ import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,5 +63,8 @@ public interface ProductService {
 
     // 물건 좋아요 & 취소하기
     String changeLikeProduct(UserDetailsImpl userDetails, LikeRequest likeRequest) throws CustomControllerExecption;
+
+    // 검색 API
+    ShopProductListDto getProductBySearch(Authentication authentication, Pageable pageable, String category, String keyword);
 
 }
