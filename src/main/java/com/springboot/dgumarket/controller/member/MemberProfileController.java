@@ -107,6 +107,17 @@ public class MemberProfileController {
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
+    // 회원 핸드폰번호 변경 페이지에서 핸드폰 번호 확인 API
+    @GetMapping("/get-phone")
+    public ResponseEntity<ApiResultEntity> getPhone(Authentication authentication) {
+
+        // Authentication 객체가 주입되는 과정에서 예외가 발생하는 경우, 인터셉터에서 처리
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        ApiResultEntity apiResponseEntity = memberService.getPhoneNumberForPhoneChange(userDetails.getId());
+
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+    }
+
 
 
 

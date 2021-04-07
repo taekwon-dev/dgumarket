@@ -37,6 +37,9 @@ public interface MemberProfileService {
     // phone_verification status 값 변경
     ApiResultEntity checkVerificationNunberForPhone(int userId, ChangePhoneDto changePhoneDto);
 
+    // 핸드폰 번호 변경 시 핸드폰 번호 확인
+    ApiResultEntity getPhoneNumberForPhoneChange(int userId);
+
 
     // 회원 프로필 사진 UPLOAD
     void uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName);
