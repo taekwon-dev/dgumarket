@@ -366,6 +366,28 @@ public class MemeberServiceImpl implements MemberProfileService {
     }
 
     @Override
+    public ApiResultEntity getPhoneNumberForPhoneChange(int userId) {
+
+        // init
+        ApiResultEntity apiResultEntity = null;
+        String phoneNumber = null;
+
+        Member member = memberRepository.findByIdForChange(userId);
+
+        phoneNumber = member.getPhoneNumber();
+
+        apiResultEntity = ApiResultEntity
+                .builder()
+                .statusCode(200)
+                .message("핸드폰 번호 변경 페이지 접근 시, 핸드폰 번호 조회 성공")
+                .responseData(phoneNumber)
+                .build();
+
+        return apiResultEntity;
+
+    }
+
+    @Override
     public void uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) {
 
         // [예외처리]
