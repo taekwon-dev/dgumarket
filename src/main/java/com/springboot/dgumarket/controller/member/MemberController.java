@@ -1,5 +1,8 @@
 package com.springboot.dgumarket.controller.member;
 
+import com.springboot.dgumarket.dto.member.ChangePwdDto;
+import com.springboot.dgumarket.dto.member.FindPwdDto;
+import com.springboot.dgumarket.dto.member.ResetPwdDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 import com.springboot.dgumarket.payload.request.WebmailRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
@@ -97,5 +100,20 @@ public class MemberController {
            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
        }
     }
+
+    // 비밀번호 재설정 API 중 핸드폰 인증
+    @PostMapping("/find-pwd/verify-phone")
+    public ResponseEntity<ApiResultEntity> doVerifyPhoneForFindPwd(@RequestBody FindPwdDto findPwdDto) {
+        ApiResultEntity apiResultEntity = memberService.checkVerificationPhoneForFindPwd(findPwdDto);
+        return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
+    }
+
+    // 비밀번호 재설정 API
+    @PostMapping("/find-pwd")
+    public ResponseEntity<ApiResultEntity> doResetPasswordForFindPwd(@RequestBody ResetPwdDto resetPwdDto) {
+        ApiResultEntity apiResultEntity = memberService.resetPasswordForFindPwd(resetPwdDto);
+        return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
+    }
+
 
 }

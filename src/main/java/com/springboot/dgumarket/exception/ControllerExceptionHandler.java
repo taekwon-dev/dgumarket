@@ -53,8 +53,8 @@ public class ControllerExceptionHandler {
             requestPath = jsonObject.get("requestPath").toString();
 
             // resultCode에 따라서 pathToMove 값이 결정된다.
-            // {resultCode 300 ~ 320 -> pathToMove 페이지 주소 값이 들어온다}
-            if (resultCode >= 300 && resultCode < 320) pathToMove = jsonObject.get("pathToMove").toString();
+            // {resultCode 300 ~ 350 -> pathToMove 페이지 주소 값이 들어온다}
+            if (resultCode >= 300 && resultCode < 350) pathToMove = jsonObject.get("pathToMove").toString();
 
             if (pathToMove != null) {
                 errorObject = ErrorMessage

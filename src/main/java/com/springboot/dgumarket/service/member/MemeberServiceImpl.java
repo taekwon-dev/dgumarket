@@ -12,20 +12,20 @@ import com.amazonaws.services.s3.transfer.Upload;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.dto.member.*;
+import com.springboot.dgumarket.exception.CustomJwtException;
 import com.springboot.dgumarket.exception.ErrorMessage;
 import com.springboot.dgumarket.exception.InappropriateRequestException;
 import com.springboot.dgumarket.exception.aws.AWSImageException;
 import com.springboot.dgumarket.exception.notFoundException.PreMemberNotFoundException;
-import com.springboot.dgumarket.model.member.PhoneVerification;
-import com.springboot.dgumarket.model.member.PreMember;
+import com.springboot.dgumarket.model.member.*;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.repository.member.*;
 import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
+import com.springboot.dgumarket.utils.JwtUtils;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Value;
 import com.springboot.dgumarket.dto.product.ProductCategoryDto;
 import com.springboot.dgumarket.model.Role;
-import com.springboot.dgumarket.model.member.Member;
-import com.springboot.dgumarket.model.member.User;
 import com.springboot.dgumarket.model.product.ProductCategory;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +61,8 @@ public class MemeberServiceImpl implements MemberProfileService {
 
     private static final String S3_SAVED_DIR = "origin/user-profile/";
 
+    private static final String PWD_RESET_PAGE_URL = "/shop/account/find_pwd_newPwd?token=";
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -80,10 +82,16 @@ public class MemeberServiceImpl implements MemberProfileService {
     private PhoneVerificationRepository phoneVerificationRepository;
 
     @Autowired
+    private FindPwdVerificationRepository findPwdVerificationRepository;
+
+    @Autowired
     private RedisJwtTokenRepository redisJwtTokenRepository;
 
     @Autowired
     private ProductCategoryRepository productCategoryRepository;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Value("${application.bucket.name}")
     private String bucketName;
@@ -387,6 +395,112 @@ public class MemeberServiceImpl implements MemberProfileService {
 
     }
 
+    // 비밀번호 재설정 중 핸드폰 번호 인증
+    @Transactional
+    @Override
+    public ApiResultEntity checkVerificationPhoneForFindPwd(FindPwdDto findPwdDto) {
+
+        // init
+        ApiResultEntity apiResultEntity = null;
+        String comparisonValue = null;  // DB에 저장된 인증번호 값
+        String inputValue = null;       // 유저가 입력한 인증번호 값
+
+        FindPwd findPwd = findPwdVerificationRepository.findByWebMailAndPhoneNumber(findPwdDto.getWebMail(), findPwdDto.getPhoneNumber());
+
+        if (findPwd == null) {
+            // 인증번호 대조할 값을 참조할 수 없는 경우 -> 인증 실패
+            apiResultEntity = ApiResultEntity.builder()
+                    .statusCode(1)
+                    .message("[인증 실패] 대조할 인증번호를 참조할 수 없는 경우")
+                    .responseData(null)
+                    .build();
+            return apiResultEntity;
+        }
+
+        if (!findPwdDto.getVerificationNumber().equals(findPwd.getPhoneVerificationNumber())) {
+            // 인증번호 대조 결과, 발급된 인증번호와 일치하지 않는 경우
+            apiResultEntity = ApiResultEntity.builder()
+                    .statusCode(2)
+                    .message("[인증 실패] 발급된 인증번호와 일치하지 않는 경우 ")
+                    .responseData(null)
+                    .build();
+            return apiResultEntity;
+        }
+
+
+        // 비밀번호 재설정 페이지 접근 시 활용되는 토큰 발생 DB 저장
+        // 토큰 부여
+        String page_token = jwtUtils.genTokenForFindPwd(findPwdDto.getWebMail());
+        findPwd.updateToken(page_token);
+
+        apiResultEntity = ApiResultEntity.builder()
+                .statusCode(200)
+                .message("[인증 성공] 비밀번호 재설정 위한 핸드폰 인증 성공")
+                .responseData(PWD_RESET_PAGE_URL+page_token)
+                .build();
+        return apiResultEntity;
+    }
+
+    // 비밀번호 재설정
+    @Transactional
+    @Override
+    public ApiResultEntity resetPasswordForFindPwd(ResetPwdDto resetPwdDto) {
+
+        // init
+        ApiResultEntity apiResultEntity = null;
+        String token = null;
+        String webMail = null;
+        String resetPassword = null;
+        String resetPasswordForCheck = null;
+
+        // 비밀번호 정규식에 일치한 값이 아닌 경우 (보류)
+
+        // 새로 설정한 비밀번호, 확인 값이 서로 일치하지 않는 경우
+        resetPassword = resetPwdDto.getNewPassword();
+        resetPasswordForCheck = resetPwdDto.getCheckNewPassword();
+
+        if (!resetPassword.equals(resetPasswordForCheck)) {
+
+            apiResultEntity = ApiResultEntity.builder()
+                    .statusCode(2)
+                    .message("[비밀번호 재설정 실패] 새로 설정한 비밀번호, 확인 값이 서로 일치하지 않는 경우")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        // DB 바뀐 새로운 비밀번호 값 업데이트 (-> webMail 값 필요 from 토큰)
+        token = resetPwdDto.getToken();
+
+        try {
+            // 토큰이 유효하지 않는 경우 (-> 재설정 할 수 없는 상황, 이미 페이지는 반환 받은 상태)
+            if (!jwtUtils.validateToken(token)) {
+                throw new CustomJwtException(errorResponse("[비밀번호 재설정 실패] 비밀번호 재설정 유효기간 초과", 306, "/api/user/find-pwd"));
+            } else {
+                // 유저의 네임을 토큰으로부터 파싱 후 데이터베이스에 변경된 비밀번호를 업데이트
+                // [예외처리] : 회원탈퇴, 이용제재 유저는 이 API 요청 시 Gateway 서버에서 필터링
+
+                webMail = jwtUtils.getUsernameFromToken(token);
+                Member member = memberRepository.findByWebMail(webMail);
+                member.updatePassword(encoder.encode(resetPassword));
+            }
+
+        } catch (JwtException e) {
+            // ExpiredJwtException 제외한 나머지 JwtException의 경우
+            throw new CustomJwtException(errorResponse("[비밀번호 재설정 실패] 비밀번호 재설정 토큰 이슈가 발생한 경우(ExpiredJwtException 제외)", 306, "/api/user/find-pwd"));
+        }
+
+
+        apiResultEntity = ApiResultEntity.builder()
+                .statusCode(200)
+                .message("[비밀번호 재설정 성공] 비밀번호 재설정 완료")
+                .responseData(null)
+                .build();
+
+        return apiResultEntity;
+    }
+
     @Override
     public void uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName) {
 
@@ -480,6 +594,7 @@ public class MemeberServiceImpl implements MemberProfileService {
             throw new AWSImageException(errorResponse("AmazonServiceException, 회원 프로필 사진 삭제 API", 351, "/api/user/profile/image-delete"));
         }
     }
+
 
     @Transactional
     public void mapDtoToEntityDoSignup(SignUpDto signUpDto) {

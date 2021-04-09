@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,6 @@ import java.util.Optional;
  * Github : https://github.com/dgumarket/dgumarket.git
  * Description :
  */
-
 public interface MemberRepository extends JpaRepository<Member, Integer> {
 
     // 웹메일 중복체크 (회원가입 1단계)
@@ -34,7 +34,8 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     @Query("Select m From Member m Where m.id =:id and m.isWithdrawn = 0")
     Member findByIdForChange(int id);
 
-
+    // 비밀번호 재설정 API (웹메일로 해당 로우 체크)
+    Member findByWebMail(String webMail);
 
     // [회원 정보 조회] - 포로필 사진경로, 닉네임, 관심 카테고리
     // 추후에 신고 제제 추가

@@ -45,7 +45,7 @@ public class EmailServiceImpl implements EmailService {
     public void send(String receiverWebMail) {
 
         // 요청한 웹메일에 대응되는 고유값 생성 (고유값 유효기간 7일)
-        String webMailJwt = jwtUtils.generateToken(receiverWebMail);
+        String webMailJwt = jwtUtils.genTokenForRegister2nd(receiverWebMail);
 
 
         PreMember preMember = preMemberRepository.findByWebMail(receiverWebMail);
