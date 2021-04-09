@@ -82,7 +82,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns(patterns)
                 // URL 패턴 설계 오류 (중복문제)
                 // 인증이 필요 없는 아래 패턴들은 interceptor 제외한다.
-                .excludePathPatterns("/api/user/signup", "/api/user/check-webmail", "/api/user/send-webmail");
+                .excludePathPatterns("/api/user/signup", "/api/user/check-webmail", "/api/user/send-webmail", "/api/user/find-pwd/verify-phone", "/api/user/find-pwd");
     }
 
     // https://trello.com/c/iNlacAg7/148-dgumarket-restapi-http-exception-handling

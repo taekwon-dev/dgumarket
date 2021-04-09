@@ -6,8 +6,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
-import com.springboot.dgumarket.exception.CustomJwtException;
-import com.springboot.dgumarket.exception.NotFoundException.ProductNotFoundException;
+
 import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.QMember;

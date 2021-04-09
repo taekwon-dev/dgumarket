@@ -4,17 +4,16 @@ package com.springboot.dgumarket.service.sms;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.dto.member.ChangePhoneDto;
+import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.VerifyPhoneDto;
 import com.springboot.dgumarket.exception.AligoSendException;
 import com.springboot.dgumarket.exception.ErrorMessage;
 import com.springboot.dgumarket.exception.JsonParseFailedException;
+import com.springboot.dgumarket.model.member.FindPwd;
 import com.springboot.dgumarket.model.member.PhoneVerification;
 import com.springboot.dgumarket.model.member.PreMember;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
-import com.springboot.dgumarket.repository.member.MemberRepository;
-import com.springboot.dgumarket.repository.member.PhoneVerificationRepository;
-import com.springboot.dgumarket.repository.member.PreMemberRepository;
-import org.joda.time.DateTime;
+import com.springboot.dgumarket.repository.member.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -39,6 +38,9 @@ public class SMSServiceImpl implements SMSService {
     private static String BASE_URL = "https://apis.aligo.in/send/";
 
     @Autowired
+    private QMemberRepository qMemberRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -47,6 +49,8 @@ public class SMSServiceImpl implements SMSService {
     @Autowired
     private PhoneVerificationRepository phoneVerificationRepository;
 
+    @Autowired
+    private FindPwdVerificationRepository findPwdVerificationRepository;
 
     @Transactional
     @Override
@@ -248,6 +252,113 @@ public class SMSServiceImpl implements SMSService {
                 .builder()
                 .statusCode(200)
                 .message("인증문자 발송 성공 (핸드폰번호 변경)")
+                .responseData(null)
+                .build();
+
+        return apiResultEntity;
+    }
+
+    @Transactional
+    @Override
+    public ApiResultEntity doSendSMSForFindPwd(FindPwdDto findPwdDto) {
+
+        // init
+        ApiResultEntity apiResultEntity = null;
+        String webMail = null;
+        String phoneNumber = null;
+
+        // 인증문자 6자리 랜덤 생성
+        String verificationNumber = genVerifyNumForPhone();
+
+        int sms_count = 1; // 문자 발송 횟수 (일 기준), 1로 초기화 : DB 인서트되는 기준은 발송 시점
+        LocalDateTime lastSendSMSDateTime = null; // 마지막 (비밀번호 재설정 관련) 인증문자 발송 요청 날짜 (1일 5회 제한)
+
+        webMail = findPwdDto.getWebMail();
+        phoneNumber = findPwdDto.getPhoneNumber();
+
+        FindPwdDto fetchedFindPwdDto =  qMemberRepository.findByWebMailForFindPwd(webMail);
+
+
+        // [인증문자 발송 실패] 요청한 웹메일을 통해 회원 정보를 찾을 수 없는 경우
+        // 1. 회원정보 중 해당 웹메일로 가입한 유저가 없는 경우
+        // 2. 가입한 유저는 있지만 이용제재 대상인 경우
+        // 3. 가입한 유저는 있지만 탈퇴한 경우
+        if (fetchedFindPwdDto == null) {
+            apiResultEntity = ApiResultEntity.builder()
+                    .statusCode(1)
+                    .message("해당 웹메일로 유저 정보를 찾을 수 없는 경우")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        // [인증문자 발송 실패] 요청한 웹메일에 대응하는 핸드폰 번호와 요청한 핸드폰 번호가 일치하지 않은 경우
+        if (!fetchedFindPwdDto.getPhoneNumber().equals(phoneNumber)) {
+            apiResultEntity = ApiResultEntity.builder()
+                    .statusCode(2)
+                    .message("해당 웹메일의 핸드폰 번호와 요청한 핸드폰 번호가 일치하지 않은 경우")
+                    .responseData(null)
+                    .build();
+
+            return apiResultEntity;
+        }
+
+        // [비밀번호 재설정 API 관련 핸드폰 인증 관리 테이블] - 1일 5회 제한, 인증 처리
+        FindPwd findPwd = findPwdVerificationRepository.findByWebMailAndPhoneNumber(webMail, phoneNumber);
+
+        if (findPwd != null) {
+            sms_count = findPwd.getCount(); // 요청한 발송 처리 전 마지막 요청 횟수 (요청한 웹메일, 핸드폰 번호 기준)
+            lastSendSMSDateTime = findPwd.getSmsSendDatetime(); // 요청한 발송 처리 전 마지막 발송 시간
+
+            // ex) 20210330 형식으로, 5회 초과한 경우 일자가 변경했는 지 체크 (5회 초과여도 마지막 발송 일자가 바뀐 경우 발송 횟수 초가화 & 발송 처리 가능)
+            String lastSendSMSDate = lastSendSMSDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String nowDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+            // [인증문자 발송 실패] 요청한 웹메일, 핸드폰 번호 기준 1일 5회 요청 횟수를 초과한 경우 && 마지막 발송 요청 일자와 현재 일자가 동일한 경우
+            if (sms_count >= 5 && lastSendSMSDate.equals(nowDate)) {
+                apiResultEntity = ApiResultEntity.builder()
+                        .statusCode(3)
+                        .message("1일 5회 이상 요청으로 발송 실패된 경우")
+                        .responseData(null)
+                        .build();
+
+                return apiResultEntity;
+            }
+
+
+            // [인증문자 발송 성공] 1일 5회 요청 횟수 초과했었지만 마지막 요청 일자 기준 현재 일자가 이후인 경우 (=일자가 바뀐 경우)
+            // 처리 목록
+            // 1. 발송 횟수 초기화 (1)
+            // 2. 문자 발송 시간 지정
+            // 3. 인증 문자 업데이트
+            // (문자 발송은 조건문 밖에서 처리)
+            if (sms_count >= 5 && Integer.parseInt(lastSendSMSDate) < Integer.parseInt(nowDate)) {
+
+                findPwd.updateCount(1); // 발송 횟수 초기화 (1)
+
+                findPwd.updateSmsSendDatetime(LocalDateTime.now()); // 문자 발송 시간 지정
+
+                findPwd.updatePhoneVerificationNumber(verificationNumber); // 인증 문자 업데이트
+            }
+        } else {
+            FindPwd genFindPwd = FindPwd.builder()
+                    .webMail(webMail)
+                    .phoneNumber(phoneNumber)
+                    .phoneVerificationNumber(verificationNumber)
+                    .smsSendDatetime(LocalDateTime.now())
+                    .build();
+
+            findPwdVerificationRepository.save(genFindPwd);
+        }
+
+        // 문자 발송 (인증번호, 핸드폰번호)
+        sendSMS(verificationNumber, phoneNumber);
+
+        apiResultEntity = ApiResultEntity
+                .builder()
+                .statusCode(200)
+                .message("인증문자가 발송됐습니다.")
                 .responseData(null)
                 .build();
 

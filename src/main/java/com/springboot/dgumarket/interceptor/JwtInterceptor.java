@@ -2,7 +2,6 @@ package com.springboot.dgumarket.interceptor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.springboot.dgumarket.exception.CustomJwtException;
 import com.springboot.dgumarket.exception.ErrorMessage;
 import com.springboot.dgumarket.service.UserDetailsServiceImpl;
 import com.springboot.dgumarket.utils.JwtUtils;
@@ -109,10 +108,15 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
 
         if (!jwtUtils.validateToken(accessToken)) {
+            // ExpiredJwtException 예외가 발생헀을 때, 클레임 정보를 리턴하도록 예외처리가 됐으므로,
+            // 아래 쿠키 삭제하는 로직과, JwtException Throwing 하는 로직이 순서대로 동작한다.
+
             // cookie (리프레시 토큰) 삭제
             removeRefreshCookie(response);
             throw new JwtException(errorResponse("Dgumarket 서버 - A 토큰이 유효하지 않은 경우", 304, "특정할 수 없습니다."));
         }
+
+        // JWT 토큰 이슈에서 ExpiredJwtException 상황을 배제할 수 있다.
         // get the username from the jwt claims
         username = jwtUtils.getUsernameFromToken(accessToken);
 

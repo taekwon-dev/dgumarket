@@ -1,10 +1,7 @@
 package com.springboot.dgumarket.configuration;
 
-import com.springboot.dgumarket.payload.request.chat.SendMessage;
+
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
-import com.springboot.dgumarket.stomp.CustomErrorHandler;
-import com.springboot.dgumarket.stomp.CustomStompJwtInterceptor;
-import com.springboot.dgumarket.stomp.StompHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

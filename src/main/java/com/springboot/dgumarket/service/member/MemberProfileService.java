@@ -40,6 +40,11 @@ public interface MemberProfileService {
     // 핸드폰 번호 변경 시 핸드폰 번호 확인
     ApiResultEntity getPhoneNumberForPhoneChange(int userId);
 
+    // 비밀번호 재설정 핸드폰 번호 인증
+    ApiResultEntity checkVerificationPhoneForFindPwd(FindPwdDto findPwdDto);
+
+    // 비밀번호 재설정
+    ApiResultEntity resetPasswordForFindPwd(ResetPwdDto resetPwdDto);
 
     // 회원 프로필 사진 UPLOAD
     void uploadProfileImgtoS3(MultipartFile multipartFile, String uploadName);

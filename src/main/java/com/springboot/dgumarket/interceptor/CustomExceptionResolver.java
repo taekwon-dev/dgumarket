@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.interceptor;
 
-import com.springboot.dgumarket.exception.CustomJwtException;
+
 import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
