@@ -16,10 +16,26 @@ var sub_room_event = null;
 const message_container = document.getElementById('chat_message');
 var test_result = null;
 let alarm_list = null;
+var response = null;
 
+
+var sample_body = null;
 
 // for image result
 var imageResult = null;
+
+
+// 이미지 태그 만들기
+function createImageTag(fileName){
+    const img_container = document.getElementById('image_container');
+    const div = document.createElement("div");
+    const img = document.createElement('img')
+    img.src = 'https://dmkimgserver.s3.ap-northeast-2.amazonaws.com/origin/chat/' + fileName;
+    img.style.height = '100px';
+    img.style.width = '100px';
+    div.appendChild(img)
+    img_container.appendChild(div);
+}
 
 
 window.addEventListener("beforeunload", function (e) {
@@ -60,7 +76,6 @@ function connect(userid) {
         // 채팅방구독시 채팅방의 메시지들을 받을 구독
         sub_room_event = stompClient.subscribe('/user/queue/room/event', function (frame) { // 추가-2 SUB
             console.log(JSON.parse(frame.body)) // 채팅메시지들을 받게되는 부분.
-
 
             // 물건 페이지에서 [채팅으로 거래하기] 누른 후 채팅방에서 메시지를 보냈을 떄(`SEND /message`) 받게 되는 메시지 형태
             // 서버로부터 채팅방에 대한 정보를 받는다.
@@ -192,6 +207,19 @@ function sendMessage(userid, pid, reciId) {
     stompClient.send("/message", {}, JSON.stringify(message))
 }
 
+function sendMessageImage(userid, pid, reciId, type, filename){
+    var message =
+        {
+            productId : pid, // 물건 아이디
+            senderId : userid, // 보내는 이 고유 아이디
+            receiverId : reciId, // 받는 이 고유 아이디
+            messageType : type, // 메시지 타입
+            message : filename // 메시지내용
+        }
+    stompClient.send("/message", {}, JSON.stringify(message))
+}
+
+
 function showGreeting(message) {
     $("#greetings").append("<tr><td>" + message + "</td></tr>");
 }
@@ -207,6 +235,13 @@ function join(room_id, userid){
         sub_room = stompClient.subscribe('/topic/room/' + room_id , function (fr){ // (STOMP API 3번) 채팅방 구독하기
             console.log(JSON.parse(fr.body)) // 메시지 받아서 DOM 에 그려야 하는 부분
 
+
+            // message type = 1 인 경우 앞에 url 붙혀서 렌더링 해보기
+            sample_body = JSON.parse(fr.body);
+            if(sample_body.message_type == 1){ // 이미지일 경우
+                filename = sample_body.message;
+                createImageTag(filename)
+            }
 
             if (document.visibilityState === "hidden"){ // 유저가 화면을 띄우지 않았을 경우(다른 텝으로 이동)
                 if(Notification.permission === "granted"){ // 알람승인
@@ -409,27 +444,66 @@ function is_alarm(frame) {
     }
 }
 
-async function uploadImage(e) {
-    result = e;
-    console.log("result : ", e);
-    var formData = new FormData();
-    for (var i = 0; i < e.files.length; i++) {
-        formData.append('file', e.files[i]);
-    }
+// async function uploadImage(e) {
+//     result = e;
+//     console.log("result : ", e);
+//     var formData = new FormData();
+//     for (var i = 0; i < e.files.length; i++) {
+//         formData.append('file', e.files[i]);
+//     }
+//
+//     var url = '/api/multi-img/upload';
+//     console.log("formdata : ", formData)
+//     // header 넣으면 안됨.. google 알아서 해준다.
+//     // https://stackoverflow.com/questions/36005436/the-request-was-rejected-because-no-multipart-boundary-was-found-in-springboot
+//     console.time("이미지업로드시간측정");
+//     await fetch(url, {
+//         method: 'POST',
+//         body: formData
+//     })
+//         .then(response => response.json())
+//         .catch(error => console.error('Error:', error))
+//         .then((response) => {
+//             console.log('Success:', JSON.stringify(response));
+//             console.timeEnd("이미지업로드시간측정");
+//         });
+// }
 
-    var url = '/api/chat/upload';
-    console.log("formdata : ", formData)
-    // header 넣으면 안됨.. google 알아서 해준다.
-    // https://stackoverflow.com/questions/36005436/the-request-was-rejected-because-no-multipart-boundary-was-found-in-springboot
-    console.time("이미지업로드시간측정");
-    await fetch(url, {
+async function uploadImage(e){
+    var myHeaders = new Headers();
+    myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJiQGRvbmdndWsuZWR1IiwiaWF0IjoxNjE4MDE0NDU0LCJleHAiOjE2MTgwMTUzNTR9.GJvMZ9GsBSirW8qjjiMbzR6jNAPNlA8PvV4oGtK121KWP0018ARJQLujK62XXxdhwSRzwi9vZ_mn2H_LzOc29A");
+    myHeaders.append("Cookie", "refreshToken=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJiQGRvbmdndWsuZWR1IiwiaWF0IjoxNjE4MDE0NDU0LCJleHAiOjE2MTgwMjUyNTR9.wad4o8EE27eQ57q07kazj20YOwZCM9Ec-R-KKv4Tx4z_U6JMhAL85qRJj1vGR4RI7Yi_b9HGQpmScDuPwASaVw");
+
+    var formdata = new FormData();
+    for (var i = 0; i < e.files.length; i++) {
+        formdata.append('files', e.files[i]);
+    }
+    formdata.append("uploadDirPrefix", "origin/chat/");
+    formdata.append("targetId", document.getElementById('reci-id').value);
+
+    var requestOptions = {
         method: 'POST',
-        body: formData
-    })
-        .then(response => response.json())
-        .catch(error => console.error('Error:', error))
-        .then((response) => {
-            console.log('Success:', JSON.stringify(response));
-            console.timeEnd("이미지업로드시간측정");
-        });
+        headers: myHeaders,
+        body: formdata,
+        redirect: 'follow'
+    };
+
+
+    fetch("/api/multi-img/upload", requestOptions)
+        .then(response => response.text())
+        .then(result => sendImages(result))
+        .catch(error => console.log('error', error));
 }
+
+
+function sendImages(result){
+    if(result != null){
+        var res = JSON.parse(result)
+        console.log(result)
+        console.log(res)
+        response = res;
+        sendMessageImage($("#userid").val(), $("#pid").val(), $("#reci-id").val(), 1, res.responseData)
+    }
+}
+
+

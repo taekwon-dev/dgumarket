@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.controller.awss3;
 
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.awss3.AWSS3MultiImgService;
@@ -33,11 +34,13 @@ public class AWSMultipleImgController {
     private AWSS3MultiImgService awss3MultiImgService;
 
     @PostMapping("/upload")
+    @CheckTargetUserValidate
     public ResponseEntity<ApiResultEntity> uploadMultiImage(
             Authentication authentication
+            , @RequestParam(value = "targetId", required = false) Integer targetId
             , @RequestParam("uploadDirPrefix") String uploadDirPrefix
             , @RequestParam(value = "prevFileNames", required = false) String prevFileNames
-            , @RequestParam("files") MultipartFile[] multipartFiles) {
+            , @RequestParam("files") MultipartFile[] multipartFiles) throws CustomControllerExecption {
 
         // 인증 관련 예외처리
         if (authentication == null) return null;
