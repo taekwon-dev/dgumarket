@@ -193,9 +193,8 @@ public class ShopController {
     public ResponseEntity<?> getUserFavorites(
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort="createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @SortDefault(sort="createDatetime", direction = Sort.Direction.DESC) Pageable pageable) {
         // 기본은 관심물건의 업로드 순
-
         if (authentication != null){
             log.info("로그인성공");
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();

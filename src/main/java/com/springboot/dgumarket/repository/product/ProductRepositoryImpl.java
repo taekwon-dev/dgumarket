@@ -168,9 +168,9 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
 
         // 관심물건중 물건 업로드 최신순 / 오래된 순 / 가격순
         for (Sort.Order order : pageable.getSort()) {
-            if(order.getProperty().equals("createdDate") && order.getDirection().isDescending()){
+            if(order.getProperty().equals("createDatetime") && order.getDirection().isDescending()){
                 query.orderBy(product.createDatetime.desc());
-            }else if(order.getProperty().equals("createdDate") && order.getDirection().isAscending()){
+            }else if(order.getProperty().equals("createDatetime") && order.getDirection().isAscending()){
                 query.orderBy(product.createDatetime.asc());
             }else if(order.getProperty().equals("price")){ // price 의 경우에는 order by 과정에서 cast 과정을 거친다.
                 PathBuilder orderByExpression = new PathBuilder(Product.class, "product");
