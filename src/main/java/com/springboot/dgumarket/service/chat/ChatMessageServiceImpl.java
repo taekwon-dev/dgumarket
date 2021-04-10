@@ -227,7 +227,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         logger.info("[/MESSAGE] someone isn't in chat room in (redis)chatroom");
                         ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, sendMessage.getMessageType());
 
-                        logger.info("[/MESSAGE] save chat message (status 0 -> 0) : {}, 읽음 상태 : {}", savedMessage, savedMessage.getMsgStatus());
+                        logger.info("[/MESSAGE] save chat message (status 0 -> 0) : {}, 읽음 상태 : {}", chatMessage, chatMessage.getMsgStatus());
 
                         responseMessage = saveTextMessage2Dto(chatMessage, modelMapper);
                         // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
@@ -270,7 +270,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 ArrayList<ChatMessage> chatMessages = createMessagesFromFileListAndChatRoom(sendMessage.getMessage(), savedChatroom, sender, receiver, 0);
                 receivedMessages = saveImageMessages2Dto(chatMessages, modelMapper);
             }else{
-                logger.info("[/MESSAGE] create new chat mysql chat room by message - chatroom : {}, message: {}}", newChatRoom.toString(), sendMessage.getMessage());
+//                logger.info("[/MESSAGE] create new chat mysql chat room by message - chatroom : {}, message: {}}", newChatRoom.toString(), sendMessage.getMessage());
 //                savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(UNREAD, savedChatroom.getRoomId(), product.get(), receiver, sender));
 //                ChatMessage savedMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, sendMessage.getMessageType());
 //                saveTextMessage2Dto(savedMessage, modelMapper);
