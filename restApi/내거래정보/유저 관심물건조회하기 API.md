@@ -3,8 +3,17 @@
 * 인증여부 : 필요
 
 url에 아무런 추가 param 을 붙히지 않고 요청하였을 경우 서버에서는 기본적으로
-page=0, size=20, sort=createdDate,desc(최신순)
+page=0, size=20, sort=createDatetime,desc(최신순)
 에 해당되는 자료를 뿌려준다.
+
+** 수정사항 4.10(토) 
+
+request param 중 `sort` 시간정렬키값이 변경되었습니다.
+sort=createdDate,desc 
+`createdDate` -> `createDatetime` 로 변경되었으니 이거대로 수정 부탁드립니다~(통일성을 위해 이렇게 변경하였습니)
+그렇기 때문에 view url 도
+https://www.dgumarket.co.kr/shop/favorites?sort=createdDate,desc 가 아닌
+https://www.dgumarket.co.kr/shop/favorites?sort=createDatetime,desc 로 변경하시길 바랍니다!!
 
 
 **URL** : `/api/user/favorites`
@@ -23,7 +32,7 @@ page=0, size=20, sort=createdDate,desc(최신순)
 
 오래된순과 최신순은 물건업로드 순을 뜻한다.
 
-http://localhost:8081/api/user/favorites?sort=createdDate,desc&page=0&size=10
+http://localhost:8081/api/user/favorites?sort=createDatetime,desc&page=0&size=10
 
 => 최신순/관심물건 10개씩 가져오기
 
