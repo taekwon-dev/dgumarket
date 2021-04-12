@@ -32,33 +32,22 @@ public class CheckTargetUserValidateAOP {
     @Before(value = "upLoadImagefile()")
     public void checkTargetUser(JoinPoint joinPoint) throws CustomControllerExecption {
         System.out.println("CheckTargetUserValidateAOP.checkTargetUser : aop 발동");
-        Object[] parameterValues = joinPoint.getArgs();
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        Optional<Member> targetMember = null;
-        if(method.getParameters()[1].getName().equals("targetId")){ // targetId 가 1번에 들어오는 경우
-            Integer targetUserId = (Integer)parameterValues[1];
-            targetMember = memberRepository.findById(targetUserId);
-            if (targetMember.isPresent()) {
-                if (targetMember.get().getIsWithdrawn() == 1) {
-                    throw new CustomControllerExecption("탈퇴한 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
-                }
-                if (targetMember.get().getIsEnabled() == 1) {
-                    throw new CustomControllerExecption("관리자로 부터 이용제재 받고 있는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
-                }
-            } else {
-                throw new CustomControllerExecption("존재하지 않는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
-            }
-        }
+        Member targetMember = null;
+        // 채팅업로드에 대해서만 검사한다.
+        if(joinPoint.getArgs()[2].equals("origin/chat/")){ // 이미지 업로드시에만 작동
+            System.out.println("채팅이미지 업로드시 발동되는 aop");
+            int targetId = (int)joinPoint.getArgs()[1];
+            targetMember = memberRepository.findById(targetId);
+            if(targetMember == null) throw new CustomControllerExecption("존재하지 않는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
+            if(targetMember.getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
+            if(targetMember.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재 받고 있는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
 
-        if(method.getParameters()[1].getName().equals("targetId") && method.getParameters()[0].getName().equals("authentication")){ // 차단관계 확인하기( 채팅인 경우에만 체크해야한다. 쓸데가 없음 )
-            Authentication authentication = (Authentication) parameterValues[0];
+            // 차단유무에 대해서 검사
+            Authentication authentication = (Authentication)joinPoint.getArgs()[0];
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             Member member = memberRepository.findById(userDetails.getId());
-            if(targetMember.isPresent()){
-                if (member.getBlockUsers().contains(targetMember.get())) { throw new CustomControllerExecption("차단한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST);}
-                if (member.getUserBlockedMe().contains(targetMember.get())) {throw new CustomControllerExecption("차단당한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST);}
-            }
+            if (member.getBlockUsers().contains(targetMember))  throw new CustomControllerExecption("차단한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST);
+            if (member.getUserBlockedMe().contains(targetMember)) throw new CustomControllerExecption("차단당한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 }
