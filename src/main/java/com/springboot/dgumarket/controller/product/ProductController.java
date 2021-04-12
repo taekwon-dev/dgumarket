@@ -236,6 +236,8 @@ public class ProductController {
 
         ShopProductListDto shopProductListDto = productService.getProductBySearch(authentication, pageable, categoryId, keyword);
 
+        if (categoryId == "") categoryId = "전체 카테고리 영역";
+
         ApiResultEntity apiResultEntity = ApiResultEntity
                 .builder()
                 .statusCode(200)
