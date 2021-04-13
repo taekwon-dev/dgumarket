@@ -315,6 +315,7 @@ public class SMSServiceImpl implements SMSService {
             String lastSendSMSDate = lastSendSMSDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String nowDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
+
             // [인증문자 발송 실패] 요청한 웹메일, 핸드폰 번호 기준 1일 5회 요청 횟수를 초과한 경우 && 마지막 발송 요청 일자와 현재 일자가 동일한 경우
             if (sms_count >= 5 && lastSendSMSDate.equals(nowDate)) {
                 apiResultEntity = ApiResultEntity.builder()
@@ -337,20 +338,37 @@ public class SMSServiceImpl implements SMSService {
 
                 findPwd.updateCount(1); // 발송 횟수 초기화 (1)
 
-                findPwd.updateSmsSendDatetime(LocalDateTime.now()); // 문자 발송 시간 지정
+                findPwd.updateSmsSendDatetime(LocalDateTime.now()); // 문자 발송 시간 업데이트
 
                 findPwd.updatePhoneVerificationNumber(verificationNumber); // 인증 문자 업데이트
             }
+
+            // [인증문자 발송 성공] 요청한 웹메일, 핸드폰 번호 기준 1일 인증문자 요청 횟수가 5회 미만인 경우
+            if (sms_count < 5) {
+                // 문자 발송 카운트 ++
+                sms_count++;
+
+                findPwd.updateCount(sms_count); // 발송 횟수 ++ 카운트
+
+                findPwd.updateSmsSendDatetime(LocalDateTime.now()); // 문자 발송 시간 업데이트
+
+                findPwd.updatePhoneVerificationNumber(verificationNumber); // 인증 문자 업데이트
+
+            }
+
         } else {
             FindPwd genFindPwd = FindPwd.builder()
                     .webMail(webMail)
                     .phoneNumber(phoneNumber)
                     .phoneVerificationNumber(verificationNumber)
+                    .count(1) // MySQL count field, defalut 1로 설정했는데 적용이 안 되는 상황
                     .smsSendDatetime(LocalDateTime.now())
                     .build();
 
             findPwdVerificationRepository.save(genFindPwd);
         }
+
+
 
         // 문자 발송 (인증번호, 핸드폰번호)
         sendSMS(verificationNumber, phoneNumber);
