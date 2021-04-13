@@ -80,6 +80,10 @@ public class ReportServiceImpl implements ReportService{
             report.setReportProduct(chatRoom.getProduct());
         }
         // 관리자에게 신고접수여부 알려주면 좋을것같음. 이곳에 휴대전화로 메시지알림가도록 하기
+        // 만약 메시지 전송과정에서 예외 발생하면 save 까지 가지 않기 떄문에 의도한 예외처리가 제대로 됨!
+        String nickName = member.getNickName();
+        sendSMS("\"" + nickName + "\"님의 신고가 정상적으로 접수됐습니다. 빠른 시일내에 처리하고 문자를 통해 안내해드리겠습니다.",
+                member.getPhoneNumber());
 
         reportRepository.save(report); // 신고저장
     }
