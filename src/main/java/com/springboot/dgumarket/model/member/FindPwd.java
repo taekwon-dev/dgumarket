@@ -50,10 +50,11 @@ public class FindPwd {
     private LocalDateTime updateDatetime;
 
     @Builder
-    public FindPwd(String webMail, String phoneNumber, String phoneVerificationNumber, LocalDateTime smsSendDatetime) {
+    public FindPwd(String webMail, String phoneNumber, String phoneVerificationNumber, int count, LocalDateTime smsSendDatetime) {
         this.webMail = webMail;
         this.phoneNumber = phoneNumber;
         this.phoneVerificationNumber = phoneVerificationNumber;
+        this.count = count;
         this.smsSendDatetime = smsSendDatetime;
     }
 
