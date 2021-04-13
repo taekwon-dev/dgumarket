@@ -204,9 +204,9 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                                             .limit(pageable.getPageSize());
         // 정렬
         for (Sort.Order order : pageable.getSort()) {
-            if(order.getProperty().equals("createdDate") && order.getDirection().isAscending()){ // 거래완료 최신순
+            if(order.getProperty().equals("createDatetime") && order.getDirection().isAscending()){ // 거래완료 최신순
                 query.orderBy(productReview.createdDate.asc());
-            }else if(order.getProperty().equals("createdDate") && order.getDirection().isDescending()){ // 거래완료 오래된 순
+            }else if(order.getProperty().equals("createDatetime") && order.getDirection().isDescending()){ // 거래완료 오래된 순
                 query.orderBy(productReview.createdDate.desc());
             }
         }
