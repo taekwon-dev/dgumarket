@@ -8,6 +8,10 @@ REST API - Chat created by MS (21-02-02)
 이미지가 없을 경우 null로 옵니다.
 
 
+### 수정사항(4.13)
+
+시간 정렬 키값 변경 createdDate -> createDatetime
+
 
 # 유저의 구매물품 조회하기
 
@@ -28,7 +32,7 @@ REST API - Chat created by MS (21-02-02)
 
 `size` : 한 페이지에 보여줄 물건개수(number) (임의로 정할 수 있음)
 
-`sort` : 정렬( 거래완료 최신순(=createdDate,desc), 거래완료 오래된순(=createdDate,asc) )  
+`sort` : 정렬( 거래완료 최신순(=createDatetime,desc), 거래완료 오래된순(=createDatetime,asc) )  
 
 ## Success Responses
 
