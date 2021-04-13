@@ -119,10 +119,10 @@ public class ProductController {
 
     // 개별 물건 조회하기
     @GetMapping("/{productId}/info")
-    @CheckProductDeleted
+    @CheckProductValidate
     public ResponseEntity<?> getProductInfo(
             Authentication authentication,
-            @PathVariable("productId") int productId) throws CustomControllerExecption {
+            @PathVariable("productId") int productId) throws CustomControllerExecption, com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException {
 
         if(authentication != null){ // 로그인 유저
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
