@@ -261,12 +261,15 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         }
 
 
-        JPQLQuery query = from(product);
-        query.where(product.member.isWithdrawn.eq(0)            // 상품을 업로드한 유저가 탈퇴 상태가 아닌 경우
+        JPQLQuery query = from(product).where(
+                product.member.isWithdrawn.eq(0)                // 상품을 업로드한 유저가 탈퇴 상태가 아닌 경우
                 .and(product.member.isEnabled.eq(0)             // 상품을 업로드한 유저가 이용제재 대상이 아닌 경우
-               .and(product.transactionStatusId.eq(0)          // 업로드 된 상품이 거래 중인 경우
+                .and(product.transactionStatusId.eq(0)          // 업로드 된 상품이 거래 중인 경우
                 .and(product.productStatus.eq(0)                // 업로드 된 상품이 삭제되지 않은 경우
-                .and((product.title.contains(keyword).or(product.information.contains(keyword)))))))); // 업로드 된 상품의 타이틀 또는 설명 내용 중 유저가 검색한 키워드를 포함하는 경우
+                .and((product.title.contains(keyword).or(product.information.contains(keyword)))))))) // 업로드 된 상품의 타이틀 또는 설명 내용 중 유저가 검색한 키워드를 포함하는 경우
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
 
         // 검색 시 카테고리 값을 따로 지정하지 않은 경우 -> '전체' 카테고리에서 검색하는 상황이고, 쿼리에 추가적인 조건이 붙지 않는다.
         try {

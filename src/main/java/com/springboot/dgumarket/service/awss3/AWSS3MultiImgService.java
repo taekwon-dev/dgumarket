@@ -237,6 +237,7 @@ public class AWSS3MultiImgService {
 
                 // 오브젝트 - 메타데이터
                 metadata.setContentType(multipartFiles[i].getContentType());
+                log.info("새로운 파일명 활용 | " + fileName + "'s contentType : " + multipartFiles[i].getContentType());
                 metadata.setContentLength(multipartFiles[i].getSize());
                 metadata.setHeader("filename", fileName);
 
@@ -257,6 +258,7 @@ public class AWSS3MultiImgService {
 
                     // AWS S3 Delete API 위한 DeleteObjetctRequest 생성
                     DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, originFileKey);
+                    log.info("n-> n+m, 동일한 파일명이지만 타입이 달라서 기존 이미지 삭제 : " + originFileKey);
 
                     try {
                         // 삭제 할 대상이 AWS S3에 없어도 예외가 발생하지 않는다.
@@ -273,6 +275,7 @@ public class AWSS3MultiImgService {
 
                 // 오브젝트 - 메타데이터
                 metadata.setContentType(multipartFiles[i].getContentType());
+                log.info("기존 파일명 활용 | " + fileName + "'s contentType : " + multipartFiles[i].getContentType());
                 metadata.setContentLength(multipartFiles[i].getSize());
                 metadata.setHeader("filename", prevFileNames.get(i));
             }
@@ -289,6 +292,7 @@ public class AWSS3MultiImgService {
                 // TransferManager processes all transfers asynchronously,
                 // so this call returns immediately.
                 Upload upload = tm.upload(bucketName, uploadDirOnS3, multipartFiles[i].getInputStream(), metadata);
+                log.info("uploadDirOnS3 : " + uploadDirOnS3);
 
                 // Optionally, wait for the upload to finish before continuing.
                 upload.waitForCompletion();

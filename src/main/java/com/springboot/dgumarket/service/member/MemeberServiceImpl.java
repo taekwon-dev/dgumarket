@@ -475,6 +475,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
         try {
             // [예외처리]
+            // DB에 token 값이 "" 상태로 삽입되지 않으므로, 처리할 예외처리가 아님
             // token 값이 "" 상태로 들어온 경우 "java.lang.IllegalArgumentException: JWT String argument cannot be null or empty"
 
             // 토큰이 유효하지 않는 경우 (-> 재설정 할 수 없는 상황, 이미 페이지는 반환 받은 상태)
