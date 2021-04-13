@@ -176,7 +176,7 @@ public class ShopController {
             Authentication authentication,
             @RequestParam(value = "purchase_set", defaultValue = "total", required = false) String purchase_set,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
+            @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userDetails.getId(), purchase_set, pageable);
