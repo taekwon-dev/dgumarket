@@ -1,5 +1,6 @@
 package com.springboot.dgumarket.controller.shop;
 
+import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import com.springboot.dgumarket.dto.block.BlockStatusDto;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
@@ -38,8 +39,8 @@ public class ShopController {
     private final ProductReviewService productReviewService;
 
     @GetMapping("/{userId}/shop-profile")
-    @CheckUserIsWithDrawn
-    public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption {
+    @ShopValidate
+    public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption, ResultNotFoundException {
         MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userId);
         if(authentication != null){ // 로그인 상태
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
@@ -76,7 +77,7 @@ public class ShopController {
 
     // 유저의 판매물건 조회하기
     @GetMapping("/{userId}/products")
-    @CheckUserIsWithDrawn
+    @ShopValidate
     public ResponseEntity<?> getUserProducts (
             @PathVariable("userId") int userId,
             Authentication authentication,
@@ -85,7 +86,7 @@ public class ShopController {
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC)
             }) Pageable pageable,
-            @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption {
+            @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption, ResultNotFoundException {
         if(authentication != null){
 
 
@@ -127,12 +128,12 @@ public class ShopController {
 
     // 유저에게 남긴 리뷰 조회하기
     @GetMapping("/{userId}/reviews")
-    @CheckUserIsWithDrawn
+    @ShopValidate
     public ResponseEntity<?> getUserReviews(
             @PathVariable int userId,
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "ReviewRegistrationDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption {
+            @SortDefault(sort = "ReviewRegistrationDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption, ResultNotFoundException {
         if(authentication != null){
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
