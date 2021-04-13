@@ -1,7 +1,6 @@
 package com.springboot.dgumarket.service.product;
 
 
-import com.springboot.dgumarket.controller.shop.CheckUserIsWithDrawn;
 import com.springboot.dgumarket.dto.product.ProductPurchaseDto;
 import com.springboot.dgumarket.dto.product.ProductReviewDto;
 import com.springboot.dgumarket.dto.shop.ShopReviewListDto;
@@ -9,7 +8,6 @@ import com.springboot.dgumarket.dto.shop.ShopPurchaseListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
-import com.springboot.dgumarket.model.product.ProductLike;
 import com.springboot.dgumarket.model.product.ProductReview;
 import com.springboot.dgumarket.payload.request.review.ProductCommentRequest;
 import com.springboot.dgumarket.repository.member.MemberRepository;
@@ -18,7 +16,6 @@ import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
-import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -192,7 +188,6 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
     // 유저가 구매한 물건 조회하기
     @Override
-    @CheckUserIsWithDrawn
     public ShopPurchaseListDto getPurchaseProducts(int userId, String purchaseSet, Pageable pageable) {
         log.info("purchaseSet : {}", purchaseSet);
         Member member = memberRepository.findById(userId);
