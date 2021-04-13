@@ -44,6 +44,12 @@
 
 **/api/product/search?category=&q=태권**
 
+**`page & size`** : 기존 상품 리스트 조건과 동일
+
+http://localhost:8081/api/product/search?category=1&q=태권&sort=createDatetime,desc&size=12&page=0
+
+
+
 ___
 
 **Response**
