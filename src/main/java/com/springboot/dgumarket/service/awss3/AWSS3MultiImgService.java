@@ -88,18 +88,21 @@ public class AWSS3MultiImgService {
 
                 // MultipartFile - getInputStream()
                 if(uploadDirPrefix.equals("origin/chat")) throw new AWSImageException(errorResponse("IOException, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                if(uploadDirPrefix.equals("origin/report")) throw new AWSImageException(errorResponse("IOException, 신고 이미지 사진 업로드 API", 356, "/api/multi-img/upload"));
                 throw new AWSImageException(errorResponse("IOException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
 
             } catch (InterruptedException e) {
                 // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
                 if(uploadDirPrefix.equals("origin/chat")) throw new AWSImageException(errorResponse("AmazonServiceException, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                if(uploadDirPrefix.equals("origin/report")) throw new AWSImageException(errorResponse("AmazonServiceException, 신고 이미지 사진 업로드 API", 356, "/api/multi-img/upload"));
                 throw new AWSImageException(errorResponse("AmazonServiceException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
 
             } catch (AmazonServiceException e) {
                 // void waitForCompletion() throws AmazonClientException, AmazonServiceException, InterruptedException;
                 e.printStackTrace();
-                if(uploadDirPrefix.equals("origin/chat")) throw new AWSImageException(errorResponse("InterruptedException요, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                if(uploadDirPrefix.equals("origin/chat")) throw new AWSImageException(errorResponse("InterruptedException, 복수 채팅 이미지 사진 업로드 API", 355, "/api/multi-img/upload"));
+                if(uploadDirPrefix.equals("origin/report")) throw new AWSImageException(errorResponse("InterruptedException, 신고 이미지 사진 업로드 API", 356, "/api/multi-img/upload"));
                 throw new AWSImageException(errorResponse("InterruptedException, 복수 이미지 사진 업로드 API", 352, "/api/multi-img/upload"));
             }
         }
