@@ -35,8 +35,8 @@ public class GlobalUserAOP {
                 Authentication authentication = (Authentication)parameterValues[i];
                 UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
                 Member member = memberRepository.findById(userDetails.getId());
-                if(member==null || member.getIsWithdrawn()==1){throw new CustomControllerExecption("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND);}
-                if(member.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 제재조치를 받고 있습니다. 서비스 이용불가", HttpStatus.NOT_FOUND);}
+                if(member==null || member.getIsWithdrawn()==1){throw new CustomControllerExecption("존재하지 않는 유저 입니다.", HttpStatus.NOT_FOUND, null);}
+                if(member.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 제재조치를 받고 있습니다. 서비스 이용불가", HttpStatus.NOT_FOUND, null);}
             }
         }
 

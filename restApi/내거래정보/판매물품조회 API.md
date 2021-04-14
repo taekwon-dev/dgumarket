@@ -123,11 +123,12 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
 
 ```
 
-## Fail Responses
 
-차단한 유저 혹은 차단된 유저의 프로필을 보기위해서 api요청을 보냈을 경우 다음과 같은 에러응답값을 반환한다.
+### 예외응답
+아래와 같은 예외 응답을 받을 경우에는 바로 예외페이지으로 이동시킨다.
+굳이 경고문구를 안띄워줘도 된다고 생각함(띄워줘도 상관없음)
 
-**Code** : `403 Forbidden`
+**Code** : `404 Not found`
 
 **Content**
 
@@ -135,20 +136,94 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
 `timestamp` : 요청시간
 `message` : 요청에러이유
 `description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
 
-**example**
+// 존재하지 않거나 탈퇴한 유저의 판매물건들을 조회하려고 하는 경우
+```json
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:33:54.937+00:00",
+    "message": "존재하지 않거나 탈퇴한 유저 입니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+```
 
-1번유저가 차단한 유저의 10번이 판매하고 있는 물건들을 보려고 물건정보를 요청할 때 반환되는 값이다
+// 관리자에 의해 이용제재 받고 있는 유저의 판매물건들을 조회하려고 하는 경우
+```json
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:33:54.937+00:00",
+    "message": "관리자로부터 이용제재 받고 있는 유저입니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+```
+
+// 차단한 유저의 판매물건들을 조회할 경우(로그인)
 
 ```json
 
 {
-    "statusCode": 403,
-    "timestamp": "2021-02-03T07:25:34.324+00:00",
-    "message": "Unable to access blocked user.",
-    "description": "uri=/api/shop/10/products"
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "차단한 유저에 대한 정보를 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
 }
 
 ```
+
+// 차단당한 유저의 판매물건들을 조회할 경우(로그인)
+
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "차단당한 유저의 정보를 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+
+```
+
+
+// 아래의 내용은 무시하셔도 됩니다.
+[comment]: <> (## Fail Responses)
+
+[comment]: <> (차단한 유저 혹은 차단된 유저의 프로필을 보기위해서 api요청을 보냈을 경우 다음과 같은 에러응답값을 반환한다.)
+
+[comment]: <> (**Code** : `403 Forbidden`)
+
+[comment]: <> (**Content**)
+
+[comment]: <> (`statusCode`: HTTP 상태코드)
+
+[comment]: <> (`timestamp` : 요청시간)
+
+[comment]: <> (`message` : 요청에러이유)
+
+[comment]: <> (`description` : 요청한 URL)
+
+[comment]: <> (**example**)
+
+[comment]: <> (1번유저가 차단한 유저의 10번이 판매하고 있는 물건들을 보려고 물건정보를 요청할 때 반환되는 값이다)
+
+[comment]: <> (```json)
+
+[comment]: <> ({)
+
+[comment]: <> (    "statusCode": 403,)
+
+[comment]: <> (    "timestamp": "2021-02-03T07:25:34.324+00:00",)
+
+[comment]: <> (    "message": "Unable to access blocked user.",)
+
+[comment]: <> (    "description": "uri=/api/shop/10/products")
+
+[comment]: <> (})
+
+[comment]: <> (```)
 
 

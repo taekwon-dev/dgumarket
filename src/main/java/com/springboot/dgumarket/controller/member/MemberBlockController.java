@@ -32,7 +32,7 @@ public class MemberBlockController {
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             boolean isBlock = userBlockService.blockUser(userDetails.getId(), blockUserRequest.getBlock_user());
             if(!isBlock){
-                throw new CustomControllerExecption("You can't block it because you have a transaction history with the other person", HttpStatus.ACCEPTED);
+                throw new CustomControllerExecption("You can't block it because you have a transaction history with the other person", HttpStatus.ACCEPTED, null);
             }
             return "block success"; // 유저차단 성공
 

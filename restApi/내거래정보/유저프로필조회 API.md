@@ -109,3 +109,68 @@ ex)
 
 
 ```
+
+
+### 예외응답
+아래와 같은 예외 응답을 받을 경우에는 바로 예외페이지으로 이동시킨다.
+굳이 경고문구를 안띄워줘도 된다고 생각함(띄워줘도 상관없음)
+
+**Code** : `404 Not found`
+
+**Content**
+
+`statusCode`: HTTP 상태코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
+
+// 존재하지 않거나 탈퇴한 유저의 프로필 정를 조회하려고 하는 경우
+```json
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:33:54.937+00:00",
+    "message": "존재하지 않거나 탈퇴한 유저 입니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+```
+
+// 관리자에 의해 이용제재 받고 있는 유저의 프로필을 조회하려고 하는 경우
+```json
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:33:54.937+00:00",
+    "message": "관리자로부터 이용제재 받고 있는 유저입니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+```
+
+// 차단한 유저의 프로필정보를 조회할 경우(로그인)
+
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "차단한 유저에 대한 정보를 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+
+```
+
+// 차단당한 유저의 프로필정보를 조회할 경우(로그인)
+
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "차단당한 유저의 정보를 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+
+```

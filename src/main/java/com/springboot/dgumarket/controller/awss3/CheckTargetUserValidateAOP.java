@@ -38,16 +38,16 @@ public class CheckTargetUserValidateAOP {
             System.out.println("채팅이미지 업로드시 발동되는 aop");
             int targetId = (int)joinPoint.getArgs()[1];
             targetMember = memberRepository.findById(targetId);
-            if(targetMember == null) throw new CustomControllerExecption("존재하지 않는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
-            if(targetMember.getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
-            if(targetMember.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재 받고 있는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND);
+            if(targetMember == null) throw new CustomControllerExecption("존재하지 않는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+            if(targetMember.getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+            if(targetMember.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재 받고 있는 유저에게 채팅 이미지를 전송할 수 없습니다.", HttpStatus.NOT_FOUND, null);
 
             // 차단유무에 대해서 검사
             Authentication authentication = (Authentication)joinPoint.getArgs()[0];
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             Member member = memberRepository.findById(userDetails.getId());
-            if (member.getBlockUsers().contains(targetMember))  throw new CustomControllerExecption("차단한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST);
-            if (member.getUserBlockedMe().contains(targetMember)) throw new CustomControllerExecption("차단당한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST);
+            if (member.getBlockUsers().contains(targetMember))  throw new CustomControllerExecption("차단한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            if (member.getUserBlockedMe().contains(targetMember)) throw new CustomControllerExecption("차단당한 유저와 채팅을 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
         }
     }
 }

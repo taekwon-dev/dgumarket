@@ -99,7 +99,8 @@ public class ControllerExceptionHandler {
                 ex.getHttpStatus().value(),
                 new Date(),
                 ex.getMessage(),
-                request.getDescription(false));
+                request.getDescription(false),
+                ex.getMoveToPath());
 
         return new ResponseEntity<>(message, ex.getHttpStatus());
     }

@@ -446,9 +446,9 @@ public class ProductServiceImpl implements ProductService {
     // 물건 정보 보기
     @Override
     public ProductReadOneDto getProductInfo(UserDetailsImpl userDetails, int productId) throws CustomControllerExecption {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND, null));
         if(product.getProductStatus() == 1){
-            throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND, null);
         }
 
         PropertyMap<Product, ProductReadOneDto> propertyMap = new PropertyMap<Product, ProductReadOneDto>() {
@@ -480,7 +480,7 @@ public class ProductServiceImpl implements ProductService {
             // 차단된 사용자의 물건에 접속시 예외처리
             Member member = memberRepository.findById(userDetails.getId());
             if(member.getBlockUsers().contains(product.getMember()) || member.getUserBlockedMe().contains(product.getMember())){
-                throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE);
+                throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE, null);
             }
 
             ProductReadOneDto readOneDto = modelMapper.map(product, ProductReadOneDto.class);
@@ -500,15 +500,15 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public String changeLikeProduct(UserDetailsImpl userDetails, LikeRequest likeRequest) throws CustomControllerExecption{
         Member member = memberRepository.findById(userDetails.getId());
-        Product product = productRepository.findById(likeRequest.getProduct_id()).orElseThrow(() -> new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND)); // 좋음! noSuch 디테일 구분 ?
+        Product product = productRepository.findById(likeRequest.getProduct_id()).orElseThrow(() -> new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND, null)); // 좋음! noSuch 디테일 구분 ?
 
         if(product.getProductStatus() == 1){ // 삭제 예외
-            throw new CustomControllerExecption("해당 게시물은 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("해당 게시물은 존재하지 않습니다.", HttpStatus.NOT_FOUND, null);
         }
 
         // 차단된 사용자의 물건에 좋아요 할경우 예외처리
         if(member.getBlockUsers().contains(product.getMember()) || member.getUserBlockedMe().contains(product.getMember())){
-            throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE);
+            throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE, null);
         }
 
         if(likeRequest.getCurrent_like_status().equals("nolike")){

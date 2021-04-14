@@ -32,7 +32,7 @@ public class UserWithDrawnAspect {
         Optional<Member> member = memberRepository.findById((Integer) joinPoint.getArgs()[0]);
         if(member.get().getIsWithdrawn() == 1){
             logger.info("[AOP] 유저탈퇴유무 에노테이션 - @CheckUserIsWithDrawn 실행, 탈퇴유저 조회시도!!");
-            throw new CustomControllerExecption("존재하지 않은 유저 입니다", HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("존재하지 않은 유저 입니다", HttpStatus.NOT_FOUND, null);
         }
         return joinPoint.proceed();
     }
