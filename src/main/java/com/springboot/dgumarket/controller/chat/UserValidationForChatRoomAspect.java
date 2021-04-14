@@ -46,13 +46,13 @@ public class UserValidationForChatRoomAspect {
 
         Member member = memberRepository.findById(userId);
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
-        chatRoom.orElseThrow(()-> new CustomControllerExecption("존재하지 않는 채팅방입니다.", HttpStatus.NOT_FOUND));
+        chatRoom.orElseThrow(()-> new CustomControllerExecption("존재하지 않는 채팅방입니다.", HttpStatus.NOT_FOUND, null));
 
         if(chatRoom.get().getMemberOpponent(member).getIsEnabled()==0){
-            throw new CustomControllerExecption("관리자로 부터 이용제재 당하고있는 유저입니다.", HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("관리자로 부터 이용제재 당하고있는 유저입니다.", HttpStatus.NOT_FOUND, null);
         }
         if(chatRoom.get().getMemberOpponent(member).getIsWithdrawn()==1){
-            throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND);
+            throw new CustomControllerExecption("탈퇴한 유저입니다.", HttpStatus.NOT_FOUND, null);
         }
 
 

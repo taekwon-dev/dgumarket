@@ -45,7 +45,7 @@ public class OnlyEnableUserAOP {
                 int userId = (int) parameterValues[i];
                 Member member = memberRepository.findById(userId);
                     if(member.getIsEnabled() == 1){ // 관리자로부터 이용재제 상태
-                        throw new CustomControllerExecption("이용재제당한 유저로의 접근 불가", HttpStatus.BAD_REQUEST);
+                        throw new CustomControllerExecption("이용재제당한 유저로의 접근 불가", HttpStatus.BAD_REQUEST, null);
                 }
             }else if(parameterName.equals("productId")){ // 재제당한 유저의 물건정보를 요구하는 경우
 
@@ -53,7 +53,7 @@ public class OnlyEnableUserAOP {
                 Optional<Product> product = productRepository.findById(productId);
                 if(product.isPresent()){
                     if (product.get().getMember().getIsEnabled() == 1){
-                        throw new CustomControllerExecption("이용재제당한 유저의 물건 접근불가", HttpStatus.BAD_REQUEST);
+                        throw new CustomControllerExecption("이용재제당한 유저의 물건 접근불가", HttpStatus.BAD_REQUEST, null);
                     }
                 }
 

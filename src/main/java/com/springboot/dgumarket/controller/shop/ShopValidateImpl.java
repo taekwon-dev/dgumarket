@@ -39,13 +39,12 @@ public class ShopValidateImpl {
     }
 
     @Before(value = "shopValidate()")
-    public void shopValidateCheck(JoinPoint joinPoint){
+    public void shopValidateCheck(JoinPoint joinPoint) throws CustomControllerExecption{
         logger.info("shop controller aop, shopValidate");
         int userId = (int)joinPoint.getArgs()[0]; // target user id
         Member targetMember = memberRepository.findById(userId);
-        if(targetMember == null) throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러페이지 반환");
-        if(targetMember.getIsWithdrawn() == 1) throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러페이지 반환");
-        if(targetMember.getIsEnabled() == 1) throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러페이지 반환");
+        if(targetMember == null || targetMember.getIsWithdrawn() == 1) throw new CustomControllerExecption("존재하지 않거나 탈퇴한 유저 입니다.", HttpStatus.NOT_FOUND, "/exceptions");
+        if(targetMember.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재 받고 있는 유저입니다.", HttpStatus.NOT_FOUND, "/exceptions");
 
 
         // 상대방이 나와 차단관계에 있을 경우 -> 에러페이지 반환
@@ -53,11 +52,9 @@ public class ShopValidateImpl {
             Authentication authentication = (Authentication)joinPoint.getArgs()[1];
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             Member member = memberRepository.findById(userDetails.getId());
-            if(member.getBlockUsers().contains(targetMember)) throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러페이지 반환");
-            if(member.getUserBlockedMe().contains(targetMember)) throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러페이지 반환");
+            if(member.getBlockUsers().contains(targetMember)) throw new CustomControllerExecption("차단한 유저에 대한 정보를 조회할 수 없습니다.", HttpStatus.NOT_FOUND, "/exceptions");
+            if(member.getUserBlockedMe().contains(targetMember)) throw new CustomControllerExecption("차단당한 유저의 정보를 조회할 수 없습니다.", HttpStatus.NOT_FOUND, "/exceptions");
         }
-
-
     }
 
 

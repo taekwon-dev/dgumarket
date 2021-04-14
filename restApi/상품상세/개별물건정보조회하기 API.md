@@ -85,3 +85,95 @@ ex)
 `warn`(boolean) : 경고 유무(해당 물건을 올린 유저가 현재 경고를 받고 있는 유저인지 아닌지를 알려줍니다.)
 
 
+
+### 예외응답
+아래와 같은 예외 응답을 받을 경우에는 바로 예외페이지으로 이동시킨다.
+굳이 경고문구를 안띄워줘도 된다고 생각함(띄워줘도 상관없음)
+
+**Code** : `404 Not found`
+
+**Content**
+
+`statusCode`: HTTP 상태코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
+
+// 물건이 삭제되거나 존재하지 않는 물건을 조회할 경우
+```json
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:33:54.937+00:00",
+    "message": "삭제되거나 존재하지 않은 물건입니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+```
+
+// 관리자에 의해 비공개 처리된 물건일 경우
+```json
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:33:54.937+00:00",
+    "message": "관리자에 의해 비공개 처리된 물건입니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+```
+
+// 물건판매자가 탈퇴했을 경우
+```json
+
+{
+  "statusCode": 404,
+  "timestamp": "2021-04-14T02:30:07.400+00:00",
+  "message": "물건의 판매자가 탈퇴하여 물건을 조회할 수 없습니다.",
+  "requestPath": "uri=/api/product/119/info",
+  "pathToMove": "/exceptions"
+}
+
+
+```
+
+
+// 물건판매자가 관리자로 부터 이용제재 조치 받고 있을 경우
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "물건의 판매자가 관리자로 부터 이용제재조치를 받고 있어 물건을 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+
+```
+
+// 차단한 유저의 물건을 조회할 경우
+
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "차단한 유저의 물건을 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+
+```
+
+// 차단당한 유저의 물건을 조회할 경우
+
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-04-14T02:32:40.582+00:00",
+    "message": "차단당한 유저의 물건을 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/119/info",
+    "pathToMove": "/exceptions"
+}
+
+```

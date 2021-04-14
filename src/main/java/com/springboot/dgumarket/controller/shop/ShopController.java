@@ -40,7 +40,7 @@ public class ShopController {
 
     @GetMapping("/{userId}/shop-profile")
     @ShopValidate
-    public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption, ResultNotFoundException {
+    public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption{
         MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userId);
         if(authentication != null){ // 로그인 상태
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
@@ -61,7 +61,7 @@ public class ShopController {
                     return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
 
                 }else {
-                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN); // 접근불가
+                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN, null); // 접근불가
                 }
             }
         }else{ // 비로그인 상태
@@ -86,10 +86,8 @@ public class ShopController {
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC)
             }) Pageable pageable,
-            @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption, ResultNotFoundException {
+            @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption{
         if(authentication != null){
-
-
             log.info(pageable.toString());
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             if(userDetails.getId() == userId){
@@ -109,7 +107,7 @@ public class ShopController {
                             .data(shopProductListDto).build();
                     return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
                 }else{
-                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN);
+                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN, null);
                 }
             }
         }else{
@@ -133,7 +131,7 @@ public class ShopController {
             @PathVariable int userId,
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            @SortDefault(sort = "ReviewRegistrationDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption, ResultNotFoundException {
+            @SortDefault(sort = "ReviewRegistrationDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
         if(authentication != null){
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -149,7 +147,7 @@ public class ShopController {
                     return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
 
                 }else {
-                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN);
+                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN, null);
                 } // 차단된 경우
 
             }else { // 나 자신이 조회하는 경우
@@ -186,7 +184,7 @@ public class ShopController {
                     .data(shopPurchaseListDto).build();
             return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
-        throw new CustomControllerExecption("403 Forbidden, Wrong access", HttpStatus.FORBIDDEN);
+        throw new CustomControllerExecption("403 Forbidden, Wrong access", HttpStatus.FORBIDDEN, null);
     }
 
     // 유저 관심물건 조회하기
