@@ -11,14 +11,12 @@ import com.springboot.dgumarket.exception.NotFoundException.ProductNotFoundExcep
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
-import com.springboot.dgumarket.model.product.ProductLike;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.CustomProductRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
-import com.springboot.dgumarket.repository.product.ProductLikeRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +25,6 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,15 +45,13 @@ public class ProductServiceImpl implements ProductService {
     private ModelMapper modelMapper;
     private ProductListIndex productListIndex;
     private MemberRepository memberRepository;
-    private ProductLikeRepository productLikeRepository;
     private CustomProductRepository customProductRepository; // 새롭게 적용되는 리포지토리
 
-    public ProductServiceImpl(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ModelMapper modelMapper, MemberRepository memberRepository, ProductLikeRepository productLikeRepository, CustomProductRepository customProductRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ModelMapper modelMapper, MemberRepository memberRepository,  CustomProductRepository customProductRepository) {
         this.productRepository = productRepository;
         this.productCategoryRepository = productCategoryRepository;
         this.modelMapper = modelMapper;
         this.memberRepository = memberRepository;
-        this.productLikeRepository = productLikeRepository;
         this.customProductRepository = customProductRepository;
     }
 
