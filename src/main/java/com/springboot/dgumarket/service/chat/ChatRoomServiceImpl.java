@@ -2,7 +2,6 @@ package com.springboot.dgumarket.service.chat;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.springboot.dgumarket.controller.chat.UserValidationForChatRoom;
 import com.springboot.dgumarket.dto.chat.*;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.chat.ChatMessage;
