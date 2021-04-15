@@ -3,13 +3,16 @@ package com.springboot.dgumarket.service.block;
 import com.springboot.dgumarket.dto.block.BlockStatusDto;
 import com.springboot.dgumarket.dto.block.BlockUserDto;
 import com.springboot.dgumarket.dto.block.BlockUserListDto;
+import com.springboot.dgumarket.model.member.BlockUser;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.ProductReview;
+import com.springboot.dgumarket.repository.member.MemberQueryRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +29,8 @@ public class UserBlockServiceImpl implements UserBlockService{
     @Autowired
     ProductReviewRepository productReviewRepository;
 
+    @Autowired
+    MemberQueryRepository memberQueryRepository;
 
     // 유저 차단하기
     @Override
@@ -65,7 +70,10 @@ public class UserBlockServiceImpl implements UserBlockService{
     // 유저 차단 리스트 조회하기
     @Override
     public BlockUserListDto getUserBlockList(int userId, Pageable pageable) {
+        //given
+        Member member = memberRepository.findById(userId);
 
+        // mapping config
         PropertyMap<com.springboot.dgumarket.model.member.BlockUser, BlockUserDto> propertyMap = new PropertyMap<com.springboot.dgumarket.model.member.BlockUser, BlockUserDto>() {
             @Override
             protected void configure() {
@@ -77,13 +85,17 @@ public class UserBlockServiceImpl implements UserBlockService{
         };
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addMappings(propertyMap);
-        List<BlockUserDto> blockUserDtos = memberRepository.findAllBlockUsers(userId, pageable)
-                .stream().map(member -> modelMapper.map(member, BlockUserDto.class)).collect(Collectors.toList());
-        List<com.springboot.dgumarket.model.member.BlockUser> allBlockUsers = memberRepository.findAllBlockUsers(userId, null);
 
+        // fetch data
+        PageImpl<BlockUser> blockUsers = memberQueryRepository.findBlockUserByMember(member, pageable);
+
+
+        // entity -> dto
+        List<BlockUserDto> blockUserDtos = blockUsers.getContent()
+                .stream().map(mem -> modelMapper.map(mem, BlockUserDto.class)).collect(Collectors.toList());
 
         return BlockUserListDto.builder()
-                .total_size(allBlockUsers.size())
+                .total_size((int)blockUsers.getTotalElements())
                 .blockUserDtoList(blockUserDtos)
                 .build();
     }
