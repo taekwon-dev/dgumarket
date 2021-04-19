@@ -30,6 +30,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -230,8 +232,8 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<?> doSearch(
             Authentication authentication,
-            @RequestParam(value = "category", required = false) String categoryId,
-            @RequestParam(value = "q", required = false) String keyword,
+            @RequestParam(value = "category") String categoryId,
+            @RequestParam(value = "q") String keyword,
             @PageableDefault(size = DEFAULT_PAGE_SIZE) @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable) {
 
         ShopProductListDto shopProductListDto = productService.getProductBySearch(authentication, pageable, categoryId, keyword);
@@ -246,5 +248,6 @@ public class ProductController {
                 .build();
 
         return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
+
     }
 }

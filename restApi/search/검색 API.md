@@ -90,25 +90,52 @@ ___
     }
 }
 
-// 예외처리 (당장 신경써야 하는 부분!!)
+(2021-04-19)
+[HTTP/1.1 200 OK]
+// 예외처리 
+// 쿼리파람 중 'category' 값이 1~15 범위 밖에서 요청하거나 문자열형태로 요청하는 경우 
+// 이 경우는 Dgumarket 서버에서 아래와 같이 응답을 주고, 'pathToMove' 요소의 값을 활용해서 메인 페이지로 이동시킨다.
+{
+    "statusCode": 307,
+    "timestamp": "2021-04-19T04:08:13.420+00:00",
+    "message": "요청에 대한 결과를 조회할 수 없는 경우",
+    "requestPath": "/api/product/search",
+    "pathToMove": "/exceptions"
+}
+
+[HTTP/1.1 200 OK]
+// 예외처리 
+// 쿼리파람 중, category(카테고리), q(검색키워드) 누락된 상태로 요청하는 경우 
+// 이 경우는 Dgumarket 서버에서 아래와 같이 응답을 주고, 'pathToMove' 요소의 값을 활용해서 메인 페이지로 이동시킨다.
+{
+    "statusCode": 308,
+    "timestamp": "2021-04-19T03:00:52.121+00:00",
+    "message": "Required String parameter 'q' is not present" or "category is not present",
+    "requestPath": "uri=/api/product/search",
+    "pathToMove": "/exceptions"
+}
+
+
+
+// 예외처리
 1. [클라이언트] 검색어 입력창에서 공란 상태에서 검색 불가 
 2. [클라이언트] 검색어 입력창에서 단어 앞 공란 제거 (예시 -  "  검색어" -> "검색어") 
+3. [클라이언트] 검색어 입력창에서 단어 뒤 공란 제거 (예시 - "검색어    " -> "검색어")
 
-// 예외처리 (인지만 하고 계시고, 따로 처리하실 부분은 당장 없습니다!, 클라 작업 진행 후 제가 추후 작업 할 예정)
+4. Params를 임의로 수정하는 경우  
+ 
+ex) /api/product/search?categoryyy=&q=검색 : category -> categoryyy 로 임의로 수정하는 경우 : 308 에러 응답
+ex) /api/product/search?category=&qqqq=검색 : q -> qqqq 로 임의로 수정하는 경우 : 308 에러 응답
 
-1. Params를 임의로 수정하는 경우 : 에러 페이지 반환 
-
-* 에러 페이지 (HTML) 파일은 `Gateway-server` 서버에서 반환한다. 
-
-ex) /api/product/search?categoryyy=&q=검색 : category -> categoryyy 로 임의로 수정하는 경우 
-ex) /api/product/search?category=&qqqq=검색 : q -> qqqq 로 임의로 수정하는 경우 
-ex) /api/product/search?category=&q=검색&sort=price,desc : sort 옵션이 주어진 조건이 아닌 경우 
-
-2. 지정된 카테고리 범위 밖의 수를 입력하거나, 문자(열)를 입력한 경우 : 에러 페이지 반환 
+5. 지정된 카테고리 범위 밖의 수를 입력하거나, 문자(열)를 입력한 경우 : 307 에러 응답
 
 ex) /api/prouct/search?category=0&q=검색 : category 1~15 범위에 포함되지 않은 경우 
 ex) /api/product/search?category=문자열&q=검색 : category에 문자(열)을 입력한 경우 
 
+6. sort (정렬 옵션)을 임의로 수정 후 요청하는 경우 : 에러 페이지 반환 
+
+* 에러 페이지 (HTML) 파일은 `Gateway-server` 서버에서 반환한다.
+ex) /api/product/search?category=&q=검색&sort=prce,dec : sort 옵션이 주어진 조건이 아닌 경우 
 
 ```
 

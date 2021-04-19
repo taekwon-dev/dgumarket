@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -103,6 +104,31 @@ public class ControllerExceptionHandler {
                 ex.getMoveToPath());
 
         return new ResponseEntity<>(message, ex.getHttpStatus());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<?> exceptionHandler(MissingServletRequestParameterException ex, WebRequest request) {
+
+        ErrorMessage errorMessage = null;
+        // 검색 API 요청 시 검색 ('category', 'q' 파라미터 누락한 경우)
+        if (request.getDescription(false).contains("/api/product/search")) {
+            // "uri=/api/product/search;client=127.0.0.1" (true)
+            // "uri=/api/product/search" (false)
+
+            errorMessage = new ErrorMessage(
+                    308, // 필수 파라미터 값이 누락된 상태로 요청하는 경우
+                    new Date(),
+                    ex.getMessage(), // Required String parameter '' is not present
+                    request.getDescription(false), // RequestPath ex) "uri=/api/product/search"
+                    "/exceptions"); // 예외 시 이동할 경로 (예외 페이지)
+
+        }
+
+        // ... 파라미터 누락 여부를 체크해야 하는 경우 추가
+        return new ResponseEntity<>(errorMessage, HttpStatus.OK);
+
+
+
     }
 
 
