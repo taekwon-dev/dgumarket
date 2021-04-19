@@ -1,12 +1,16 @@
 package com.springboot.dgumarket.repository.product;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
 
+import com.springboot.dgumarket.exception.ErrorMessage;
+import com.springboot.dgumarket.exception.JsonParseFailedException;
 import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.member.QMember;
@@ -22,6 +26,7 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -257,7 +262,7 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         if (categoryId == null || keyword == null || keyword.trim().length() == 0) {
             // [예외처리] 카테고리, 키워드 @RequestParam을 임의로 수정한 경우 예외처리
             // [예외처리] 빈 값을 검색하는 경우 예외처리 (클라 측에서도 공란 상태로 검색할 수 없도록 처리)
-            throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러 페이지 반환");
+            throw new ResultNotFoundException(errorResponse("요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
         }
 
 
@@ -280,13 +285,17 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                     // categoryId 1~15인 경우,
                     query.where(product.productCategory.id.eq(Integer.parseInt(categoryId)));
                 } else {
+                    log.error("주어진 카테고리 범위 밖에서 요청하는 경우");
                     // [예외처리] 카테고리가 지정된 범위 밖으로 임의로 수정한 경우
-                    throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러 페이지 반환");
+                    throw new ResultNotFoundException(errorResponse("요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
+
                 }
             }
         } catch (NumberFormatException e) {
             // from parseInt() method
-            throw new ResultNotFoundException("요청에 대한 결과를 조회할 수 없는 경우 -> 에러 페이지 반환");
+            throw new ResultNotFoundException(errorResponse("요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
+
+
         }
 
 
@@ -356,4 +365,53 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         }
     }
 
+    public String errorResponse(String errMsg, int resultCode, String requestPath) {
+
+        // [ErrorMessage]
+        // {
+        //     int statusCode;
+        //     Date timestamp;
+        //     String message;
+        //     String requestPath;
+        //     String pathToMove;
+        // }
+
+        // errorCode에 따라서 예외 결과 클라이언트가 특정 페이지로 요청해야 하는 경우가 있다.
+        // 그 경우 pathToMove 항목을 채운다.
+
+        // init
+        ErrorMessage errorMessage = null;
+
+        // 최종 클라이언트에 반환 될 예외 메시지 (JsonObject as String)
+        String errorResponse = null;
+
+        // 예외 처리 결과 클라이언트가 이동시킬 페이지 참조 값을 반환해야 하는 경우 에러 코드 범위
+        // 예외처리 결과 클라이언트가 __페이지를 요청해야 하는 경우
+        // 해당 페이지 정보 포함해서 에러 메시지 반환
+        if (resultCode >= 300 && resultCode < 350) {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .pathToMove("/exceptions")
+                    .build();
+        } else {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .build();
+
+        }
+
+        Gson gson = new GsonBuilder().create();
+
+        errorResponse = gson.toJson(errorMessage);
+
+        return errorResponse;
+    }
 }
