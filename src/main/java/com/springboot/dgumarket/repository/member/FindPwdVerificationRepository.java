@@ -9,5 +9,7 @@ public interface FindPwdVerificationRepository extends JpaRepository<FindPwd, In
     @Query("Select fp From FindPwd fp Where fp.webMail = :webMail And fp.phoneNumber = :phoneNumber And fp.status = 0")
     FindPwd findByWebMailAndPhoneNumber(String webMail, String phoneNumber);
 
+    @Query("Select fp From FindPwd fp Where fp.webMail = :webMail And fp.status = 0")
+    FindPwd findByWebMail(String webMail);
 
 }
