@@ -496,6 +496,15 @@ public class MemeberServiceImpl implements MemberProfileService {
         }
 
 
+        // 비밀번호 재설정 완료 -> status 0 : 비밀번호 재설정 대기, 1 : 비밀번호 재설정 완료
+
+        // 웹메일과 status (비밀번호 재설정 대기 중) 기준으로 객체 탐색
+        FindPwd findPwd = findPwdVerificationRepository.findByWebMail(webMail);
+        // status = 1 설정
+        findPwd.updateStatus(1);
+
+
+
         apiResultEntity = ApiResultEntity.builder()
                 .statusCode(200)
                 .message("[비밀번호 재설정 성공] 비밀번호 재설정 완료")
