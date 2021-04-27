@@ -478,6 +478,9 @@ public class MemeberServiceImpl implements MemberProfileService {
             // DB에 token 값이 "" 상태로 삽입되지 않으므로, 처리할 예외처리가 아님
             // token 값이 "" 상태로 들어온 경우 "java.lang.IllegalArgumentException: JWT String argument cannot be null or empty"
 
+            // 게이트웨이 서버에서 토큰 유효성 검사를 체크 하므로, 아래 로직은 우선 예비 로직으로 두고 활용 여부는 추후 결정 (2021/04/27)
+            // (문서에 기재되지 않은 부분)
+
             // 토큰이 유효하지 않는 경우 (-> 재설정 할 수 없는 상황, 이미 페이지는 반환 받은 상태)
             if (!jwtUtils.validateToken(token)) {
                 throw new CustomJwtException(errorResponse("[비밀번호 재설정 실패] 비밀번호 재설정 유효기간 초과", 306, "/api/user/find-pwd"));
