@@ -225,6 +225,13 @@
 
 **Authentication** : X
 
+**Custom Header** : 
+
+```json
+// Custom Header 'token' 키 값에 토큰 값을 넣어서 요청해주시면 됩니다. 
+"token" : "토큰 값"
+```
+
 **Request Body** :  
 
 ```json
@@ -257,23 +264,55 @@
     "responseData": null
 }
 
-// 아래 statusCode 306 경우는 토큰 이슈가 발생한 경우이고, 이 경우에는 Alert를 통해 "비밀번호 찾기 과정을 처음부터 다시 진행해주세요." 출력 이후 아래 'pathToMove' 경로 값으로 페이지 이동시키시면 됩니다. 
+#(2021/04/27 추가)
+// 비밀번호 재설정 요청 시 토큰 유효성 검사 결과 비밀번호 재설정 처리할 수 없는 경우 [예외처리] 
+// 아래 예외 응답 반환 경우 Alert("잘못된 접근입니다.") 띄우고 
+// pathToMove 값인 메인 페이지로 이동시켜주시면 됩니다.
 [HTTP/1.1 200 OK]
 {
-    "statusCode": 306,
-    "timestamp": "2021-04-08T05:21:06.371+00:00",
-    "message": "[비밀번호 재설정 실패] 비밀번호 재설정 유효기간 초과",
-    "requestPath": "/api/user/find-pwd",
+    "timestamp": "2021-04-27T00:55:02.325+00:00",
+    "path": "/api/user/find-pwd",
+    "status": 302,
+    "message": "[페이지 접근 실패]이용제재 또는 탈퇴한 유저가 비밀번호 재설정 페이지 접근하는 경우",
     "pathToMove": "/shop/main/index"
 }
 
+[HTTP/1.1 200 OK]
 {
-    "statusCode": 306,
-    "timestamp": "2021-04-08T05:21:28.156+00:00",
-    "message": "[비밀번호 재설정 실패] 비밀번호 재설정 토큰 이슈가 발생한 경우(ExpiredJwtException 제외)",
-    "requestPath": "/api/user/find-pwd",
+    "timestamp": "2021-04-27T00:54:29.596+00:00",
+    "path": "/api/user/find-pwd",
+    "status": 302,
+    "message": "[페이지 접근 실패]요청한 토큰 값과 대조할 토큰 값이 없는 경우",
     "pathToMove": "/shop/main/index"
 }
+
+[HTTP/1.1 200 OK]
+{
+    "timestamp": "2021-04-27T00:53:44.739+00:00",
+    "path": "/api/user/find-pwd",
+    "status": 302,
+    "message": "[페이지 접근 실패] 요청 토큰 값 파싱 과정에서 JWTException 발생",
+    "pathToMove": "/shop/main/index"
+}
+
+[HTTP/1.1 200 OK]
+{
+    "timestamp": "2021-04-27T00:53:23.518+00:00",
+    "path": "/api/user/find-pwd",
+    "status": 302,
+    "message": "[페이지 접근 실패] 비밀번호 재설정 페이지 토큰 값 없는 상태 접근하는 경우",
+    "pathToMove": "/shop/main/index"
+}
+
+[HTTP/1.1 200 OK]
+{
+    "timestamp": "2021-04-27T00:50:32.030+00:00",
+    "path": "/api/user/find-pwd",
+    "status": 302,
+    "message": "[페이지 접근 실패]해당 토큰으로 이미 비밀번호 재설정 완료된 경우",
+    "pathToMove": "/shop/main/index"
+}
+
 
 ```
 
