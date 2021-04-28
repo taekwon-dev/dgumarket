@@ -434,6 +434,7 @@ public class ProductServiceImpl implements ProductService {
                 .map(product -> modelMapper.map(product, ProductReadListDto.class))
                 .collect(Collectors.toList());
         return ShopProductListDto.builder()
+                .total_size(null)
                 .page_size(products.getNumberOfElements())
                 .productsList(productReadListDtos).build();
     }

@@ -274,7 +274,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 //                savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(UNREAD, savedChatroom.getRoomId(), product.get(), receiver, sender));
 //                ChatMessage savedMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, sendMessage.getMessageType());
 //                saveTextMessage2Dto(savedMessage, modelMapper);
-                ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, 0);
+                ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, savedChatroom, sender, receiver, UNREAD, 0);
                 StompReceivedMessage stompReceivedMessage = saveTextMessage2Dto(chatMessage, modelMapper);
                 logger.info("[/MESSAGE] save the message : {}}", chatMessage.toString());
                 this.template.convertAndSend("/topic/chat/" + sendMessage.getReceiverId(), stompReceivedMessage); // 상대방에게 채팅 메시지를 보낸다
