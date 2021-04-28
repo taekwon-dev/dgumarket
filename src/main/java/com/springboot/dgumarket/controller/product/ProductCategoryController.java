@@ -1,6 +1,7 @@
 package com.springboot.dgumarket.controller.product;
 
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
+import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.payload.request.PagingIndexRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
@@ -67,12 +68,13 @@ public class ProductCategoryController {
 
     // 카테고리별 물건들 조회
     @GetMapping("/{categoryId}/products")
+    @CategoryCheck
     public ResponseEntity<?> getCategoryProducts(
             Authentication authentication,
             @PathVariable(value = "categoryId", required = false) int categoryId,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false) @Nullable Integer except_pid){
+            @RequestParam(required = false) @Nullable Integer except_pid) throws CustomControllerExecption {
 
         if(authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
