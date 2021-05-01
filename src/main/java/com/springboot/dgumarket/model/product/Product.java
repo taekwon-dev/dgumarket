@@ -35,14 +35,26 @@ public class Product {
     @Column(name = "id")
     private int id;
 
-    // member_id
+    /** [회원] - Entity Relationship
+     *  - 주인 관계 (= 실제 테이블에서 회원 테이블에 대한 조인 컬럼 보유)
+     *  - Product : Members = Many : One
+     *  - Fetch 옵션 : FetchType.LAZY (지연로딩 우선 적용 후 추후 경과보고 판단)
+     *  - Cascade 옵션 : 당장 적용할 근거를 찾지 못함 (= 필요성 재고)
+     *    - 상품 정보 저장 또는 삭제 시 회원 테이블에 영향 주는 부분이 없음 (이유)
+     * */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", referencedColumnName = "id")
             private Member member;
 
-            // 상품 카테고리
-            @ManyToOne(fetch = FetchType.LAZY)
-            @JoinColumn(name = "category_id", referencedColumnName = "id")
+    /** [상품 카테고리] - Entity Relsationship
+     *  - 주인 관계 (= 실제 테이블에서 상품 카테고리 테이블에 대한 조인 컬럼 보유
+     *  - Product : ProductCategory = Many to One
+     *  - Fetch 옵션 : FetchType.LAZY (지연로딩 우선 적용 후 추후 경과보고 판단)
+     *  - Cascade 옵션 : 당장 적용할 근거를 찾지 못함 (= 필요성 재고)
+     *    - 상품 정보 저장 또는 삭제 시 상품 카테고리에 영향 주는 부분이 없음 (이유)
+     * */
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
     private ProductCategory productCategory;
 
     // 거래 상태 코드

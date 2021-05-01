@@ -451,6 +451,7 @@ public class ProductServiceImpl implements ProductService {
             @Override
             protected void configure() {
                 map().setId(source.getId());
+                // Product -> Member 프록시 객체 초기화 Trigger (= 실제 회원정보를 DB에서 조회하는 시점)
                 map().setUserId(source.getMember().getId());
                 map().setUserNickName(source.getMember().getNickName());
                 map().setProfileImgDirectory(source.getMember().getProfileImageDir());
