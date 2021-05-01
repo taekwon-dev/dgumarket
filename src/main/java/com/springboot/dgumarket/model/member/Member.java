@@ -94,7 +94,23 @@ public class Member {
     @JsonIgnore
     private Set<ProductCategory> productCategories;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    /** [상품] - Entity Relationship
+     *  (2021-05-01 by TK)
+     *  - 종속 관계 (= 실제 테이블에서 회원 테이블에 대한 조인 컬럼 보유)
+     *  - Members : Product = One : Many
+     *  - Fetch 옵션 : FetchType.LAZY (지연로딩 우선 적용 후 추후 경과보고 판단, @OneToMany 디폴트 로딩 옵션)
+     *  - Cascade 옵션 : REMOVE
+     *    - 회원 탈퇴 요청 시 30일 간 데이터베이스 보존 기간 이후 삭제되는 시점에 회원과 연관된 정보를 삭제처리 해야 함
+     *      - 따라서 영속성 전이 옵션 중 REMOVE 적용
+     *      - [PERSIST] 적용하지 않은 이유
+     *        - 회원정보를 저장하는 시점에 상품 정보를 저장하는 것을 고려할 필요 없음
+     *        - 단, 위에서 적용한 REMOVE 로직에 PERSIST가 반드시 필요하다면 추후 추가할 예정
+     *      - [orphanRemoval]을 적용할 수 있는 이유 (아직 적용해야 하는 지 확신하지 않은 상태에서 기술)
+     *        - 회원 & 상품의 관계가 끊어지는 시점은 사실상 회원 테이블에서 해당 회원 로우가 삭제되는 시점
+     *        - 해당 상품의 정보 역시 삭제되는 것이 맞고, 이 때 해당 상품을 참고하는 다른 관계가 없으므로
+     *        - 사실상 회원 & 상품의 관계는 회원이 해당 상품을 "개인 소유"하고 있다고 봐도 무방하다.
+     * */
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<Product> products;
 

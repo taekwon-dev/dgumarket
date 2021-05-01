@@ -35,7 +35,16 @@ public class ProductCategory {
     @Column(name = "category_type")
     private int categoryType;
 
-    @OneToMany(mappedBy = "productCategory", cascade = CascadeType.ALL, orphanRemoval = true)
+    /**
+     *    (2021-05-01 by TK)
+     *  - [ 중요 ] 서비스 로직 상 양방향 관계가 필요 없는 경우 이 필드는 삭제처리
+     *  - 양방향 관계, 종속 관계 (mappedBy 명시, 조인 컬럼 Product 테이블에서 관리)
+     *  - ProductCategory : Product = One to Many
+     *  - 상품 정보가 삭제했을 때 영향 받지 않는다. (= 상품 카테고리는 시스템 로직으로 인해서 삭제되는 대상이 아님)
+     *  - 상품 카테고리 테이블은 시스템 로직으로 인한 자동적 데이터 입출력이 없으므로 영속성 전이 옵션을 사용할 필요 없다고 판단
+     *  - Fetch 옵션은 @OneToMany 디폴트 옵션인 LAZY 사용
+     * */
+    @OneToMany(mappedBy = "productCategory")
     @JsonIgnore
     private Set<Product> products;
 
