@@ -16,6 +16,10 @@ ex)
 `imgDirectories` : null (물건이미지)
 
 
+### 꼭 읽을 것! (5/2 수정사항 추가)
+기존 접근불가능 했던 api에 대해서 예외처리 화면으로 이동한 것을 이제는 /shop/main/index (인덱스페이지)로 이동하기위해 예외 응답 pathToMove 필드 값은 /shop/main/index 로 내려옴
+
+
 
 
 
@@ -107,7 +111,7 @@ ex)
     "timestamp": "2021-04-14T02:33:54.937+00:00",
     "message": "삭제되거나 존재하지 않은 물건입니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 ```
 
@@ -118,7 +122,7 @@ ex)
     "timestamp": "2021-04-14T02:33:54.937+00:00",
     "message": "관리자에 의해 비공개 처리된 물건입니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 ```
 
@@ -130,7 +134,7 @@ ex)
   "timestamp": "2021-04-14T02:30:07.400+00:00",
   "message": "물건의 판매자가 탈퇴하여 물건을 조회할 수 없습니다.",
   "requestPath": "uri=/api/product/119/info",
-  "pathToMove": "/exceptions"
+  "pathToMove": "/shop/main/index"
 }
 
 
@@ -145,7 +149,7 @@ ex)
     "timestamp": "2021-04-14T02:32:40.582+00:00",
     "message": "물건의 판매자가 관리자로 부터 이용제재조치를 받고 있어 물건을 조회할 수 없습니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 
 ```
@@ -159,7 +163,7 @@ ex)
     "timestamp": "2021-04-14T02:32:40.582+00:00",
     "message": "차단한 유저의 물건을 조회할 수 없습니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 
 ```
@@ -173,7 +177,7 @@ ex)
     "timestamp": "2021-04-14T02:32:40.582+00:00",
     "message": "차단당한 유저의 물건을 조회할 수 없습니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 
 ```
