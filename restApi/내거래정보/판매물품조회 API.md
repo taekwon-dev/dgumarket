@@ -8,6 +8,9 @@ REST API - Chat created by MS (21-02-04)
 
 이미지가 없을 경우 null로 옵니다.
 
+### 꼭 읽을 것! (5/2 수정사항 추가)
+기존 접근불가능 했던 api에 대해서 예외처리 화면으로 이동한 것을 이제는 /shop/main/index (인덱스페이지)로 이동하기위해 예외 응답 pathToMove 필드 값은 /shop/main/index 로 내려옴
+
 
 # 유저의 판매물품조회하기
 
@@ -145,7 +148,7 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
     "timestamp": "2021-04-14T02:33:54.937+00:00",
     "message": "존재하지 않거나 탈퇴한 유저 입니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 ```
 
@@ -156,7 +159,7 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
     "timestamp": "2021-04-14T02:33:54.937+00:00",
     "message": "관리자로부터 이용제재 받고 있는 유저입니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 ```
 
@@ -169,7 +172,7 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
     "timestamp": "2021-04-14T02:32:40.582+00:00",
     "message": "차단한 유저에 대한 정보를 조회할 수 없습니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 
 ```
@@ -183,7 +186,7 @@ ex2) 로그인 유저가 자신의 판매물건조회 중 '판매중' 을 요청
     "timestamp": "2021-04-14T02:32:40.582+00:00",
     "message": "차단당한 유저의 정보를 조회할 수 없습니다.",
     "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/exceptions"
+    "pathToMove": "/shop/main/index"
 }
 
 ```
