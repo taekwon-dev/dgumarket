@@ -180,6 +180,7 @@ public class ProductController {
 
     // 좋아요 기능
     @PatchMapping("/like")
+    @LikeCheckValidate
     public ResponseEntity<?> cancelLikeProduct(
             Authentication authentication,
             @Valid @RequestBody LikeRequest likeRequest, Errors errors) throws CustomControllerExecption {
