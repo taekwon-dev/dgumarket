@@ -7,6 +7,11 @@
 로그인한 유저가 관심물건리스트 혹은 개별 물건페이지에서 좋아요를 하거나 했던 좋아요를 취소하는 기능이다.
 개별 물건페이지에서 좋아요를 했다면 관심목록리스트 좋아요한 물건이 추가된다.
 
+## 수정내용 5.4
+좋아요/좋아요 취소 시 예외사항발생하게 되면 index 으로 이동시킵니다.
+그렇기 때문에 이동해야하는 url 필드에 /shop/main/index 값이 추가 되었습니다.
+예외응답부분은 99번째라인 밑에 있는 예외응답들은 모두 메시지내용이 바뀌었고, 모두 404에러를 반환합니다. 반.드.시 확인바랍니다.
+
 
 ### request body(json)
 
@@ -62,10 +67,11 @@ example response body
 ```json
 
 {
-  "statusCode": 410,
+  "statusCode": 404, # 410 에서 404 로 변경되었습니다 (5/4, 확인하고 이거대로 수정바랍니다!) 
   "timestamp": "2021-02-19T17:15:13.721+00:00",
   "message": "차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.",
-  "description": "uri=/api/product/product-like"
+  "description": "uri=/api/product/like",
+  "pathToMove": "/shop/main/index"
 }
 
 ```
@@ -81,13 +87,15 @@ example response body
   "statusCode": 401,
   "timestamp": "2021-02-26T11:16:46.318+00:00",
   "message": "로그인이 필요한 서비스입니다.",
-  "description": "uri=/api/product/like"
+  "description": "uri=/api/product/like",
+  "pathToMove": "null"
 }
 
 
 ```
 
-### 존재하지 물건에 대해서 요청을 할 때(삭제되었을 경우)
+
+### 존재하지 물건에 대해서 요청을 할 때(삭제되거나 존재하지 않은 경우)
 
 * 이 경우 물건이 존재하지 않는 데 해당페이지에 들어가 있는 상태이다. 즉 나는 해당 물건페이지에 있는 데 그 순간
   그 물건을 올린유저가 물건을 삭제한 경우이다. 이렇게 되었을 경우는 해당 물건페이지에 대한 정보를 더 이상 보여주면
@@ -98,8 +106,9 @@ example response body
 {
     "statusCode": 404,
     "timestamp": "2021-02-19T17:14:07.623+00:00",
-    "message": "해당 게시물은 존재하지 않습니다.",
-    "description": "uri=/api/product/product-like"
+    "message": "삭제되거나 존재하지 않은 물건입니다.",
+    "description": "uri=/api/product/like",
+    "pathToMove": "/shop/main/index"
 }
 
 ```
@@ -107,18 +116,52 @@ example response body
 
 ### 탈퇴한 유저의 물건에 대해서 좋아요(좋아요취소)를 요청했을 경우
 
-* 이 경우도 해당 물건 페이지에 계속 머무르는 동안에 해당 물건을 올린유저가 탈퇴한 상황이다. 이 물건페이지에
-  들어온 유저는 인덱스페이지로 이동시켜야한다. 따라서 아래의 응답메시지를 받았을 경우 역시 인덱스페이지로 강제로
-  이동시킨다.
+* 이 경우 탈퇴한 유저의 물건에 들어갈 수 없음에도 불구하고 해당페이지(혹은 내거래정보에서 관심물건이 있다면, 그곳에서 좋아요 취소/좋아요 요청)에 들어가 있는 상태이다. 
+  즉 나는 해당 물건페이지(내거래정보의 관심물건에서 좋아요또는 좋아요취소 누름)에 있는 데 그 순간
+  해당 물건을 올린 유저가 탈퇴한 경우, 이렇게 되었을 경우는 해당 물건페이지(내거래정보)에 대한 정보를 더 이상 보여주면
+  안되기 때문에 클라이언트는 해당 경고문구가 왔을 경우는 바로 인덱스페이지로 이동시켜야 한다.
+
+```json
+
+{
+  "statusCode": 404,
+  "timestamp": "2021-05-04T09:12:18.877+00:00",
+  "message": "물건의 판매자가 탈퇴하여 물건을 조회할 수 없습니다.",
+  "requestPath": "uri=/api/product/like",
+  "pathToMove": "/shop/main/index"
+}
+```
+
+
+### 관리자에 의해 비공개 처리된 물건에 대해서 좋아요/좋아요취소 를 요청하였을 경우
+
+* 위의 사례와 같다
+
 
 ```json
 
 {
     "statusCode": 404,
-    "timestamp": "2021-02-26T11:16:46.318+00:00",
-    "message": "탈퇴한 유저 입니다.",
-    "description": "uri=/api/product/like"
+    "timestamp": "2021-05-04T09:12:18.877+00:00",
+    "message": "관리자에 의해 비공개 처리된 물건입니다.",
+    "requestPath": "uri=/api/product/like",
+    "pathToMove": "/shop/main/index"
 }
 
+``` 
 
-```
+### 좋아요/좋아요취소 하려고 하는 물건의 판매자가 관리자로 부터 이용제재조치를 받고 있는 경우
+
+* 위의 사례와 같다
+
+```json
+
+{
+    "statusCode": 404,
+    "timestamp": "2021-05-04T09:12:18.877+00:00",
+    "message": "물건의 판매자가 관리자로 부터 이용제재조치를 받고 있어 물건을 조회할 수 없습니다.",
+    "requestPath": "uri=/api/product/like",
+    "pathToMove": "/shop/main/index"
+}
+
+``` 
