@@ -49,7 +49,7 @@ public class LikeCheckValidateAspect {
 
             // 물건 판매자가 탈퇴/유저제재 되었을 경우 => 에러페이지 반환
             if (product.get().getMember().getIsWithdrawn() == 1) throw new CustomControllerExecption("물건의 판매자가 탈퇴하여 물건을 조회할 수 없습니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
-            if (product.get().getMember().getIsEnabled() == 1) throw new CustomControllerExecption("물건의 판매자가 관리자로 부터 이용제재조치를 받고 있어 물건을 조회할 수 없습니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
+            if (product.get().getMember().getIsEnabled() == 1) throw new CustomControllerExecption("물건의 판매자가 관리자로부터 이용제재조치를 받고 있어 좋아요/좋아요취소 요청을 할 수 없습니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
 
 
             // 물건 판매자가 나와 차단관계일 경우 => 에러페이지 반환
