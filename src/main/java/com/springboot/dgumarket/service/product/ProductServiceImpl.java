@@ -11,16 +11,19 @@ import com.springboot.dgumarket.exception.NotFoundException.ProductNotFoundExcep
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
+import com.springboot.dgumarket.model.product.ProductLike;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.repository.member.MemberRepository;
+import com.springboot.dgumarket.repository.memberProduct.ProductLikeRepository;
 import com.springboot.dgumarket.repository.product.CustomProductRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -46,6 +49,9 @@ public class ProductServiceImpl implements ProductService {
     private ProductListIndex productListIndex;
     private MemberRepository memberRepository;
     private CustomProductRepository customProductRepository; // 새롭게 적용되는 리포지토리
+
+    @Autowired
+    private ProductLikeRepository productLikeRepository;
 
     public ProductServiceImpl(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ModelMapper modelMapper, MemberRepository memberRepository,  CustomProductRepository customProductRepository) {
         this.productRepository = productRepository;
@@ -327,7 +333,7 @@ public class ProductServiceImpl implements ProductService {
                 map().setUploadDatetime(source.getCreateDatetime());
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 map().setTransaction_status_id(source.getTransactionStatusId());
-                map().setLikeStatus("like");
+                map().setLikeStatus("like"); // 하트 빨간색 지정
             }
         };
         modelMapper = new ModelMapper();
@@ -480,8 +486,12 @@ public class ProductServiceImpl implements ProductService {
                 throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE, null);
             }
 
+            // ProductLike 객체 생성 via member, product
+            ProductLike productLike = productLikeRepository.findByMemberAndProduct(member, product);
+
             ProductReadOneDto readOneDto = modelMapper.map(product, ProductReadOneDto.class);
-            if (member.getLikeProducts().contains(product)) { // 내가 좋아요 한 물건
+
+            if (member.getLikeProducts().contains(productLike)) { // 내가 좋아요 한 물건
                 readOneDto.setIsLiked("like");
             }
             return readOneDto;
@@ -508,11 +518,47 @@ public class ProductServiceImpl implements ProductService {
             throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE, null);
         }
 
-        if(likeRequest.getCurrent_like_status().equals("nolike")){
-            member.like(product); // 좋아요
+        log.info("Member.getId() : " + member.getId());
+        log.info("Product.getId() : " + product.getId());
+
+
+
+        if (likeRequest.getCurrent_like_status().equals("nolike")) {
+
+            log.info("좋아요 버튼 클릭 -> 좋아요 처리");
+
+            // ProductLike(=유저가 좋아요한 상품) 객체 생성 -> 엔티티 영속화 처리가 되지 않은 상황
+            // PERSIST (영속성 전이)를 통해서 멤버 엔티티가 영속화 될 때 멤버가 좋아요 한 상품 엔티티 역시 영속화 처리
+            ProductLike productLike = ProductLike.builder()
+                    .member(member)
+                    .product(product)
+                    .build();
+
+            // [유저 : 유저가 좋아한 상품] 관계
+
+            // 1. 유저 -> 유저가 좋아한 상품 방향으로 참조를 건다. (= "유저가, 좋아한 상품 리스트에 해당 상품을 추가한다")
+            // 2. 유저가 좋아한 상품 -> 유저 방향으로 참조를 건다. (= "해당 상품에서 유저가 좋아요 표시한 것을 추가한다")
+
+            // Hibernate: insert into product_like (created, user_id, product_id) values (?, ?, ?)
+            member.like(productLike);
+
             return "like";
-        }else {
-            member.unlike(product); // 좋아요 취소
+        } else {
+            log.info("좋아요 버튼 클릭 -> 안 좋아요 처리");
+            ProductLike productLike = productLikeRepository.findByMemberAndProduct(member, product);
+
+            // [유저 : 유저가 좋아한 상품] 관계
+
+            // 1. 유저 -> 유저가 좋아한 상품 방향으로 참조를 끊는다. (= "유저가, 좋아한 상품 리스트에 해당 상품을 삭제한다")
+            // 2. 유저가 좋아한 상품 -> 유저 방향으로 참조를 끊는다. (= "해당 상품에서 유저가 좋아요 표시한 것을 삭제한다")
+            member.unlike(productLike);
+
+            // product_like (DB table)에서 외래키로 members (DB table)과 관계르 맺고 있으므로,
+            // 서로 맺어진 관계를 끊지 않은 상태에서 delete() 선언 이후에
+            // 유저 -> 좋아요 상품 조회 시 삭제되지 않은 상태로 확인되고, delete 쿼리도 실행되지 않는다.
+            // 따라서, unlike()를 통해 참조를 끊고 delete() 함수를 선언한다.
+            productLikeRepository.delete(productLike);
+
             return "nolike";
         }
     }

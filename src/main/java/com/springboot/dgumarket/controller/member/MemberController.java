@@ -4,9 +4,11 @@ import com.springboot.dgumarket.dto.member.ChangePwdDto;
 import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.ResetPwdDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
+import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.payload.request.WebmailRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
+import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.mail.EmailService;
 import com.springboot.dgumarket.service.mail.EmailServiceImpl;
 import com.springboot.dgumarket.service.member.MemberProfileService;
@@ -32,6 +34,9 @@ public class MemberController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private MemberRepository memberRepository;
 
 
     private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
@@ -114,6 +119,15 @@ public class MemberController {
         ApiResultEntity apiResultEntity = memberService.resetPasswordForFindPwd(resetPwdDto);
         return new ResponseEntity<>(apiResultEntity, HttpStatus.OK);
     }
+
+
+    // 회원 탈퇴 이후, 30일 보호 기간이 끝난 계정 삭제 처리 API (임시)
+    // 인터셉터 통과 경로 값에서 제외 처리 해놓은 상태
+    @PostMapping("/delete-member")
+    public ResponseEntity<?> deleteMember() {
+        return new ResponseEntity<>("회원 삭제", HttpStatus.OK);
+    }
+
 
 
 }
