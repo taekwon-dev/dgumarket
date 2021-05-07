@@ -5,6 +5,7 @@ import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -15,7 +16,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductLike {
 
@@ -23,14 +23,26 @@ public class ProductLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @OneToOne(fetch = FetchType.LAZY, targetEntity = Member.class)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private Member member;
 
-    @OneToOne(fetch = FetchType.LAZY, targetEntity = Product.class)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
-    @Column(name = "created")
+    @CreationTimestamp
+    @Column(name = "created", updatable = false)
     private LocalDateTime likedTime;
+
+    @Builder
+    public ProductLike(Member member, Product product) {
+        this.member = member;
+        this.product = product;
+    }
+
+    public void unSetMember() {
+        this.setMember(null);
+    }
+
 }

@@ -6,7 +6,9 @@ import com.springboot.dgumarket.model.Role;
 import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
+import com.springboot.dgumarket.model.product.ProductLike;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
@@ -27,6 +29,7 @@ import java.util.Set;
  * Github : https://github.com/dgumarket/dgumarket.git
  * Description :
  */
+@Slf4j
 @Entity
 @Table(name = "members")
 @Getter
@@ -110,7 +113,7 @@ public class Member {
      *        - 해당 상품의 정보 역시 삭제되는 것이 맞고, 이 때 해당 상품을 참고하는 다른 관계가 없으므로
      *        - 사실상 회원 & 상품의 관계는 회원이 해당 상품을 "개인 소유"하고 있다고 봐도 무방하다.
      * */
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.REMOVE)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
     @JsonIgnore
     private Set<Product> products;
 
@@ -130,13 +133,16 @@ public class Member {
     @JsonIgnore
     private Set<Member> UserBlockedMe; // 나를 차단한 유저들 ( 나를 차단한 유저들의 물건들은 보여서는 안된다 )
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinTable(
-            name = "product_like",
-            joinColumns = { @JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn(name = "product_id")})
-    @JsonIgnore
-    private Set<Product> likeProducts; // 좋아요한 물건들
+    /** [유저-상품 : 좋아요 누른 상품]
+     *  - 종속 관계 (mappedBy 속성, 외래 키가 product_like 테이블에서 관리 되고 있다)
+     *  - cascade
+     *      - PERSIST : ProductLike 객체를 새로 생성해서 추가할 때, 회원 정보를 조회하는데 이 때 PERSIST를 통해 미리 영속화 처리를 한다.
+     *                  이를 통해 양방향 관계를 맺을 때 ProductLike 객체를 조회할 필요가 없다. (효율)
+     *      - REMOVE : 회원 정보가 삭제될 때, 해당 회원이 좋아요 처리한 상품 역시 삭제된다.
+     *
+    */
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "member")
+    private List<ProductLike> likeProducts;
 
     @Column(name = "alert_num")
     private int alertNum; // 받은 경고 횟수
@@ -195,13 +201,29 @@ public class Member {
     }
 
     // 좋아요 누르기
-    public void like(Product product){
-        this.getLikeProducts().add(product); // 좋아요 물건 추가
+    public void like(ProductLike productLike){
+        // 양방향 관계 (회원 : 좋아요한 상품)
+
+        // 1. 멤버 <- 좋아요한 상품 리스트에 추가
+        this.getLikeProducts().add(productLike);
+
+        // 2. 좋아요한 상품 <- 멤버 매핑
+        productLike.setMember(this);
     }
 
     // 좋아요 취소하기
-    public void unlike(Product product){
-        this.getLikeProducts().remove(product); // 좋아요 했던 물건 취소하기
+    public void unlike(ProductLike productLike){
+        // 양방향 관계 (회원 : 좋아요한 상품)
+
+        // 1. 멤버 <- 좋아요한 상품 리스트에서 삭제
+        this.getLikeProducts().remove(productLike);
+
+        // 2. 좋아요한 상품 <- 해당 멤버 삭제
+        productLike.unSetMember();
+    }
+
+    public void test(ProductLike p) {
+       log.info(String.valueOf(this.getLikeProducts().contains(p)));
     }
 
     // 유저 차단하기

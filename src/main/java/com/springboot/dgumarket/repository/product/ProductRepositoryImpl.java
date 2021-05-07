@@ -262,7 +262,7 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
         if (categoryId == null || keyword == null || keyword.trim().length() == 0) {
             // [예외처리] 카테고리, 키워드 @RequestParam을 임의로 수정한 경우 예외처리
             // [예외처리] 빈 값을 검색하는 경우 예외처리 (클라 측에서도 공란 상태로 검색할 수 없도록 처리)
-            throw new ResultNotFoundException(errorResponse("요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
+            throw new ResultNotFoundException(errorResponse("[0]요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
         }
 
 
@@ -287,13 +287,13 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
                 } else {
                     log.error("주어진 카테고리 범위 밖에서 요청하는 경우");
                     // [예외처리] 카테고리가 지정된 범위 밖으로 임의로 수정한 경우
-                    throw new ResultNotFoundException(errorResponse("요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
+                    throw new ResultNotFoundException(errorResponse("[1]요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
 
                 }
             }
         } catch (NumberFormatException e) {
             // from parseInt() method
-            throw new ResultNotFoundException(errorResponse("요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
+            throw new ResultNotFoundException(errorResponse("[2]요청에 대한 결과를 조회할 수 없는 경우", 307, "/api/product/search"));
 
 
         }
