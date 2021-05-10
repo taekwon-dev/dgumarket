@@ -1,7 +1,6 @@
 package com.springboot.dgumarket.controller.awss3;
 
 import com.springboot.dgumarket.exception.CustomControllerExecption;
-import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.awss3.AWSS3MultiImgService;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.util.annotation.Nullable;
-
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by TK YOUN (2021-03-06 오후 2:43)

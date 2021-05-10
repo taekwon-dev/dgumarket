@@ -3,7 +3,7 @@ package com.springboot.dgumarket.repository.member;
 import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
-import com.querydsl.jpa.impl.JPAQuery;
+
 import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.model.member.Member;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 // 특정 필드만 조회하고 싶은 경우 어떻게 개선할 수 있을까?
 
 import static com.springboot.dgumarket.model.member.QMember.member;
-import static com.springboot.dgumarket.model.product.QProduct.product;
+
 
 @Slf4j
 @Repository

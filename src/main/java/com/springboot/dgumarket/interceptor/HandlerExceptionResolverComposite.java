@@ -3,7 +3,7 @@ package com.springboot.dgumarket.interceptor;
 import com.sun.istack.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;

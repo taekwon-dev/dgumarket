@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.dto.product;
 
 import lombok.Getter;
-import org.openapitools.jackson.nullable.JsonNullable;
+
 /**
  * Created by TK YOUN (2020-12-09 오후 5:43)
  * Github : https://github.com/dgumarket/dgumarket.git

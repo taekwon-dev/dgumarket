@@ -7,7 +7,8 @@ import com.springboot.dgumarket.dto.product.*;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.exception.ErrorMessage;
-import com.springboot.dgumarket.exception.NotFoundException.ProductNotFoundException;
+import com.springboot.dgumarket.exception.notFoundException.ProductNotFoundException;
+import com.springboot.dgumarket.model.member.BlockUser;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
@@ -15,12 +16,14 @@ import com.springboot.dgumarket.model.product.ProductLike;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ProductListIndex;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
+import com.springboot.dgumarket.repository.member.BlockUserRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.memberProduct.ProductLikeRepository;
 import com.springboot.dgumarket.repository.product.CustomProductRepository;
 import com.springboot.dgumarket.repository.product.ProductCategoryRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
+
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +55,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductLikeRepository productLikeRepository;
+
+    @Autowired
+    private BlockUserRepository blockUserRepository;
 
     public ProductServiceImpl(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ModelMapper modelMapper, MemberRepository memberRepository,  CustomProductRepository customProductRepository) {
         this.productRepository = productRepository;
@@ -449,7 +455,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductReadOneDto getProductInfo(UserDetailsImpl userDetails, int productId) throws CustomControllerExecption {
         Product product = productRepository.findById(productId).orElseThrow(() -> new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND, null));
-        if(product.getProductStatus() == 1){
+
+        if (product.getProductStatus() == 1) {
             throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND, null);
         }
 
@@ -478,20 +485,30 @@ public class ProductServiceImpl implements ProductService {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addMappings(propertyMap);
 
-        if(userDetails != null){ // 로그인유저
+        if(userDetails != null){
 
-            // 차단된 사용자의 물건에 접속시 예외처리
-            Member member = memberRepository.findById(userDetails.getId());
-            if(member.getBlockUsers().contains(product.getMember()) || member.getUserBlockedMe().contains(product.getMember())){
-                throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE, null);
+            // 로그인 유저
+            Member loginUser = memberRepository.findById(userDetails.getId());
+
+            // 상품 업로더
+            Member productUploader = product.getMember();
+
+            // loginUser.getBlockUsers() : where user_id = loginUser.id
+            BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(loginUser, productUploader);
+
+            // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
+            BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
+
+            if(loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)){
+                throw new CustomControllerExecption("차단한 유저의 상품 또는 나를 차단한 유저의 상품은 조회할 수 없습니다.", HttpStatus.GONE, null);
             }
 
             // ProductLike 객체 생성 via member, product
-            ProductLike productLike = productLikeRepository.findByMemberAndProduct(member, product);
+            ProductLike productLike = productLikeRepository.findByMemberAndProduct(loginUser, product);
 
             ProductReadOneDto readOneDto = modelMapper.map(product, ProductReadOneDto.class);
 
-            if (member.getLikeProducts().contains(productLike)) { // 내가 좋아요 한 물건
+            if (loginUser.getLikeProducts().contains(productLike)) { // 내가 좋아요 한 물건
                 readOneDto.setIsLiked("like");
             }
             return readOneDto;
@@ -506,31 +523,40 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public String changeLikeProduct(UserDetailsImpl userDetails, LikeRequest likeRequest) throws CustomControllerExecption{
-        Member member = memberRepository.findById(userDetails.getId());
+
+        // 로그인 유저
+        Member loginUser = memberRepository.findById(userDetails.getId());
+
+        // 좋아요 대상되는 상품 객체
         Product product = productRepository.findById(likeRequest.getProduct_id()).orElseThrow(() -> new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND, null)); // 좋음! noSuch 디테일 구분 ?
 
-        if(product.getProductStatus() == 1){ // 삭제 예외
+        // 상품 업로더
+        Member productUploader = product.getMember();
+
+
+        if (product.getProductStatus() == 1) { // 삭제 예외
             throw new CustomControllerExecption("해당 게시물은 존재하지 않습니다.", HttpStatus.NOT_FOUND, null);
         }
 
-        // 차단된 사용자의 물건에 좋아요 할경우 예외처리
-        if(member.getBlockUsers().contains(product.getMember()) || member.getUserBlockedMe().contains(product.getMember())){
-            throw new CustomControllerExecption("차단한 유저 혹은 차단된 유저의 물건에 접근할 수 없습니다.", HttpStatus.GONE, null);
-        }
 
-        log.info("Member.getId() : " + member.getId());
-        log.info("Product.getId() : " + product.getId());
+        // loginUser.getBlockUsers() : where user_id = loginUser.id
+        BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(loginUser, productUploader);
+
+        // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
+        BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
+
+        if (loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)){
+            throw new CustomControllerExecption("차단한 유저의 상품 또는 나를 차단한 유저의 상품은 조회할 수 없습니다.", HttpStatus.GONE, null);
+        }
 
 
 
         if (likeRequest.getCurrent_like_status().equals("nolike")) {
 
-            log.info("좋아요 버튼 클릭 -> 좋아요 처리");
-
             // ProductLike(=유저가 좋아요한 상품) 객체 생성 -> 엔티티 영속화 처리가 되지 않은 상황
             // PERSIST (영속성 전이)를 통해서 멤버 엔티티가 영속화 될 때 멤버가 좋아요 한 상품 엔티티 역시 영속화 처리
             ProductLike productLike = ProductLike.builder()
-                    .member(member)
+                    .member(loginUser)
                     .product(product)
                     .build();
 
@@ -540,18 +566,18 @@ public class ProductServiceImpl implements ProductService {
             // 2. 유저가 좋아한 상품 -> 유저 방향으로 참조를 건다. (= "해당 상품에서 유저가 좋아요 표시한 것을 추가한다")
 
             // Hibernate: insert into product_like (created, user_id, product_id) values (?, ?, ?)
-            member.like(productLike);
+            loginUser.like(productLike);
 
             return "like";
         } else {
             log.info("좋아요 버튼 클릭 -> 안 좋아요 처리");
-            ProductLike productLike = productLikeRepository.findByMemberAndProduct(member, product);
+            ProductLike productLike = productLikeRepository.findByMemberAndProduct(loginUser, product);
 
             // [유저 : 유저가 좋아한 상품] 관계
 
             // 1. 유저 -> 유저가 좋아한 상품 방향으로 참조를 끊는다. (= "유저가, 좋아한 상품 리스트에 해당 상품을 삭제한다")
             // 2. 유저가 좋아한 상품 -> 유저 방향으로 참조를 끊는다. (= "해당 상품에서 유저가 좋아요 표시한 것을 삭제한다")
-            member.unlike(productLike);
+            loginUser.unlike(productLike);
 
             // product_like (DB table)에서 외래키로 members (DB table)과 관계르 맺고 있으므로,
             // 서로 맺어진 관계를 끊지 않은 상태에서 delete() 선언 이후에

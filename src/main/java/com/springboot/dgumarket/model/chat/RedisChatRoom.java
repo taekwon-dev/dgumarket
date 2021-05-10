@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisHash;
 
 
-import javax.persistence.Entity;
+
 import org.springframework.data.annotation.Id;
 
 import java.io.Serializable;

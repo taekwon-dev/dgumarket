@@ -3,7 +3,7 @@ package com.springboot.dgumarket.repository.member;
 import com.springboot.dgumarket.dto.member.FindPwdDto;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+
 
 @Repository
 public interface QMemberRepository {

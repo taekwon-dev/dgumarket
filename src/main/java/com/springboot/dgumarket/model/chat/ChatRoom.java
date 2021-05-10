@@ -4,8 +4,7 @@ package com.springboot.dgumarket.model.chat;
 import com.fasterxml.jackson.annotation.*;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
-import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
-import com.springboot.dgumarket.service.chat.ChatMessageServiceImpl;
+
 import lombok.*;
 import org.hibernate.annotations.*;
 import org.slf4j.Logger;
@@ -14,14 +13,9 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
 
 
 @Getter

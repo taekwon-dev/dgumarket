@@ -3,7 +3,7 @@ package com.springboot.dgumarket.repository.member;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.springboot.dgumarket.model.member.BlockUser;
 import com.springboot.dgumarket.model.member.Member;
-import com.springboot.dgumarket.model.member.QBlockUser;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;

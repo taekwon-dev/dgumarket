@@ -1,10 +1,8 @@
 package com.springboot.dgumarket.payload.request.product;
 
-import com.springboot.dgumarket.payload.request.report.ReportRequest;
-import lombok.Getter;
-import org.springframework.security.core.Authentication;
 
-import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+
 
 
 /**

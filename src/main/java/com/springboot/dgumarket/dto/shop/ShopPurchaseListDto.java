@@ -1,7 +1,6 @@
 package com.springboot.dgumarket.dto.shop;
 
 import com.springboot.dgumarket.dto.product.ProductPurchaseDto;
-import com.springboot.dgumarket.dto.product.ProductReadListDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

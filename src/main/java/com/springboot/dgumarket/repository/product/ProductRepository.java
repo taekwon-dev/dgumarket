@@ -1,17 +1,16 @@
 package com.springboot.dgumarket.repository.product;
 
-import com.drew.lang.annotations.Nullable;
+
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+
 
 /**
  * Created by TK YOUN (2020-12-22 오후 10:06)

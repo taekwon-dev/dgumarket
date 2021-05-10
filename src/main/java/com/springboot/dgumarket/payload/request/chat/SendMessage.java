@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.sound.midi.Receiver;
+
 import java.time.LocalDateTime;
 
 // 보내는 메시지 형태

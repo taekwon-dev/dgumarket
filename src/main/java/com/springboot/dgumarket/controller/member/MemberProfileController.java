@@ -5,7 +5,6 @@ import com.springboot.dgumarket.dto.member.ChangePwdDto;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.member.MemberUpdateDto;
 import com.springboot.dgumarket.model.member.redis.RedisJwtToken;
-import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;

@@ -1,23 +1,24 @@
 package com.springboot.dgumarket.controller.member;
 
-import com.springboot.dgumarket.dto.member.ChangePwdDto;
+
 import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.ResetPwdDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
-import com.springboot.dgumarket.model.member.Member;
+
 import com.springboot.dgumarket.payload.request.WebmailRequest;
-import com.springboot.dgumarket.payload.response.ApiResponseEntity;
+
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
+import com.springboot.dgumarket.repository.member.BlockUserRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.mail.EmailService;
-import com.springboot.dgumarket.service.mail.EmailServiceImpl;
+
 import com.springboot.dgumarket.service.member.MemberProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +38,9 @@ public class MemberController {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private BlockUserRepository blockUserRepository;
 
 
     private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
@@ -125,6 +129,8 @@ public class MemberController {
     // 인터셉터 통과 경로 값에서 제외 처리 해놓은 상태
     @PostMapping("/delete-member")
     public ResponseEntity<?> deleteMember() {
+//        Member member = memberRepository.findByWebMail("taekwon@dongguk.edu");
+//        memberRepository.delete(member);
         return new ResponseEntity<>("회원 삭제", HttpStatus.OK);
     }
 

@@ -13,7 +13,6 @@ import com.springboot.dgumarket.service.Validation.ValidationService;
 import com.springboot.dgumarket.service.chat.ChatRoomService;
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
 import com.springboot.dgumarket.service.product.ProductReviewService;
-import io.swagger.annotations.Authorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,21 +1,23 @@
 package com.springboot.dgumarket.service.chat;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.springboot.dgumarket.dto.chat.*;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.chat.ChatMessage;
 import com.springboot.dgumarket.model.chat.ChatRoom;
+import com.springboot.dgumarket.model.member.BlockUser;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductReview;
 import com.springboot.dgumarket.repository.chat.ChatMessageRepository;
 import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
+import com.springboot.dgumarket.repository.member.BlockUserRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
 import com.springboot.dgumarket.service.Validation.ValidationService;
 import com.springboot.dgumarket.service.block.UserBlockService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
@@ -30,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
+@Slf4j
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService{
     private static Logger logger = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
@@ -49,30 +53,36 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
 
     @Autowired
-    ChatRoomRepository chatRoomRepository;
+    private ChatRoomRepository chatRoomRepository;
 
     @Autowired
-    ChatMessageRepository chatMessageRepository;
+    private ChatMessageRepository chatMessageRepository;
 
     @Autowired
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
-    ProductRepository productRepository;
+    private BlockUserRepository blockUserRepository;
 
     @Autowired
-    ProductReviewRepository productReviewRepository;
+    private ProductRepository productRepository;
 
     @Autowired
-    UserBlockService userBlockService;
+    private ProductReviewRepository productReviewRepository;
 
     @Autowired
-    ValidationService validationService;
+    private UserBlockService userBlockService;
+
+    @Autowired
+    private ValidationService validationService;
+
 
     // 전체 채팅방 목록들 가져오기
     @Override
     public List<ChatRoomListDto> findAllRoomsByUserId(int userId) {
         ModelMapper modelMapper = new ModelMapper();
+
+        // 로그인 유저
         Member member = memberRepository.findById(userId);
 
         PropertyMap<ChatRoom, ChatRoomListDto> chatRoomChatRoomListDtoPropertyMap = new PropertyMap<ChatRoom, ChatRoomListDto>() {
@@ -142,6 +152,12 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             // 상대방유저
             Member memberOpponent = chatRoom.getMemberOpponent(member);
 
+            // 로그인 유저 & 상대방 유저 간 차단 여부 조회 (단방향)
+            // setBlock() = 로그인 유저 -> 상대방 유저 차단 여부 (true or false)
+            // loginUser.getBlockUsers() : where user_id = loginUser.id
+            // (= 로그인한 유저가 차단한 유저 리스트)
+            BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(member, memberOpponent);
+
             chatRoomListDto.setRoomId(chatRoom.getRoomId());
             chatRoomListDto.setChatRoomRecentMessageDto(modelMapper.map(recentMessage, ChatRoomRecentMessageDto.class));
             chatRoomListDto.setChatRoomProductDto(modelMapper.map(chatRoom.getProduct(), ChatRoomProductDto.class));
@@ -149,7 +165,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             chatRoomListDto.setUnreadMessageCount(unreadMessageCount);
             LocalDateTime localDateTime = chatRoomListDto.getChatRoomRecentMessageDto().getMessage_date();
             chatRoomListDto.getChatRoomRecentMessageDto().setMessage_date(localDateTime);
-            chatRoomListDto.setBlock(member.IsBlock(memberOpponent));
+            chatRoomListDto.setBlock(member.IsBlock(blockUser));
             chatRoomListDtos.add(chatRoomListDto);
         }
 
@@ -199,34 +215,62 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     // 채팅방 물건 거래완료로 바꾸기
     @Override
     public void changeRoomTransactionStatus(int userId, int roomId, int status) throws CustomControllerExecption {
-        Member member = memberRepository.findById(userId); // 이미 여기서 탈퇴가 걸러진다.
-        if(member==null){throw new CustomControllerExecption("존재하지않는 유저는 해당 기능을 이용하실 수 엇습니다.", HttpStatus.BAD_REQUEST, null);}
-        if(member.getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 이용제재를 받고있는 유저는 해당 기능을 사용하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);}
+
+
+        // 로그인 유저
+        Member member = memberRepository.findById(userId);
+
+        if (member == null) throw new CustomControllerExecption("존재하지않는 유저는 해당 기능을 이용하실 수 엇습니다.", HttpStatus.BAD_REQUEST, null);
+        if (member.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재를 받고있는 유저는 해당 기능을 사용하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);
 
 
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
         // 물건 삭제 또는 블라인드 처리되었을 경우 불가
-        if(chatRoom.getProduct()==null || chatRoom.getProduct().getProductStatus()==1){throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.NOT_FOUND, null);}
-        if(chatRoom.getProduct().getProductStatus()==2){throw new CustomControllerExecption("관리자에 의해 비공개 처리되어 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);}
+        if (chatRoom.getProduct() == null || chatRoom.getProduct().getProductStatus() == 1)
+            throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.NOT_FOUND, null);
+
+        if (chatRoom.getProduct().getProductStatus() == 2)
+            throw new CustomControllerExecption("관리자에 의해 비공개 처리되어 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
 
         // 채팅방의 물건 거래완료로 바꾸려는 데 채팅방에 있는 대화상대가 내가 차단한 경우라면 불가능
         // 채팅방 상대방이 사용자제재, 탈퇴 유저인지 확인하기
-        Member opponentMember = chatRoom.getMemberOpponent(member);
-        if(opponentMember.getIsEnabled()==1){throw new CustomControllerExecption("이용제재를 받고 있는 유저와 거래완료를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);}
-        if(opponentMember.getIsWithdrawn()==1 || opponentMember == null){throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);}
 
-        if(chatRoom.getSeller() == member){ // 반드시 채팅방의 판매자가 요청한것이여야함
-            if (member.getBlockUsers().contains(chatRoom.getConsumer())){
+        // 채팅 상대방 유저
+        Member opponentMember = chatRoom.getMemberOpponent(member);
+
+        if (opponentMember.getIsEnabled() == 1)
+            throw new CustomControllerExecption("이용제재를 받고 있는 유저와 거래완료를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+
+        if (opponentMember.getIsWithdrawn() == 1 || opponentMember == null)
+            throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+
+        // 판매자가 '로그인' 유저인 경우
+        if (chatRoom.getSeller() == member) {
+
+            // loginUser.getBlockUsers() : where user_id = loginUser.id
+            // (= 로그인한 유저가 차단한 유저 리스트)
+            BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(member, chatRoom.getConsumer());
+
+            // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
+            // (= 로그인한 유저를 차단한 리스트), 따라서 타겟 유저가 로그인 유저를 차단한 경우를 포함한다.
+            BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(chatRoom.getConsumer(), member);
+
+
+            if (member.getBlockUsers().contains(blockUser)) {
                 throw new CustomControllerExecption("차단한 유저와 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN, null);
             }
-            if(member.getUserBlockedMe().contains(chatRoom.getConsumer())){ // 서로 차단 중이라면
-                throw new CustomControllerExecption("차단된 유저와는 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN, null);
+
+            // 서로 차단 중이라면
+            if (member.getUserBlockedMe().contains(blockedUser)) {
+                throw new CustomControllerExecption("나를 차단한 유저와는 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN, null);
             }
-            if(chatRoom.getProduct().getTransactionStatusId() == 2){ // 이미 거래완료
+
+            // 이미 거래완료
+            if (chatRoom.getProduct().getTransactionStatusId() == 2) {
                 throw new CustomControllerExecption("이미 거래완료 되어 있는 상태입니다.", HttpStatus.BAD_REQUEST, null);
             }
 
-            if (chatRoom.getProduct().getTransactionStatusId() == 0){
+            if (chatRoom.getProduct().getTransactionStatusId() == 0) {
                 // 거래완료로 바꾸기
                 chatRoom.getProduct().setTransactionStatusId(status);
 
@@ -240,7 +284,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .build();
                 productReviewRepository.save(productReview);
             }
-        }else{ // 판매자 요청이 아닌 경우
+        } else { // 판매자 요청이 아닌 경우 '거래 완료'를 요청할 수 없다.
             throw new CustomControllerExecption("잘못된 요청입니다", HttpStatus.BAD_REQUEST, null);
         }
     }
@@ -258,34 +302,52 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     // 채팅방 상태 가져오기
     @Override
     public ChatRoomStatusDto getChatRoomStatus(int roomId, int userId) throws CustomControllerExecption {
-        Member member = memberRepository.findById(userId); // 본인
+
+        // 로그인 유저
+        Member member = memberRepository.findById(userId);
+
+        // 채팅방 객체 (via ChatRoomId)
         ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
+
+        // 로그인 유저기준 채팅방 상대 유저
+        Member opponentUser = chatRoom.getMemberOpponent(member);
+
         Optional<ProductReview> productReview = productReviewRepository.findByChatRoom(chatRoom);
 
 
-        if(chatRoom.getMemberOpponent(member).getIsEnabled()==1){
+        if (chatRoom.getMemberOpponent(member).getIsEnabled()==1) {
             throw new CustomControllerExecption("관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
         }
-        if(chatRoom.getMemberOpponent(member) == null || chatRoom.getMemberOpponent(member).getIsWithdrawn()==1){
+        if (chatRoom.getMemberOpponent(member) == null || chatRoom.getMemberOpponent(member).getIsWithdrawn() == 1) {
             throw new CustomControllerExecption("탈퇴한 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
         }
 
+        // 로그인 유저 & 채팅 상대 유저 간 차단 여부 조회 (양방향)
+        // loginUser.getBlockUsers() : where user_id = loginUser.id
+        // (= 로그인한 유저가 차단한 유저 리스트)
+        BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(member, opponentUser);
+
+        // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
+        // (= 로그인한 유저를 차단한 리스트), 따라서 타겟 유저가 로그인 유저를 차단한 경우를 포함한다.
+        BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(opponentUser, member);
+
 
         // 물건삭제되었을 경우
-        if( chatRoom.getProduct().getProductStatus() == 1){
+        if(chatRoom.getProduct().getProductStatus() == 1) {
+
             return ChatRoomStatusDto.builder()
                     .productStatus(PRODUCT_STATUS_PRODUCT_DELETE) // 3
                     .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                    .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                    .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                     .build();
         }
 
         // 물건 비공개 처리 되었을 경우
-        if (chatRoom.getProduct().getProductStatus() == 2){
+        if (chatRoom.getProduct().getProductStatus() == 2) {
             return ChatRoomStatusDto.builder()
                     .productStatus(PRODUCT_STATUS_PRODUCT_BLIEND) // 4
                     .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                    .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                    .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                     .build();
         }
 
@@ -296,7 +358,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .productStatus(PRODUCT_STATUS_CONSUMER)
                         .transactionStatus(SOLD)
                         .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                         .build();
                 if(productReview.get().getReviewMessage() == null){
                     chatRoomStatusDto.setIsReviewUpload(NO);
@@ -314,7 +376,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .transactionStatus(SOLD)
                         .reviewer_nickname(reviewerNickname)
                         .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                         .build();
 
                 if(productReview.get().getReviewMessage() == null){ // 거래완료 & 구매자 후기 아직 안남김
@@ -328,7 +390,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 return ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_ETC)
                         .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                         .build();
             }
         }else{ // 판매자가 구매완료 버튼 누르지 않은 경우 ( 모두에게 공평 ) + 구매버튼을 눌러도 해당 거래완료한 해당 채팅방이 아닐경우
@@ -343,7 +405,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                             .productStatus(PRODUCT_STATUS_SELLER)
                             .transactionStatus(SOLD_BY_ANOTHER_ROOM)
                             .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                            .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                            .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                             .build();
                 }
 
@@ -351,13 +413,13 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .productStatus(PRODUCT_STATUS_SELLER)
                         .transactionStatus(SOLDNOT)
                         .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                         .build();
             }else {
                 return ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_ETC)
                         .isWarn(chatRoom.getMemberOpponent(member).checkWarnActive()) // 경고유무
-                        .block_status(member.checkBlockStatus(chatRoom.getMemberOpponent(member))) // 차단상태
+                        .block_status(member.checkBlockStatus(blockUser, blockedUser)) // 차단상태
                         .build();
             }
         }
@@ -369,76 +431,105 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     // 채팅방 별 유저 채팅방 입장 시간 기준으로 읽지 않은 총 메시지의 개수 계산
     public Long calculateUnreadMessageCount(ChatRoom chatRoom, Member member){
 
-        logger.info("{}번 채팅방 의 {} 번 유저", chatRoom.getRoomId(), member.getId());
         LocalDateTime usersEntranceDate = chatRoom.getUsersEntranceDate(member); // 판매자인지 소비자인지 찾고 판매자이면 판매자의입장시간, 소비자면 소비자의입장시간
         LocalDateTime usersRoomDeletedDate = chatRoom.getUserleaveDate(member);
 
         if (usersEntranceDate != null && usersRoomDeletedDate == null){ // 입장만 하고 채팅방을 나가지 않은 경우
             Long countUserUnreadMsgAfterEntranceDate = chatMessageRepository.countAllByRoomIdAndMsgDateIsAfterAndReceiverAndMsgStatus(chatRoom.getRoomId(), usersEntranceDate, member, 0);
-            logger.info("1채팅방삭제일 : {} , 유저입장일 : {}, 읽지않은메시지개수 : {}", usersEntranceDate, usersEntranceDate, countUserUnreadMsgAfterEntranceDate);
             return countUserUnreadMsgAfterEntranceDate;
         }else if(usersEntranceDate == null && usersRoomDeletedDate == null){ // 입장도 하지않고 채팅방 나가지도 않은 경우
             Long countUserUnreadMsgAfterEntranceDate = chatMessageRepository.countAllByRoomIdAndReceiverAndMsgStatus(chatRoom.getRoomId(), member, 0);
-            logger.info("2채팅방삭제일 : {} , 유저입장일 : {}, 읽지않은메시지개수 : {}", usersEntranceDate, usersEntranceDate, countUserUnreadMsgAfterEntranceDate);
             return countUserUnreadMsgAfterEntranceDate;
         }else if(usersEntranceDate == null && usersRoomDeletedDate != null){ // 입장은 하지않고 채팅방만 나간경우
-
             Long countUserUnreadMsgAfterEntranceDate = chatMessageRepository.countAllByRoomIdAndMsgDateIsAfterAndReceiverAndMsgStatus(chatRoom.getRoomId(), usersRoomDeletedDate, member, 0);
-            logger.info("3채팅방삭제일 : {} , 유저입장일 : {}, 읽지않은메시지개수 : {}", usersEntranceDate, usersEntranceDate, countUserUnreadMsgAfterEntranceDate);
             return countUserUnreadMsgAfterEntranceDate;
         }else { // 입장도 했고 채팅방도 나간경우
 
             if( usersRoomDeletedDate.isAfter(usersEntranceDate)){ // 채팅방 나간날이 사용자 입장날보다 빠른경우
                 Long countMessageAfterUserDeletedRoom = chatMessageRepository.countAllByRoomIdAndMsgDateIsAfterAndReceiverAndMsgStatus(chatRoom.getRoomId(), usersRoomDeletedDate, member, 0);
-                logger.info("4채팅방삭제일 : {} , 유저입장일 : {}, 읽지않은메시지개수 : {}", usersEntranceDate, usersEntranceDate, countMessageAfterUserDeletedRoom);
                 return countMessageAfterUserDeletedRoom;
             }else {
                 Long countUserUnreadMsgAfterEntranceDate = chatMessageRepository.countAllByRoomIdAndMsgDateIsAfterAndReceiverAndMsgStatus(chatRoom.getRoomId(), usersEntranceDate, member, 0);
-                logger.info("5채팅방삭제일 : {} , 유저입장일 : {}, 읽지않은메시지개수 : {}", usersEntranceDate, usersEntranceDate, countUserUnreadMsgAfterEntranceDate);
                 return countUserUnreadMsgAfterEntranceDate;
             }
         }
     }
 
 
-    // 채팅으로거래하기 클릭시 (나가기유무 추가)
+    // 상품 상세화면에서 [채팅으로 거래하기] 클릭 시점
+    // 채팅방 나간 상태 값 업데이트 로직 추가
     @Override
     public ChatRoomTradeHistoryDto checkChatHistory(int userId, int productId) throws CustomControllerExecption {
-        System.out.println("채팅으로거래하기 : 아이디" + userId +" / 물건번호" + productId);
+
         Optional<Product> product = productRepository.findById(productId);
+
         product.orElseThrow(()-> new CustomControllerExecption("존재하지 않은 물건입니다.", HttpStatus.NOT_FOUND, null));
+
         ChatRoom chatRoom = chatRoomRepository.findChatRoomsByProductIdAndSellerIdAndConsumerId(productId, product.get().getMember().getId(), userId); // 채팅방 있는 지 체크
+
         if(chatRoom != null){
-            logger.info("chatroom : {}", chatRoom.getRoomId());
             Member member = memberRepository.findById(userId);
+
             ChatRoomTradeHistoryDto chatRoomTradeHistoryDto = ChatRoomTradeHistoryDto.builder()
                     .history_product_id(chatRoom.getProduct().getId())
                     .history_room_id(chatRoom.getRoomId())
-                    .isExisted(true).build();
-            if(chatRoom.isMine(member)){//seller
-                if(chatRoom.getSellerDeleted()==1){ // 채팅방 나갔을 경우
+                    .isExisted(true)
+                    .build();
+
+            // 로그인 유저가 해당 채팅방의 판매자로서 있는 경우
+            if (chatRoom.isMine(member)) {
+                // 채팅방 나간 상태인 경우 -> 나감 상태 처리 (객체의 상태 값 변경, update)
+                if (chatRoom.getSellerDeleted() == 1) {
                     chatRoomTradeHistoryDto.setLeave(true);
                 }
-            }else{ //consumer
-                if(chatRoom.getConsumerDeleted()==1) {
+            } else { // 로그인 유저가 해당 채팅방의 구매자로 있는 경우
+                if (chatRoom.getConsumerDeleted() == 1) {
+                    // 채팅방 나간 상태인 경우 -> 나감 상태 처리(객체의 상태 값 변경, update)
                     chatRoomTradeHistoryDto.setLeave(true);
                 }
             }
             return chatRoomTradeHistoryDto;
         }
         // (물건삭제, 물건블라인드), 유저제재, 유저탈퇴, 유저차단
-        if(product.get().getProductStatus() == 1){throw new CustomControllerExecption("삭제된 중고물품의 경우 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND, null);}
-        if(product.get().getProductStatus() == 2){throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);}
-        if(product.get().getMember().getIsWithdrawn()==1){throw new CustomControllerExecption("탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND, null);}
-        if(product.get().getMember().getIsEnabled()==1){throw new CustomControllerExecption("관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);}
-        Member member = memberRepository.findById(userId);
-        if(member.getBlockUsers().contains(product.get().getMember())){
-            throw new CustomControllerExecption("차단한 유저와는 채팅거래를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+        if (product.get().getProductStatus() == 1) throw new CustomControllerExecption("삭제된 중고물품의 경우 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND, null);
+        if (product.get().getProductStatus() == 2) throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+        if (product.get().getMember().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND, null);
+        if (product.get().getMember().getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+
+        // 로그인 유저
+        Member loginUser = memberRepository.findById(userId);
+        // 상품 업로드한 유저
+        // 상품 -> 멤버 객체탐색 (상품 정보를 통해 해당 업로더의 고유 ID 조회)
+        Member productUploader = memberRepository.findById(product.get().getMember().getId());
+
+        // NPE 체크 불필요 (아래 이 객체 활용 로직이 contains() 함수 = null도 인자로 활용가능)
+        // 로그인한 유저가 차단한 리스트에 상품 업로드의 상품이 있는 지 또는
+        // 로그인한 유저를 차단한 리스트에 해당 상품 업로더가 있는 지 체크
+
+        // loginUser.getBlockUsers() : where user_id = loginUser.id
+        BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(loginUser, productUploader);
+
+        // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
+        BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
+
+        // 로그인 유저를 기준으로 차단한 리스트에 상품 업로더의 고유 아이디가 포함된 경우
+        // (= 상품 정보를 조회 했는데, 로그인 유저가 차단한 유저의 상품인 경우)
+        // (= 채팅거래 진행 못하는 경우)
+
+        // 각 예외 조건의 우선순위는
+        // 1. 로그인 유저가 차단한 유저의 상품인 지 체크
+        // 2. 상품의 업로더가 로그인 유저를 차단했는 지 체크
+
+        // 1. 로그인 유저가 차단한 유저의 상품인 지 체크
+        if (loginUser.getBlockUsers().contains(blockUser)) {
+            throw new CustomControllerExecption("차단한 유저와는 채팅 거래 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
         }
 
-        if(member.getUserBlockedMe().contains(product.get().getMember())) {
-            throw new CustomControllerExecption("차단 당한 유저와는 채팅거래를 할 수 없습니다", HttpStatus.BAD_REQUEST, null);
+        // 2. 상품의 업로더가 로그인 유저를 차단했는 지 체크
+        if (loginUser.getUserBlockedMe().contains(blockedUser)) {
+            throw new CustomControllerExecption("나를 차단한 유저와는 채팅 거래 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
         }
+
         return ChatRoomTradeHistoryDto.builder()
                 .isExisted(false).build();
     }

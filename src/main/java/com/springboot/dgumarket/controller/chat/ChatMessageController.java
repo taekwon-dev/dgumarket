@@ -8,7 +8,6 @@ import com.springboot.dgumarket.payload.request.chat.SendMessage;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.stomp.error.StompErrorResponseMessage;
 import com.springboot.dgumarket.repository.member.MemberRepository;
-import com.springboot.dgumarket.service.awss3.AWSS3MultiImgService;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.block.UserBlockService;
 import com.springboot.dgumarket.service.chat.ChatMessageService;
@@ -24,7 +23,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.multipart.MultipartFile;
+
 
 
 @RestController

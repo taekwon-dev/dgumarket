@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.controller.shop;
 
-import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
+
 import com.springboot.dgumarket.dto.block.BlockStatusDto;
 import com.springboot.dgumarket.dto.member.MemberInfoDto;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;

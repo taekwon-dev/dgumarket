@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.payload.request.report;
 
-import com.springboot.dgumarket.dto.product.ProductCategoryDto;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -8,8 +8,6 @@ import org.springframework.security.core.Authentication;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import java.util.List;
-import java.util.Set;
 
 /**
  * created by ms, 2021-01-21

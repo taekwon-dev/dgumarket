@@ -7,6 +7,7 @@ import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
 import com.springboot.dgumarket.model.product.ProductLike;
+import com.springboot.dgumarket.model.product.ProductReview;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.*;
@@ -19,7 +20,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.List;
 import java.util.Set;
 //
@@ -81,7 +81,8 @@ public class Member {
     @UpdateTimestamp
     private LocalDateTime updateDatetime;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    // @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "member_roles",
             joinColumns = { @JoinColumn(name = "member_id")},
@@ -89,7 +90,8 @@ public class Member {
     @JsonIgnore
     private Set<Role> roles;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    // @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "member_categories",
             joinColumns = { @JoinColumn(name = "member_id")},
@@ -97,8 +99,7 @@ public class Member {
     @JsonIgnore
     private Set<ProductCategory> productCategories;
 
-    /** [상품] - Entity Relationship
-     *  (2021-05-01 by TK)
+    /** [유저 : 상품]
      *  - 종속 관계 (= 실제 테이블에서 회원 테이블에 대한 조인 컬럼 보유)
      *  - Members : Product = One : Many
      *  - Fetch 옵션 : FetchType.LAZY (지연로딩 우선 적용 후 추후 경과보고 판단, @OneToMany 디폴트 로딩 옵션)
@@ -113,25 +114,21 @@ public class Member {
      *        - 해당 상품의 정보 역시 삭제되는 것이 맞고, 이 때 해당 상품을 참고하는 다른 관계가 없으므로
      *        - 사실상 회원 & 상품의 관계는 회원이 해당 상품을 "개인 소유"하고 있다고 봐도 무방하다.
      * */
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JsonIgnore
     private Set<Product> products;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinTable(
-            name = "user_block",
-            joinColumns = { @JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn(name = "blocked_user_id")})
+    // 로그인 유저가 차단한 유저 리스트 (-> 차단한 유저 리스트 조회하기)
+    // 이 부분만 영속성 전이 (PERSIT) 추가해도 데이터베이스 INSERT (차단하기 메소드에서 적용)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "user")
     @JsonIgnore
-    private Set<Member> blockUsers; // 내가 차단한 유저들
+    private Set<BlockUser> blockUsers;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinTable(
-            name = "user_block",
-            joinColumns = { @JoinColumn(name = "blocked_user_id")},
-            inverseJoinColumns = {@JoinColumn(name = "user_id")})
+
+    // 로그인 유저를 차단한 유저 리스트 (-> 서비스 로직 중, 로그인 유저를 차단한 유저의 정보를 제외)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "blockedUser")
     @JsonIgnore
-    private Set<Member> UserBlockedMe; // 나를 차단한 유저들 ( 나를 차단한 유저들의 물건들은 보여서는 안된다 )
+    private Set<BlockUser> UserBlockedMe;
 
     /** [유저-상품 : 좋아요 누른 상품]
      *  - 종속 관계 (mappedBy 속성, 외래 키가 product_like 테이블에서 관리 되고 있다)
@@ -143,6 +140,32 @@ public class Member {
     */
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "member")
     private List<ProductLike> likeProducts;
+
+    /** [유저(구매자) - 리뷰]
+     *  - 양방향 관계 중, 종속 관계로 설정
+     *      - 구매물품에 대한 리뷰 조회 시, product_review -> member 객체 탐색
+     *      - member -> product_review 관계에서는 영속성 전이 관계를 위해 설정
+     *  - 영속성 전이 : Cascade.REMOVE
+     *      - 유저 정보가 삭제 됐을 경우, product_review에서 구매자 컬럼에 해당되는 정보를 삭제
+     *      - product_review 테이블 (= 이미 구매한 상품임을 전제)
+     *      - 판매자 입장에서 해당 상품에 대한 구매후기가 남겨진 경우, 해당 리뷰가 삭제처리
+     *
+     * */
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE}, mappedBy = "consumer")
+    private List<ProductReview> reviewsConsumerProducts;
+
+    /** [유저(판매자) - 리뷰]
+     *  - 양방향 관계 중, 종속 관계로 설정
+     *      - 구매물품에 대한 리뷰 조회 시, product_review -> member 객체 탐색
+     *      - member -> product_review 관계에서는 영속성 전이 관계를 위해 설정
+     *  - 영속성 전이 : Cascade.REMOVE
+     *      - 유저 정보가 삭제 됐을 경우, product_review에서 판매자 컬럼에 해당되는 정보를 삭제
+     *      - product_review 테이블 (= 이미 구매한 상품임을 전제)
+     *      - 구매자 입장에서 구매 상품 조회할 때, 해당 상품이 리스트에서 제외되고 실제 리뷰 정보도 사라지게 된다.
+     * */
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE}, mappedBy = "seller")
+    private List<ProductReview> reviewsSellerProducts;
+
 
     @Column(name = "alert_num")
     private int alertNum; // 받은 경고 횟수
@@ -222,17 +245,22 @@ public class Member {
         productLike.unSetMember();
     }
 
-    public void test(ProductLike p) {
-       log.info(String.valueOf(this.getLikeProducts().contains(p)));
-    }
-
     // 유저 차단하기
-    public void blockUser(Member blockUser){
+    public void blockUser(BlockUser blockUser, Member blocker, Member blockedUser){
+
+        // Member -> BlockUser
         this.getBlockUsers().add(blockUser);
+
+        // BlockUser -> Member
+        blockUser.setBlocker(blocker);
+        blockUser.setBlockedUser(blockedUser);
+
     }
 
     // 유저 차단해제하기
-    public void unblockUser(Member unblockUser){
+    public void unblockUser(BlockUser unblockUser){
+
+        // Member -> BlockUser
         this.getBlockUsers().remove(unblockUser);
     }
 
@@ -285,16 +313,21 @@ public class Member {
         this.setIsEnabled(0);
     }
 
-    public int checkBlockStatus(Member targetUser){
-        if(this.getBlockUsers().contains(targetUser)){
+    public int checkBlockStatus(BlockUser blockUser, BlockUser blockedUser) {
+
+        // this = 로그인 유저
+        // Member targetUser = 타겟 유저 (차단 여부 검사)
+
+        if (this.getBlockUsers().contains(blockUser)) {
             return 1; // 내가 상대방을 차단한 경우 ( 우선 )
-        }else if(this.getUserBlockedMe().contains(targetUser)){
+        } else if (this.getUserBlockedMe().contains(blockedUser)) {
             return 2; // 남이 나를 차단한 경우
         }
         return 3; // 아무도 차단하지 않은 경우
     }
 
-    public boolean IsBlock(Member targetUser){
-        return this.getBlockUsers().contains(targetUser);
+    public boolean IsBlock(BlockUser blockUser) {
+        // 로그인 유저가 차단한 리스트에 채팅 상대방이 포함 여부 반환 (true or false)
+        return this.getBlockUsers().contains(blockUser);
     }
 }

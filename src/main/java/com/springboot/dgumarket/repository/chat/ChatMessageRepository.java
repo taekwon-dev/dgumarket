@@ -1,10 +1,9 @@
 package com.springboot.dgumarket.repository.chat;
 
 import com.springboot.dgumarket.model.chat.ChatMessage;
-import com.springboot.dgumarket.model.chat.ChatRoom;
+
 import com.springboot.dgumarket.model.member.Member;
-import org.hibernate.annotations.OrderBy;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

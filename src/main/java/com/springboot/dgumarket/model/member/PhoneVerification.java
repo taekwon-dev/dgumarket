@@ -7,7 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+
 import java.time.LocalDateTime;
 
 /** 핸드폰 번호 변경 API 관리를 위한 엔티티 */
