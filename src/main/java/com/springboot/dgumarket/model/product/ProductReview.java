@@ -58,6 +58,6 @@ public class ProductReview {
     private LocalDateTime ReviewRegistrationDate;
 
     // 거래 완료 일
-    @Column(name = "created_datetime")
+    @Column(name = "created_datetime", updatable = false)
     private LocalDateTime createdDate;
 }

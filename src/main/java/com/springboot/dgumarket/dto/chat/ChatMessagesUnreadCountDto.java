@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.dto.chat;
 
-import lombok.Builder;
+
 import lombok.Getter;
 import lombok.Setter;
 

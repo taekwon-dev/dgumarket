@@ -8,16 +8,12 @@ import com.springboot.dgumarket.dto.product.ProductReadOneDto;
 import com.springboot.dgumarket.dto.shop.ShopProductListDto;
 import com.springboot.dgumarket.exception.CustomControllerExecption;
 import com.springboot.dgumarket.model.product.Product;
-import com.springboot.dgumarket.payload.request.PagingIndexRequest;
 import com.springboot.dgumarket.payload.request.product.LikeRequest;
 import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
-import com.springboot.dgumarket.payload.response.ProductListIndex;
-import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.chat.ChatRoomService;
 import com.springboot.dgumarket.service.product.ProductService;
-import io.swagger.annotations.Authorization;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -26,19 +22,16 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
+
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.BindingResult;
+
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Null;
-import java.util.List;
+
 import java.util.Objects;
-import java.util.Optional;
+
 
 /**
  * Created by TK YOUN (2020-12-22 오후 10:08)

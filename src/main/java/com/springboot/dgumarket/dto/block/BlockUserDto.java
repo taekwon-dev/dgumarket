@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.dto.block;
 
 
-import lombok.Builder;
+
 import lombok.Getter;
 import lombok.Setter;
 

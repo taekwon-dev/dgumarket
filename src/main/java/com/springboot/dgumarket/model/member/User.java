@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.model.member;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -9,8 +9,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+
 
 /**
  * Created by TK YOUN (2021-02-13 오후 8:18)

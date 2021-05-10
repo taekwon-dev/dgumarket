@@ -3,7 +3,6 @@ package com.springboot.dgumarket.payload.request.block;
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
 
-import javax.validation.constraints.NotBlank;
 
 /**
   * created by ms, 2021-01-23

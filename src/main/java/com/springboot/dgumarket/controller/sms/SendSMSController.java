@@ -3,7 +3,6 @@ package com.springboot.dgumarket.controller.sms;
 import com.springboot.dgumarket.dto.member.ChangePhoneDto;
 import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.VerifyPhoneDto;
-import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.sms.SMSService;
@@ -12,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

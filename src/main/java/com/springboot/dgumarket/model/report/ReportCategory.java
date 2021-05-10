@@ -1,7 +1,6 @@
 package com.springboot.dgumarket.model.report;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.springboot.dgumarket.model.product.Product;
 import lombok.*;
 
 import javax.persistence.*;

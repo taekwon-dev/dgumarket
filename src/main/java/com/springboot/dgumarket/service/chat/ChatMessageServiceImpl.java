@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.service.chat;
 
-import com.amazonaws.services.simpleemail.model.SendEmailRequest;
+
 import com.springboot.dgumarket.dto.chat.ChatMessageDto;
 import com.springboot.dgumarket.dto.chat.ChatMessageUserDto;
 import com.springboot.dgumarket.dto.chat.ChatRoomProductDto;

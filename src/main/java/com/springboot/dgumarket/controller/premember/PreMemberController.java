@@ -2,7 +2,6 @@ package com.springboot.dgumarket.controller.premember;
 
 import com.springboot.dgumarket.dto.member.SignUpDto;
 import com.springboot.dgumarket.dto.member.VerifyPhoneDto;
-import com.springboot.dgumarket.payload.response.ApiResponseEntity;
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
 import com.springboot.dgumarket.service.premember.PreMemberService;
 import org.springframework.beans.factory.annotation.Autowired;

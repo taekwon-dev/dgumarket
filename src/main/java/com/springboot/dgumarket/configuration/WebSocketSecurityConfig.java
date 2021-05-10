@@ -3,7 +3,6 @@ package com.springboot.dgumarket.configuration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 /**
  * Created by TK YOUN (2020-11-27 오전 9:06)

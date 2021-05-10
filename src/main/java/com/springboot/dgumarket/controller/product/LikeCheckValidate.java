@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.controller.product;
 
 
-import org.aspectj.lang.annotation.Pointcut;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,6 +1,6 @@
 package com.springboot.dgumarket.dto.shop;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+
 import com.springboot.dgumarket.dto.product.ProductReadListDto;
 import lombok.Builder;
 import lombok.Getter;

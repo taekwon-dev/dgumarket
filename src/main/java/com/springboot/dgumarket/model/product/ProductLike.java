@@ -1,7 +1,6 @@
 package com.springboot.dgumarket.model.product;
 
 
-import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +40,7 @@ public class ProductLike {
         this.product = product;
     }
 
+    // 필요성 체크
     public void unSetMember() {
         this.setMember(null);
     }

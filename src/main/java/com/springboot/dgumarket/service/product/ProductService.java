@@ -1,7 +1,7 @@
 package com.springboot.dgumarket.service.product;
 
 import com.springboot.dgumarket.dto.product.ProductCreateDto;
-import com.springboot.dgumarket.dto.product.ProductDeleteDto;
+
 import com.springboot.dgumarket.dto.product.ProductModifyDto;
 import com.springboot.dgumarket.dto.product.ProductReadOneDto;
 import com.springboot.dgumarket.dto.shop.ShopFavoriteListDto;
@@ -16,7 +16,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created by TK YOUN (2020-12-22 오후 10:08)

@@ -3,12 +3,11 @@ package com.springboot.dgumarket.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Optional;
+
 
 /**
  * Created by TK YOUN (2020-11-01 오후 1:29)

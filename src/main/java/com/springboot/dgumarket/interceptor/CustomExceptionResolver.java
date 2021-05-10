@@ -3,15 +3,15 @@ package com.springboot.dgumarket.interceptor;
 
 import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
+
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.MissingServletRequestParameterException;
+
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.MissingFormatArgumentException;
+
 
 @Slf4j
 @Component

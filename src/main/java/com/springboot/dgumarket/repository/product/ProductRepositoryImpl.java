@@ -10,25 +10,28 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
 
 import com.springboot.dgumarket.exception.ErrorMessage;
-import com.springboot.dgumarket.exception.JsonParseFailedException;
+
 import com.springboot.dgumarket.exception.notFoundException.ResultNotFoundException;
+import com.springboot.dgumarket.model.member.BlockUser;
 import com.springboot.dgumarket.model.member.Member;
+
 import com.springboot.dgumarket.model.member.QMember;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
 import com.springboot.dgumarket.model.product.ProductReview;
 import com.springboot.dgumarket.model.product.QProductReview;
+import com.springboot.dgumarket.repository.member.BlockUserRepository;
+import com.springboot.dgumarket.repository.member.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
-import javax.transaction.Transactional;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+
+import java.util.*;
 
 import static com.springboot.dgumarket.model.product.QProduct.product;
 import static com.springboot.dgumarket.model.product.QProductLike.productLike;
@@ -37,6 +40,12 @@ import static com.springboot.dgumarket.model.product.QProductReview.productRevie
 @Slf4j
 @Repository
 public class ProductRepositoryImpl extends QuerydslRepositorySupport implements CustomProductRepository{
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private BlockUserRepository blockUserRepository;
 
     public ProductRepositoryImpl() {
         super(Product.class); // domain class
@@ -322,16 +331,50 @@ public class ProductRepositoryImpl extends QuerydslRepositorySupport implements 
 
     // 차단하거나 차단당한 것들은 제외(로그인, 공통)
     private BooleanExpression notContainBlocks(Member member, QMember qMember){
-        if(member.getBlockUsers().size()==0 && member.getUserBlockedMe().size()==0){
+
+        // 내가 차단한 + 나를 차단한 리스트를 저장할 HashSet 초기화
+        Set<Member> members = new HashSet<>();
+
+        // 내가 차단한 경우 + 나를 차단한 전체 경우의 수를 담고 있는 리스트
+        // [user_block] 테이블에서
+        // user_id = 로그인 유저 고유 ID
+        // OR
+        // blocked_user_id = 로그인 유저 고유 ID
+        List<BlockUser> blockUserList = blockUserRepository.findByUserOrBlockedUser(member, member);
+
+        // for Loop : 유저가 차단한 리스트, 유저를 차단한 리스트 대상으로
+        // 상품 정보에서 제외될 유저 리스트 생성
+        for (int i = 0; i < blockUserList.size(); i++) {
+
+            // 리스트 내부에서 로그인 유저가 차단한 유저를 HashSet<Member>에 추가한다.
+            if (blockUserList.get(i).getUser().equals(member)) {
+
+                Member blockedUser = memberRepository.findById(blockUserList.get(i).getBlockedUser().getId());
+                // NPE
+                if (blockedUser != null) members.add(blockedUser);
+            } else {
+                // 리스트 내부에 로그인 유저를 차단한 유저를 HashSet<Member>에 추가한다.
+                Member blockingMeUser = memberRepository.findById(blockUserList.get(i).getUser().getId());
+                // NPE
+                if (blockingMeUser != null) members.add(blockingMeUser);
+            }
+        } // end loop
+
+        // HashSet<Member> -> 상품 조회 시 제외돼야 할 리스트를 선정하는 역할
+
+        if (member.getBlockUsers().size() == 0 && member.getUserBlockedMe().size() == 0){
             return null;
-        }else if(member.getBlockUsers().size() != 0 && member.getUserBlockedMe().size() ==0){
-            return qMember.notIn(member.getBlockUsers());
-        }else if(member.getBlockUsers().size() == 0 && member.getUserBlockedMe().size() != 0){
-            return qMember.notIn(member.getUserBlockedMe());
-        }else if(member.getBlockUsers().size()!=0 && member.getUserBlockedMe().size()!=0){
-            return qMember.notIn(member.getBlockUsers())
-                    .and(qMember.notIn(member.getUserBlockedMe()));
-        }else {
+
+        } else if (member.getBlockUsers().size() != 0 && member.getUserBlockedMe().size() == 0) {
+            return qMember.notIn(members);
+
+        } else if (member.getBlockUsers().size() == 0 && member.getUserBlockedMe().size() != 0) {
+            return qMember.notIn(members);
+
+        } else if (member.getBlockUsers().size()!= 0 && member.getUserBlockedMe().size() != 0) {
+            return qMember.notIn(members);
+
+        } else {
             return null;
         }
     }
