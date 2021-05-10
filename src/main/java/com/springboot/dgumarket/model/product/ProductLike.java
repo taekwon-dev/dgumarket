@@ -39,10 +39,4 @@ public class ProductLike {
         this.member = member;
         this.product = product;
     }
-
-    // 필요성 체크
-    public void unSetMember() {
-        this.setMember(null);
-    }
-
 }

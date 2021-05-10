@@ -78,7 +78,7 @@ public class LikeCheckValidateAspect {
 
                 if (loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)) {
                     throw new CustomControllerExecption(
-                            "차단한 유저 혹은 차단된 유저의 물건에 대해 좋아요/좋아요취소 요청을 할 수 없습니다."
+                            "차단한 유저 혹은 나를 차단한 유저의 물건에 대해 좋아요/좋아요취소 요청을 할 수 없습니다."
                             , HttpStatus.NOT_FOUND,
                             "/shop/main/index");
                 }
