@@ -36,7 +36,6 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService{
-    private static Logger logger = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
 
     private static final int PRODUCT_STATUS_ETC = 0;
     private static final int PRODUCT_STATUS_CONSUMER = 1;
@@ -314,10 +313,12 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
         Optional<ProductReview> productReview = productReviewRepository.findByChatRoom(chatRoom);
 
-
+        // NUll로 참조 관계를 끊은 경우, NPE 발생
         if (chatRoom.getMemberOpponent(member).getIsEnabled()==1) {
             throw new CustomControllerExecption("관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
         }
+
+        // NUll로 참조 관계를 끊은 경우, NPE 발생
         if (chatRoom.getMemberOpponent(member) == null || chatRoom.getMemberOpponent(member).getIsWithdrawn() == 1) {
             throw new CustomControllerExecption("탈퇴한 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
         }
@@ -333,7 +334,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
 
         // 물건삭제되었을 경우
-        if(chatRoom.getProduct().getProductStatus() == 1) {
+        if (chatRoom.getProduct().getProductStatus() == 1) {
 
             return ChatRoomStatusDto.builder()
                     .productStatus(PRODUCT_STATUS_PRODUCT_DELETE) // 3
@@ -369,7 +370,6 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
             }else if( productReview.get().getSeller() == member){ // 판매자
 
-
                 String reviewerNickname  = productReview.get().getConsumer().getNickName();
                 ChatRoomStatusDto chatRoomStatusDto = ChatRoomStatusDto.builder()
                         .productStatus(PRODUCT_STATUS_SELLER)
@@ -394,9 +394,6 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .build();
             }
         }else{ // 판매자가 구매완료 버튼 누르지 않은 경우 ( 모두에게 공평 ) + 구매버튼을 눌러도 해당 거래완료한 해당 채팅방이 아닐경우
-
-
-
 
             if(chatRoom.getSeller() == member){ // 물건 올린 사람
 

@@ -5,6 +5,7 @@ import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.ResetPwdDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 
+import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.payload.request.WebmailRequest;
 
 import com.springboot.dgumarket.payload.response.ApiResultEntity;
@@ -129,8 +130,22 @@ public class MemberController {
     // 인터셉터 통과 경로 값에서 제외 처리 해놓은 상태
     @PostMapping("/delete-member")
     public ResponseEntity<?> deleteMember() {
-//        Member member = memberRepository.findByWebMail("taekwon@dongguk.edu");
-//        memberRepository.delete(member);
+
+        // 멤버 - 채팅&채팅메시지
+
+        // 멤버 삭제 -> 상품 삭제 -> 해당 채팅방에서 문제
+        Member member = memberRepository.findByWebMail("taekwon@dongguk.edu");
+
+        // 멤버가 소속된 채팅방 정보 참조 관계 끊기
+
+        // 멤버가 판매자인 경우 해당 상품 정보도 참조 관계 끊기 (채팅 방)
+
+        // 멤버가 소속된 채팅 메시지 정보 참조 관계 끊기
+
+        // 멤버가 판매자인 경우 해당 상품 정보도 참조 관계 끊기 (채팅 메시지)
+
+
+        memberRepository.delete(member);
         return new ResponseEntity<>("회원 삭제", HttpStatus.OK);
     }
 

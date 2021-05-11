@@ -39,26 +39,26 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private static final int READ = 1;
 
     @Autowired
-    SimpMessagingTemplate template;
+    private SimpMessagingTemplate template;
 
     @Autowired
-    ChatRoomRepository chatRoomRepository;
+    private ChatRoomRepository chatRoomRepository;
 
     @Autowired
-    ChatMessageRepository chatMessageRepository;
+    private ChatMessageRepository chatMessageRepository;
 
     @Autowired
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
 
     @Autowired
-    RedisChatRoomService redisChatRoomService;
+    private RedisChatRoomService redisChatRoomService;
 
     @Autowired
-    ProductRepository productRepository;
+    private ProductRepository productRepository;
 
     @Autowired
-    ChatRoomService chatRoomService;
+    private ChatRoomService chatRoomService;
 
     // 읽지 않은 메시지 개수
     @Override
@@ -181,7 +181,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         Optional<Product> product = productRepository.findById(sendMessage.getProductId());
         ChatMessage savedMessage = null;
 
-        logger.info("sendMessage : {}",sendMessage.toString());
         // 채팅방 찾기
         ChatRoom chatRoom =chatRoomRepository.findChatRoomPSR(sendMessage.getProductId(), sendMessage.getSenderId(), sendMessage.getReceiverId());
         LocalDateTime entranceDate = LocalDateTime.now();
@@ -192,15 +191,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             if(redisChatRoom.isPresent()){
                 if(redisChatRoom.get().isSomeoneInChatRoom(String.valueOf(sendMessage.getReceiverId()))){ // 상대방이 채팅방에 들어와있는 경우
                     // 채팅방 나감 유무 1과 0은 레디스의 채팅방 나감유무와 별개이다
-                    logger.info("[/MESSAGE] someone is in chat room in (redis)chatroom");
 
-                    if(sendMessage.getMessageType() == 1){ // 채팅 이미지 메시지들 보낼 때
+                    if (sendMessage.getMessageType() == 1) { // 채팅 이미지 메시지들 보낼 때
                         ArrayList<ChatMessage> chatMessages = createMessagesFromFileListAndChatRoom(sendMessage.getMessage(), chatRoom, sender, receiver, READ);
                         ArrayList<StompReceivedMessage> messagesDto = saveImageMessages2Dto(chatMessages, modelMapper);
                         for(StompReceivedMessage responseMesasge : messagesDto){ // 메시지 전송
                             sendMessagesToRoom(chatRoom.getRoomId(), responseMesasge);
                         }
-                    }else { // 채팅 텍스트 메시지 보낼 때
+                    } else { // 채팅 텍스트 메시지 보낼 때
                         savedMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, READ, sendMessage.getMessageType());
                         responseMessage = saveTextMessage2Dto(savedMessage, modelMapper);
                         // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
@@ -208,11 +206,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         // 로직 추가, 보내기 전에 만약 내가 해당 채팅방에서 나가기 상태(1) -> 나가지않은상태(0)으로 바꾸어 준다
                         chatRoom.leave2enterForFirstMessage(sender, entranceDate);
                         sendMessagesToRoom(responseMessage.getRoomId(), responseMessage); // 룸에 있는 사람에게 메시지전달
-                        logger.info("[/MESSAGE], [SEND] /topic/room/{}, {}", responseMessage.getRoomId(), responseMessage);
-                        logger.info("[/MESSAGE] save chat message (status 0 -> 1) : {}, 읽음 상태 : {}", savedMessage, savedMessage.getMsgStatus());
+
                     }
-                }else {
-                    if(sendMessage.getMessageType() == 1){ // 이미지파일인경우
+                } else {
+
+                    if (sendMessage.getMessageType() == 1) { // 이미지 파일인경우
                         ArrayList<ChatMessage> chatMessages = createMessagesFromFileListAndChatRoom(sendMessage.getMessage(), chatRoom, sender, receiver, UNREAD);
                         ArrayList<StompReceivedMessage> messagesDto = saveImageMessages2Dto(chatMessages, modelMapper);
                         // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
@@ -223,11 +221,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         for(StompReceivedMessage responseMesasge : messagesDto){ // 메시지 전송
                             sendMessageToRoomAndUser(chatRoom.getRoomId(), receiver.getId(), responseMesasge);
                         }
-                    }else {
-                        logger.info("[/MESSAGE] someone isn't in chat room in (redis)chatroom");
-                        ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, sendMessage.getMessageType());
 
-                        logger.info("[/MESSAGE] save chat message (status 0 -> 0) : {}, 읽음 상태 : {}", chatMessage, chatMessage.getMsgStatus());
+                    } else {
+                        ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, sendMessage.getMessageType());
 
                         responseMessage = saveTextMessage2Dto(chatMessage, modelMapper);
                         // 만약 상대방 나갔을 경우 나가기1 -> 나가기0
@@ -235,30 +231,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         // 로직 추가, 보내기 전에 만약 내가 해당 채팅방에서 나가기 상태(1) -> 나가지않은상태(0)으로 바꾸어 준다
                         chatRoom.leave2enterForFirstMessage(sender, entranceDate);
                         sendMessageToRoomAndUser(responseMessage.getRoomId(), receiver.getId(), responseMessage); // 룸과 상대방에게 메시지 전달
-                        logger.info("[/MESSAGE] [SEND] /topic/room/{}, {}", responseMessage.getRoomId(), responseMessage);
-//                        logger.info("[/MESSAGE] [SEND] /topic/chat/{}, {}", sendMessage.getReceiverId(), responseMessage);
                     }
                 }
             }
 
         }else {
-
-            /**
-             * [채팅방(mysql)이 존재하지 않을 경우]
-             *              * TODO: [채팅방이 존재하지 않을 경우] 의 상황 구체적으로 정의하고 코드작성 필요
-             *              * 20/11/26 생각
-             *              * 사용자로 부터 받은 채팅메시지로 새로운 채팅방을 만든다. chatService.newCreateChatRoom(message)
-             *              * 새롭게 만든 채팅방의 방 번호 와 채팅메시지를 통해 채팅 메시지를 저장한다. chatMessageRepo.save(chatMessage.toEntitityWith(chatmessage, roomid, UNREAD)
-             *              * 사용자를 채팅방에 가입시킨다.
-             *              * ( 사용자는 어떻게 구독을 할 것인가. , 새로운 액션을 보내자,
-             *              *      [v1 // 여기서 구조가 다르다. , 기존 만들어진 채팅방(이미 누군가 대화하여 생긴 채팅방)에 들어갈 떄 서버에 채팅방 가입하도록 하는 메시지를 전달하는 구조 ]
-             *      [v2 사용자로부터 메시지를 받자마자 채팅방에 가입시킨다. ]
-             *
-             *      4/5 추가
-             *      [채팅으로 거래하기 시, 여러개의 이미지파일을 업로드를 통해 채팅방을 개설하는 경우]
-             */
-            logger.info("[/MESSAGE] room is not existed, room : {}", chatRoom);
-
             ChatRoom newChatRoom = ChatRoom.builder()
                     .consumer(sender)
                     .seller(receiver)
@@ -266,14 +243,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                     .build();
             ChatRoom savedChatroom = chatRoomRepository.save(newChatRoom);
             ArrayList<StompReceivedMessage> receivedMessages = new ArrayList<>();
-            if(sendMessage.getMessageType() == 1){ // 채팅으로 거래시 최초로 파일을 올리는 경우
+
+
+            if (sendMessage.getMessageType() == 1) { // 채팅으로 거래시 최초로 파일을 올리는 경우
                 ArrayList<ChatMessage> chatMessages = createMessagesFromFileListAndChatRoom(sendMessage.getMessage(), savedChatroom, sender, receiver, 0);
                 receivedMessages = saveImageMessages2Dto(chatMessages, modelMapper);
-            }else{
-//                logger.info("[/MESSAGE] create new chat mysql chat room by message - chatroom : {}, message: {}}", newChatRoom.toString(), sendMessage.getMessage());
-//                savedMessage = chatMessageRepository.save(sendMessage.toEntityWith(UNREAD, savedChatroom.getRoomId(), product.get(), receiver, sender));
-//                ChatMessage savedMessage = createMessageFromSenderTextMessage(sendMessage, chatRoom, sender, receiver, UNREAD, sendMessage.getMessageType());
-//                saveTextMessage2Dto(savedMessage, modelMapper);
+            } else {
                 ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, savedChatroom, sender, receiver, UNREAD, 0);
                 StompReceivedMessage stompReceivedMessage = saveTextMessage2Dto(chatMessage, modelMapper);
                 logger.info("[/MESSAGE] save the message : {}}", chatMessage.toString());
