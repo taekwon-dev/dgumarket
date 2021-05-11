@@ -22,13 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-//
 
-/**
- * Created by TK YOUN (2020-10-20 오전 8:16)
- * Github : https://github.com/dgumarket/dgumarket.git
- * Description :
- */
 @Slf4j
 @Entity
 @Table(name = "members")
@@ -81,7 +75,7 @@ public class Member {
     @UpdateTimestamp
     private LocalDateTime updateDatetime;
 
-    // @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    // cascade 적용하지 않아도, 회원삭제 시 삭제됨을 확인
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "member_roles",
@@ -90,7 +84,7 @@ public class Member {
     @JsonIgnore
     private Set<Role> roles;
 
-    // @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    // cascade 적용하지 않아도, 회원삭제 시 삭제됨을 확인
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "member_categories",
@@ -120,13 +114,14 @@ public class Member {
 
     // 로그인 유저가 차단한 유저 리스트 (-> 차단한 유저 리스트 조회하기)
     // 이 부분만 영속성 전이 (PERSIT) 추가해도 데이터베이스 INSERT (차단하기 메소드에서 적용)
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "user")
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "user")
     @JsonIgnore
     private Set<BlockUser> blockUsers;
 
 
     // 로그인 유저를 차단한 유저 리스트 (-> 서비스 로직 중, 로그인 유저를 차단한 유저의 정보를 제외)
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "blockedUser")
+    // Cascade.REMOVE (= 삭제된 유저가 차단된 리스트에 있을 때 부여해야함)
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "blockedUser")
     @JsonIgnore
     private Set<BlockUser> UserBlockedMe;
 
