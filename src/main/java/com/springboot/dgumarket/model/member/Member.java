@@ -240,9 +240,6 @@ public class Member {
 
         // 1. 멤버 <- 좋아요한 상품 리스트에서 삭제
         this.getLikeProducts().remove(productLike);
-
-        // 2. 좋아요한 상품 <- 해당 멤버 삭제
-        productLike.unSetMember();
     }
 
     // 유저 차단하기
@@ -264,13 +261,8 @@ public class Member {
         this.getBlockUsers().remove(unblockUser);
     }
 
-    // 상대방에게 차단되었는 지 체크
-    public boolean checkBlockedBy(Member targetUser){
-        return this.getUserBlockedMe().contains(targetUser);
-    }
 
     // -------------------------------------- 유저의 패널티 ---------------------------------------------------
-
     // 유저 경고유무
     public boolean checkWarnActive(){
         if(this.getAlertNum() >= 3){ // 경고횟수가 3회 이상
