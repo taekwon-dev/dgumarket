@@ -17,6 +17,28 @@
 
 만약 접근가능(응답 : "ok") 의 응답 값을 받을 경우 이후의 view를 요청한다(이전처럼 늘 했듯이)
 
+**수정 5 / 12**
+
+아래의 에러 메시지 문구 변경 "차단한 유저의 정보에 접근할 수 없습니다. " => "나를 차단한 유저의 정보에 접근할 수 없습니다."
+
+### 2.내가 상대방을 차단했을 경우(상품/프로필) - 확인
+
+```json
+
+{
+  "statusCode": 403,
+  "timestamp": "2021-03-26T00:44:55.532+00:00",
+  "message": "나를 차단한 유저의 정보에 접근할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
+}
+
+
+```
+반드시 참고바랍니다.
+
+
+
 
 --- 
 
@@ -119,7 +141,7 @@ ex)
 {
   "statusCode": 403,
   "timestamp": "2021-03-26T00:44:55.532+00:00",
-  "message": "차단한 유저의 정보에 접근할 수 없습니다.",
+  "message": "나를 차단한 유저의 정보에 접근할 수 없습니다.",
   "requestPath": "uri=/api/chatroom/check-validate",
   "pathToMove": null
 }
