@@ -356,6 +356,54 @@ content-length:83
    }
 ```
 
+*상대방이 탈퇴하였을 경우 응답되는 메시지의 형태 example*
+
+상대방이 탈퇴하였기 때문에 메시지 조회시 개별 메시지에 포함되어 있었던 상대방 유저 정보(chatMessageUserDto)가 null이다.
+또한 판매자가 탈퇴했다면 상대방 유저정보(chatMessageUserDto) 뿐만아니라 채팅방물건정보(chatRoomProductDto)의 값 또한 null 이 된다.
+따라서 해당 비어있는 값(Null) 이 왔을 경우 클라이언트 측에서는 적절한 UI 처리를 해야한다.
+
+1) 메시지를 불러오는 데 상대방(=판매자)가 탈퇴하였을 경우의 상대방의 메시지 응답 형태
+
+`chatMessageUserDto`: null,
+`chatRoomProductDto` : null
+
+
+```json
+ {
+     "roomId": 101,
+     "message_type": 0,
+     "messageStatus": 0,
+     "message": "minshik",
+     "messageDate": "2021-01-12T21:22:52.3008765",
+     "chatMessageUserDto": null,
+     "chatRoomProductDto": null
+   }
+
+```
+
+2) 메시지를 불러오는 데 상대방(=구매자)가 탈퇴하였을 경우의 상대방의 메시지 응답 형태 
+
+`chatMessageUserDto`: null
+
+```json
+
+{
+     "roomId": 101,
+     "message_type": 0,
+     "messageStatus": 0,
+     "message": "minshik",
+     "messageDate": "2021-01-12T21:22:52.3008765",
+     "chatMessageUserDto": null,
+     "chatRoomProductDto": { 
+       "product_id": 1,
+       "product_deleted": 0,
+       "productImgPath": "/imgs/slideshow_sample.jpg" 
+     }
+   }
+
+```
+
+
 유의할 점은 내가 `SEND /message`로 보낸 메시지는 `SUB /topic/room/{room-id}` 로 다시 받는다. 
 그렇기 때문에 `SUB /topic/room/{room-id}` 로 받는 메시지는 
 1.내가 `SEND /message` 로 메시지를 보낸 나의 메시지
