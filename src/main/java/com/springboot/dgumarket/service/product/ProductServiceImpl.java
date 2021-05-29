@@ -454,7 +454,10 @@ public class ProductServiceImpl implements ProductService {
     // 물건 정보 보기
     @Override
     public ProductReadOneDto getProductInfo(UserDetailsImpl userDetails, int productId) throws CustomControllerExecption {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND, null));
+
+        Product product = productRepository.findById(productId);
+
+        if (product == null) throw new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND, null);
 
         if (product.getProductStatus() == 1) {
             throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND, null);
@@ -528,7 +531,9 @@ public class ProductServiceImpl implements ProductService {
         Member loginUser = memberRepository.findById(userDetails.getId());
 
         // 좋아요 대상되는 상품 객체
-        Product product = productRepository.findById(likeRequest.getProduct_id()).orElseThrow(() -> new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND, null)); // 좋음! noSuch 디테일 구분 ?
+        Product product = productRepository.findById(likeRequest.getProduct_id());
+
+        if (product == null) throw new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND, null);
 
         // 상품 업로더
         Member productUploader = product.getMember();

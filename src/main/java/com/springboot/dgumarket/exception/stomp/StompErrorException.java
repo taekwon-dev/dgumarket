@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class StompErrorException extends Exception{
+public class StompErrorException extends RuntimeException{
 
     private int ERR_CODE;
     private String ERR_MESSAGE;

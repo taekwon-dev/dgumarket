@@ -6,12 +6,14 @@ import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.model.product.Product;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@DynamicUpdate
 @Setter
 @ToString
 @NoArgsConstructor
@@ -60,4 +62,20 @@ public class ChatMessage {
     @CreationTimestamp
     @Column(name = "message_datetime", updatable = true)
     private LocalDateTime msgDate;
+
+    // -------------------------------------- 채팅 - 유저  --------------------------------------------------- //
+
+    // 채팅 메시지 -> 유저 (판매자 또는 구매자) 방향으로 참조 관계 끊기 (setter 역할 대신)
+
+    public void disconnChatMsgToSender() {
+        this.sender = null;
+    }
+
+    public void disconnChatMsgToReceiver() {
+        this.receiver = null;
+    }
+
+    public void disconnChatMsgToSellerProduct() {
+        this.product = null;
+    }
 }

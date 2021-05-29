@@ -29,6 +29,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private PasswordEncoder passwordEncoder;
 
     // 검증을 위한 구현
+    // authentication 객체에 값이 전달되는 과정이 이해가 안 돼.
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 

@@ -55,7 +55,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-//        registration.interceptors(stompHandler);
+
         registration.interceptors(new ChannelInterceptor() {
             /**
              * Invoked before the Message is actually sent to the channel.
@@ -76,10 +76,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     logger.info("{}, message.getHeader {}", command, message.getHeaders());
                     logger.info("{}, accessor.toString {}", command, sha.toString());
                     logger.info("{}, accessor.getDestination()", sha.getDestination());
-                }else if(StompCommand.UNSUBSCRIBE.equals(command) && message.getHeaders().get("simpSubscriptionId").toString().startsWith("room-user-")) {
+
+                } else if(StompCommand.UNSUBSCRIBE.equals(command) && message.getHeaders().get("simpSubscriptionId").toString().startsWith("room-user-")) {
                     String sessionId = message.getHeaders().get("simpSessionId").toString(); // 유저 고유의 SessionId
                     redisChatRoomService.leave(sessionId); // 레디스 채팅방 나가기
-                }else if(StompCommand.DISCONNECT.equals(command)){ // 갑작스러운 종료에도 채팅창을 잘 나가게 해야한다.
+                } else if(StompCommand.DISCONNECT.equals(command)) { // 갑작스러운 종료에도 채팅창을 잘 나가게 해야한다.
                     String sessionId = message.getHeaders().get("simpSessionId").toString();
 
                     redisChatRoomService.leave(sessionId); // TODO : 갑작스러운 종료에도 sessionId로 채팅방 나갈 수 있도록 하기

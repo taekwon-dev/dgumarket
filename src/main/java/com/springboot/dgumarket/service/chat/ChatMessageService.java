@@ -12,6 +12,8 @@ import java.util.List;
 public interface ChatMessageService {
     // 읽지 않은 메시지 가져오기
     Integer findUnreadMessages(int userId);
+
     List<ChatMessageDto> getAllMessages(int roomId, Member member); // 채팅방 나갔을 경우 메시지 가져오기
+
     ChatMessageDto save(SendMessage message, String sessionId); // 메시지 저장 for STOMP
 }

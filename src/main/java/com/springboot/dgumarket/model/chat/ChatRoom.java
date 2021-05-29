@@ -83,27 +83,49 @@ public class ChatRoom {
     @Column(name = "seller_entrance_date", updatable = true)
     private LocalDateTime sellerEntranceDate;
 
-    public LocalDateTime getUsersEntranceDate(Member member){
-        if (this.seller == member){  // 판매자일 경우
+
+    public LocalDateTime getUsersEntranceDate(Member loginUser) {
+
+        // 채팅 상대방이
+        // 판매자, 구매자가 각각 NULL 일 수 있다. -> NPE 예외 처리
+
+        // ~NULL 조건 추가.
+        if ((this.seller != null) && (this.seller == loginUser)) {
+            // 로그인 유저가 판매자인 경우 -> 채팅 상대방 = 구매자
             return this.sellerEntranceDate;
-        }else if (this.consumer == member){ // 구매자일 경우
+        } else if ((this.consumer != null) && (this.consumer == loginUser)) {
+            // 로그인 유저가 구매자인 경우 -> 채팅 상대방 = 판매자
             return this.consumerEntranceDate;
-        }else {
+        } else {
+            // 조건에 부합하지 않은 경우 NULL 반환해서 채팅 상대방이 NULL인 것으로 처리
+            /** null 이면 상관 없어? (로직 전개) */
             return null;
         }
     }
 
+    /** Report 관련해서 사용되는 부분은 체크하고, 나머진 체크 완료 */
     // 내가 대화하고 있는 `상대방`을 가져옴
-    public Member getMemberOpponent(Member member){
-        if (this.seller == member){
+    public Member getMemberOpponent(Member loginUser) {
+
+        // 채팅 상대방이
+        // 판매자, 구매자가 각각 NULL 일 수 있다. -> NPE 예외 처리
+
+        // ~NULL 조건 추가.
+        if ((this.seller != null) && (this.seller == loginUser)) {
+            // 로그인 유저가 판매자인 경우 -> 채팅 상대방 = 구매자
             return this.consumer;
-        }else{
+        } else if ((this.consumer != null) && (this.consumer == loginUser)) {
+            // 로그인 유저가 구매자인 경우 -> 채팅 상대방 = 판매자
             return this.seller;
+        } else {
+            // 조건에 부합하지 않은 경우 NULL 반환해서 채팅 상대방이 NULL인 것으로 처리
+            return null;
         }
     }
 
+    /** this.seller -> NULL 이면? */
     public boolean isMine(Member member){
-        if(this.seller == member){ // 판매자일경우
+        if (this.seller == member) {
             return true;
         }else{
             return false;
@@ -111,6 +133,7 @@ public class ChatRoom {
     }
 
     // 채팅방 들어갈 떄 update entrance Date
+    /** this.getConsumer(), this.getSeller() -> NULL 이면? */
     public void updateEntranceDate(int userId){
         LocalDateTime currentDateTime = LocalDateTime.now();
         if(this.getConsumer().getId() == userId){
@@ -122,6 +145,7 @@ public class ChatRoom {
 
 
     // 채팅방 나가기 상태에서 메시지를 하나 보냈을 시점에 만약 내가 나감상태라는 것은 채팅으로 거래하기를 통해 해당 화면에 들어왔을 경우 뿐이다.
+    /** this.getConsumer(), this.getSeller() -> NULL 이면? */
     public void leave2enterForFirstMessage(Member member, LocalDateTime now){
         if(this.getConsumer() == member && this.getConsumerDeleted() == 1){ // 소비자면 소비자영역에 바꾸어줌
             this.setConsumerDeleted(0); // 나감유무 1에서0으로 바꿈
@@ -134,6 +158,7 @@ public class ChatRoom {
 
     // 채팅방 나간시간 가져오기
     public LocalDateTime getUserleaveDate(Member member){
+        /** this.getConsumer() -> NULL 이면? */
         if(this.getConsumer() == member){
             return this.getConsumerDeletedDate();
         }else{
@@ -142,35 +167,57 @@ public class ChatRoom {
     }
 
     // 채팅방 나가기(완전히)
+    /** this.getConsumer(), this.getSeller() -> NULL 이면? */
     public void leave(int userId) {
         LocalDateTime currentDateTime = LocalDateTime.now();
-        if (this.getConsumer().getId() == userId){
+
+        // 채팅방 나가기 클릭 시점, (= 채팅방 삭제 시점)
+        // 상대 유저가 탈퇴한 경우, NPE 발생하므로 NPE 체크
+        // 로그인 유저에 대한 NPE 체크는 불필요 -> 이미 Gateway에서 필터링
+
+        // 상대 유저가 구매자 또는 판매자인 경우, 각각의 경우 NULL일 경우 대비하기 위해
+        // 실제 처리 코드 조건에 ~NULL 조건을 추가.
+
+        // Hibernate: update chat_room set seller_deleted=?, seller_deleted_date=? where id=?
+
+        if ((this.getConsumer() != null) && (this.getConsumer().getId() == userId)) {
             this.setConsumerDeletedDate(currentDateTime);
             this.setConsumerDeleted(1);
-        }else if(this.getSeller().getId() == userId){
+
+        } else if ((this.getSeller() != null) && (this.getSeller().getId() == userId)) {
             this.setSellerDeletedDate(currentDateTime);
             this.setSellerDeleted(1);
         }
-    }
 
-    // 거래상태 거래완료로 바꾸기
-    public void changeProductStatus(int status){
-        this.getProduct().setTransactionStatusId(status);
+        /** 이 외 조건은 상관 없어? */
     }
 
     // 유저초대하기 ( 상대방 나가기유무 0 -> X )
+    /** this.getConsumer(), this.getSeller() -> NULL 이면? */
     public void changeExitToJoin(int receiverId){
         // 메시지 받는 유저가 채팅방 나간경우
-        if(this.getConsumer().getId() == receiverId & this.getConsumerDeleted() == 1){
-            logger.info("받는 이는 구매자입니다. 채팅방 나감 ? : {}", this.getConsumerDeleted());
+        if (this.getConsumer().getId() == receiverId & this.getConsumerDeleted() == 1) {
             this.setConsumerDeleted(0);
-        }else if(this.getSeller().getId() == receiverId & this.getSellerDeleted() == 1){
-            logger.info("받는 이는 판매자입니다. 채팅방 나감 ? : {}",this.getSellerDeleted());
+        } else if (this.getSeller().getId() == receiverId & this.getSellerDeleted() == 1) {
             this.setSellerDeleted(0);
-        }else{
-            logger.info("보내는상대아이디 : {}, consumerId : {}, sellerId : {}",receiverId, this.getConsumer().getId(), this.getSeller().getId());
-            logger.info("이건 실행되서는 안되! ");
+        } else {
+            /** ? */
         }
     }
 
+    // -------------------------------------- 채팅 - 유저  --------------------------------------------------- //
+
+    // 채팅방 -> 유저 (판매자 또는 구매자) 방향으로 참조 관계 끊기 (setter 역할 대신)
+
+    public void disconnChatRoomToConsumer() {
+        this.consumer = null;
+    }
+
+    public void disconnChatRoomToSeller() {
+        this.consumer = null;
+    }
+
+    public void disconnChatRoomToSellerProduct() {
+        this.product = null;
+    }
 }

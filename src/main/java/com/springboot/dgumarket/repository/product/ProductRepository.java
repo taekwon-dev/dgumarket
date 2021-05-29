@@ -28,4 +28,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 
     @Query("Select p from Product p Where p.id = :id And p.productStatus = 0")
     Product findByIdNotOptional(int id);
+
+    Product findById(int id);
+
+
+
 }

@@ -3,6 +3,7 @@ package com.springboot.dgumarket.model.member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.springboot.dgumarket.model.Role;
+import com.springboot.dgumarket.model.chat.ChatMessage;
 import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.product.Product;
 import com.springboot.dgumarket.model.product.ProductCategory;
@@ -20,6 +21,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -82,7 +84,7 @@ public class Member {
             joinColumns = { @JoinColumn(name = "member_id")},
             inverseJoinColumns = {@JoinColumn(name = "role_id")})
     @JsonIgnore
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 
     // cascade 적용하지 않아도, 회원삭제 시 삭제됨을 확인
     @ManyToMany(fetch = FetchType.LAZY)
@@ -91,7 +93,7 @@ public class Member {
             joinColumns = { @JoinColumn(name = "member_id")},
             inverseJoinColumns = {@JoinColumn(name = "category_id")})
     @JsonIgnore
-    private Set<ProductCategory> productCategories;
+    private Set<ProductCategory> productCategories = new HashSet<>();
 
     /** [유저 : 상품]
      *  - 종속 관계 (= 실제 테이블에서 회원 테이블에 대한 조인 컬럼 보유)
@@ -110,20 +112,20 @@ public class Member {
      * */
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JsonIgnore
-    private Set<Product> products;
+    private Set<Product> products = new HashSet<>();
 
     // 로그인 유저가 차단한 유저 리스트 (-> 차단한 유저 리스트 조회하기)
     // 이 부분만 영속성 전이 (PERSIT) 추가해도 데이터베이스 INSERT (차단하기 메소드에서 적용)
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "user")
     @JsonIgnore
-    private Set<BlockUser> blockUsers;
+    private Set<BlockUser> blockUsers = new HashSet<>();
 
 
     // 로그인 유저를 차단한 유저 리스트 (-> 서비스 로직 중, 로그인 유저를 차단한 유저의 정보를 제외)
     // Cascade.REMOVE (= 삭제된 유저가 차단된 리스트에 있을 때 부여해야함)
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "blockedUser")
     @JsonIgnore
-    private Set<BlockUser> UserBlockedMe;
+    private Set<BlockUser> UserBlockedMe = new HashSet<>();
 
     /** [유저-상품 : 좋아요 누른 상품]
      *  - 종속 관계 (mappedBy 속성, 외래 키가 product_like 테이블에서 관리 되고 있다)
@@ -160,6 +162,33 @@ public class Member {
      * */
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE}, mappedBy = "seller")
     private List<ProductReview> reviewsSellerProducts;
+
+    /** [유저(구매자) - 채팅방]
+     *  유저 기준 (= 요청한 유저가 chat_room 테이블에서 구매자인 경우)으로 chat_room에서 채팅방 리스트를 조회
+     *  (= Where 절에서 consumer_id를 기준으로 조회)
+     *
+     *  Member 엔티티 영속화시킬 때, 해당 유저와 관계를 맺는 ChatRoom 엔티티도 영속화시킬 수 있도록,
+     *  PERSIST 영속성 전이 옵션을 사용, 이를 통해 회원 정보가 삭제됐을 때 '더치체킹'을 통해 update 처리
+     *
+     * */
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "consumer")
+    private Set<ChatRoom> consumerChatRooms = new HashSet<>();
+
+    /** [유저(판매자) - 채팅방]
+     *  유저 기준 (= 요청한 유저가 chat_room 테이블에서 판매자인 경우)으로 chat_room에서 채팅방 리스트를 조회
+     *  (= Where 절에서 seller_id를 기준으로 조회)
+     *
+     *  Member 엔티티 영속화시킬 때, 해당 유저와 관계를 맺는 ChatRoom 엔티티도 영속화시킬 수 있도록,
+     *  PERSIST 영속성 전이 옵션을 사용, 이를 통해 회원 정보가 삭제됐을 때 '더치체킹'을 통해 update 처리
+     * */
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "seller")
+    private Set<ChatRoom> sellerChatRooms = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "sender")
+    private Set<ChatMessage> senderMessages;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "receiver")
+    private Set<ChatMessage> receiverMessages;
 
 
     @Column(name = "alert_num")
@@ -257,7 +286,7 @@ public class Member {
     }
 
 
-    // -------------------------------------- 유저의 패널티 ---------------------------------------------------
+    // -------------------------------------- 유저의 패널티 --------------------------------------------------- //
     // 유저 경고유무
     public boolean checkWarnActive(){
         if(this.getAlertNum() >= 3){ // 경고횟수가 3회 이상
@@ -317,4 +346,74 @@ public class Member {
         // 로그인 유저가 차단한 리스트에 채팅 상대방이 포함 여부 반환 (true or false)
         return this.getBlockUsers().contains(blockUser);
     }
+
+    // -------------------------------------- 유저 - 채팅 --------------------------------------------------- //
+
+    // 회원정보가 삭제될 때, Member -> ChatRoom 방향으로, 참조 관계를 끊는다.
+    // chat_room 테이블에서 요청을 보낸 멤버의 고유 아이디가 속한 모든 컬럼에서
+    // 해당 컬럼의 값이 null 값으로 업데이트 (via 더티체킹)
+
+    public void disconnConsumerToChatRoom(ChatRoom chatRoom) {
+
+        // 삭제 대상 유저가 해당 채팅방에서 구매자인 경우
+        // 유저 -> 채팅방 방향으로 참조 관계 끊기
+        // throwing ConcurrentModificationException (따라서 호출부에서 한 번에 removeAll() 진행)
+//        this.getConsumerChatRooms().remove(chatRoom);
+
+        // 양방향 관계 (채팅방 -> 구매자), 참조 관계 끊기
+        chatRoom.disconnChatRoomToConsumer();
+    }
+
+    public void disconnSellerToChatRoom(ChatRoom chatRoom) {
+
+        // 삭제 대상 유저가 해당 채팅방에서 판매자인 경우
+        // 유저 -> 채팅방 방향으로 참조 관계 끊기
+        // throwing ConcurrentModificationException (따라서 호출부에서 한 번에 removeAll() 진행)
+//        this.getSellerChatRooms().remove(chatRoom);
+
+        // 양방향 관계 (채팅방 -> 판매자), 참조 관계 끊기
+        chatRoom.disconnChatRoomToSeller();
+
+        // 판매자인 경우, 해당 채팅방에 참조가 걸려 있는 상품 고유 ID에 관해 참조를 끊는다.
+        chatRoom.disconnChatRoomToSellerProduct();
+
+
+    }
+
+    public void disconnSenderToChatMsg(ChatMessage chatMessage) {
+
+        // 유저 -> 채팅 메시지 방향으로 참조 관계 끊기.
+        // (= 유저가 메시지 전송자인 경우)
+        // throwing ConcurrentModificationException (따라서 호출부에서 한 번에 removeAll() 진행)
+//        this.getSenderMessages().remove(chatMessage);
+
+        // 삭제 대상 유저가 -> 채팅 메시지 대상 판매자(=상품의 업로더)가 메시지 전송자인 경우
+        // 전송 메시지에 참조 걸려 있는 상품 고유 ID에 대해 참조 관계를 끊는다.
+        if (chatMessage.getProduct().getMember() == this) {
+            chatMessage.disconnChatMsgToSellerProduct();
+        }
+        // 양방향 관계 (채팅 메시지 -> 구매자), 참고 관계 끊기
+        chatMessage.disconnChatMsgToSender();
+
+    }
+
+
+    public void disconnReceiverToChatMsg(ChatMessage chatMessage) {
+
+        // 유저 -> 채팅 메시지 방향으로 참조 관계 끊기.
+        // (= 유저가 메시지 수신자인 경우)
+        // throwing ConcurrentModificationException (따라서 호출부에서 한 번에 removeAll() 진행)
+//        this.getReceiverMessages().remove(chatMessage);
+
+        // 삭제 대상 유저가 -> 채팅 메시지 대상 판매자(=상품의 업로더)가 메시지 수신자인 경우
+        // 전송 메시지에 참조 걸려 있는 상품 고유 ID에 대해 참조 관계를 끊는다.
+        if (chatMessage.getProduct().getMember() == this) {
+            chatMessage.disconnChatMsgToSellerProduct();
+        }
+        // 양방향 관계 (채팅 메시지 -> 구매자), 참고 관계 끊기
+        chatMessage.disconnChatMsgToReceiver();
+    }
+
+
+
 }

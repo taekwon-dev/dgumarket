@@ -16,6 +16,7 @@ import com.springboot.dgumarket.repository.chat.ChatMessageRepository;
 import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.slf4j.Logger;
@@ -32,8 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
+
     private static Logger logger = LoggerFactory.getLogger(ChatMessageServiceImpl.class);
     private static final int UNREAD = 0;
     private static final int READ = 1;
@@ -60,32 +63,48 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Autowired
     private ChatRoomService chatRoomService;
 
-    // 읽지 않은 메시지 개수
+    /** OK */
+    // 로그인 유저의 모든 채팅방 대상, 읽지 않은 메시지 개수 조회
     @Override
     public Integer findUnreadMessages(int userId) {
-        Member member = memberRepository.findById(userId);
+
+        // 로그인 유저 (NPE 대상 X)
+        Member loginUser = memberRepository.findById(userId);
+
+        // 안 읽은 메시지 수 초기화
         int unreadMessages = 0;
+
+        // 채팅방 리스트 중, 로그인 유저가 읽지 않은 메시지 수 조회
+        // 파라미터 값 중 NPE 대상 없음
         List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByConsumerAndConsumerDeletedOrSellerAndSellerDeleted(
-                member,
-                0,
-                member,
-                0
+                loginUser, // 채팅방에서 로그인 유저가 구매자로 있는 경우
+                0, // 로그인 유저 (= 구매자 입장)가 삭제하지 않은 채팅방 대상
+                loginUser, // 채팅방에서 로그인 유저가 판매자로 있는 경우
+                0 // 로그인 유저 (= 판매자 입장)가 삭제하지 않은 채팅방 대상
         );
+
         for(ChatRoom chatRoom : chatRoomList){
-            unreadMessages += chatRoomService.calculateUnreadMessageCount(chatRoom, member);
+            // 개별 채팅방을 체크하면서,
+            // 안 읽은 메시지 수 합
+            unreadMessages += chatRoomService.calculateUnreadMessageCount(chatRoom, loginUser);
         }
+
+        // 로그인 유저가 안 읽은 메시지 합 (반환 값)
         return unreadMessages;
     }
 
-
+    /** OK */
+    // 요청한 채팅방 고유 ID에 참조 걸려 있는 모든 메시지 조회
+    // 채팅방 고유 ID (NPE 대상 X, 단 채팅방 고유 ID에 해당하는 로우를 삭제하지 않고, 해당 로우에 참조된 유저 정보, 상품 정보만 NULl 처리한다면)
+    // 로그인 유저 고유 ID (NPE 대상 X)
     @Override
-    public List<ChatMessageDto> getAllMessages(int roomId, Member member) {
+    public List<ChatMessageDto> getAllMessages(int roomId, Member loginUser) {
+
+        // 채팅방 고유 ID를 통해 채팅방 객체 탐색 (NPE X)
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
+
+        // ModelMapper 객체 초기화
         ModelMapper modelMapper = new ModelMapper();
-
-        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId); // 후에 null 체크 필요
-        Member targetUser = chatRoom.get().getMemberOpponent(member);
-        Boolean isDisable =isTargerUserDisable(targetUser);
-
         // chatmessage entitiy -> message dto
         PropertyMap<ChatMessage, ChatMessageDto> messageMap = new PropertyMap<ChatMessage, ChatMessageDto>() {
             @Override
@@ -109,24 +128,41 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         modelMapper.addMappings(personMap);
 
 
-        List<ChatMessage> chatMessageEntitys = getRoomMessages(roomId, member);
+        List<ChatMessage> chatMessageEntitys = getRoomMessages(roomId, loginUser);
         // EntityList -> DTOList
+
+        // 채팅 상대방 유저 (NPE 대상)
+        Member opponentUser = chatRoom.get().getMemberOpponent(loginUser);
+
+        // isTargetUserDisable() -> NPE 체크, 채팅 상대방이 NULL 인 경우 true 반환 -> 이름 없음으로 출력되도록 한다.
+        Boolean isDisable = isTargerUserDisable(opponentUser);
+
         List<ChatMessageDto> chatMessageDtos = new ArrayList<>();
         for (ChatMessage chatMessageEntity : chatMessageEntitys) {
             ChatMessageUserDto chatMessageUserDto = modelMapper.map(chatMessageEntity.getSender(), ChatMessageUserDto.class);
-            if(isDisable){ // 상대방이 유저제재 또는 탈퇴일 경우
-                if(chatMessageUserDto.getUserId() == targetUser.getId()){
+
+            // 채팅 상대방 유저가 탈퇴 이후 실제 데이터베이스에서 삭제된 경우
+            // 채팅 상대방 유저가, 유저제재 또는 탈퇴일 경우
+            if (isDisable) {
+
+                if ((opponentUser == null) || (chatMessageUserDto.getUserId() == opponentUser.getId())) {
                     chatMessageUserDto.setNickName("이름없음");
                     chatMessageUserDto.setProfileImgPath(null);
                 }
             }
             ChatMessageDto chatMessageDto = new ChatMessageDto();
             chatMessageDto.setRoomId(chatMessageEntity.getRoomId());
-            chatMessageDto.setChatMessageUserDto(chatMessageUserDto); // 보내는이 정보
+
+            chatMessageDto.setChatMessageUserDto(chatMessageUserDto);
+
             chatMessageDto.setMessageDate(chatMessageEntity.getMsgDate());
+
             chatMessageDto.setMessage(chatMessageEntity.getMessage());
+
             chatMessageDto.setMessage_type(chatMessageEntity.getMsgType());
+
             chatMessageDto.setMessageStatus(chatMessageEntity.getMsgStatus());
+
             chatMessageDtos.add(chatMessageDto);
         }
 
@@ -134,7 +170,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
 
-    // ChatMessage Save
+    /** OK
+     * 호출 위치 : ChatMessageController save()
+     *
+     * save() 호출하는 곳에서 이미, 채팅 전송자, 수신자에 대한 유효성 검증을 완료한다.
+     * 따라서, save() 메소드에서는 회원탈퇴로 인한 회원 정보 NPE 관련 예외처리르 할 필요 없다.
+     * */
     @Override
     @Transactional
     public ChatMessageDto save(SendMessage sendMessage, String sessionId) {
@@ -174,22 +215,25 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         modelMapper.addMappings(messageMap);
         modelMapper.addMappings(personMap);
 
-
-
         Member receiver = memberRepository.findById(sendMessage.getReceiverId());
         Member sender = memberRepository.findById(sendMessage.getSenderId());
-        Optional<Product> product = productRepository.findById(sendMessage.getProductId());
+        Product product = productRepository.findById(sendMessage.getProductId());
+
+
         ChatMessage savedMessage = null;
 
         // 채팅방 찾기
         ChatRoom chatRoom =chatRoomRepository.findChatRoomPSR(sendMessage.getProductId(), sendMessage.getSenderId(), sendMessage.getReceiverId());
         LocalDateTime entranceDate = LocalDateTime.now();
-        if(chatRoom != null){ // 채팅방 존재 할 경우
 
-            // 레디스 채팅방에 사람 있는 지 확인 -> 있으면 읽음상태로, 없으면 읽지않음상태로 저장
+        // 기존 생성된 채팅방이 있는 경우
+        if (chatRoom != null) {
+
+            // Redis 서버를 통해, 수신자가 채팅방에 위치하고 있는 지(채팅방에 위치하면, 바로 읽음 상태)
             Optional<RedisChatRoom> redisChatRoom = redisChatRoomService.findByRoomId(chatRoom.getRoomId());
-            if(redisChatRoom.isPresent()){
-                if(redisChatRoom.get().isSomeoneInChatRoom(String.valueOf(sendMessage.getReceiverId()))){ // 상대방이 채팅방에 들어와있는 경우
+            if (redisChatRoom.isPresent()) {
+                // 상대방이 채팅방에 들어와있는 경우
+                if(redisChatRoom.get().isSomeoneInChatRoom(String.valueOf(sendMessage.getReceiverId()))){
                     // 채팅방 나감 유무 1과 0은 레디스의 채팅방 나감유무와 별개이다
 
                     if (sendMessage.getMessageType() == 1) { // 채팅 이미지 메시지들 보낼 때
@@ -206,10 +250,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         // 로직 추가, 보내기 전에 만약 내가 해당 채팅방에서 나가기 상태(1) -> 나가지않은상태(0)으로 바꾸어 준다
                         chatRoom.leave2enterForFirstMessage(sender, entranceDate);
                         sendMessagesToRoom(responseMessage.getRoomId(), responseMessage); // 룸에 있는 사람에게 메시지전달
-
                     }
                 } else {
-
+                    // 상대방이 채팅방에 들어와 있지 않은 경우
                     if (sendMessage.getMessageType() == 1) { // 이미지 파일인경우
                         ArrayList<ChatMessage> chatMessages = createMessagesFromFileListAndChatRoom(sendMessage.getMessage(), chatRoom, sender, receiver, UNREAD);
                         ArrayList<StompReceivedMessage> messagesDto = saveImageMessages2Dto(chatMessages, modelMapper);
@@ -235,11 +278,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 }
             }
 
-        }else {
+        } else {
+            // 새로운 채팅방을 생성해야 하는 경우
             ChatRoom newChatRoom = ChatRoom.builder()
                     .consumer(sender)
                     .seller(receiver)
-                    .product(product.get())
+                    .product(product)
                     .build();
             ChatRoom savedChatroom = chatRoomRepository.save(newChatRoom);
             ArrayList<StompReceivedMessage> receivedMessages = new ArrayList<>();
@@ -251,11 +295,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             } else {
                 ChatMessage chatMessage = createMessageFromSenderTextMessage(sendMessage, savedChatroom, sender, receiver, UNREAD, 0);
                 StompReceivedMessage stompReceivedMessage = saveTextMessage2Dto(chatMessage, modelMapper);
-                logger.info("[/MESSAGE] save the message : {}}", chatMessage.toString());
                 this.template.convertAndSend("/topic/chat/" + sendMessage.getReceiverId(), stompReceivedMessage); // 상대방에게 채팅 메시지를 보낸다
-//                logger.info("[/MESSAGE] [SEND] /topic/chat/{}, messages : {}", sendMessage.getReceiverId(), responseMessage);
             }
-
             // 모든 메시지 다 저장한 후에 채팅방 정보를 준다
             sendRoomInfoMsgToSender(savedChatroom.getRoomId(), sessionId);
 
@@ -268,48 +309,52 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         return null;
     }
-    // 채팅방 별 유저 채팅방 입장 시간 기준으로 읽지 않은 총 메시지의 개수를 계산
-    public List<ChatMessage> getRoomMessages(int roomId, Member member){
-        ChatRoom chatRoom =chatRoomRepository.getOne(roomId);
-        LocalDateTime usersEntranceDate = chatRoom.getUsersEntranceDate(member); // 판매자인지 소비자인지 찾고 판매자이면 판매자의입장시간, 소비자면 소비자의입장시간
-        LocalDateTime usersRoomDeletedDate = chatRoom.getUserleaveDate(member);
-        logger.info("{} 번 유저 가 요청들어왔음", member.getId());
-        logger.info("유저의 입장일 : {}, 유저의 채팅방 삭제(나간)일 : {}",usersEntranceDate, usersRoomDeletedDate);
 
-        if (usersEntranceDate == null & usersRoomDeletedDate == null){ // 유저 입장 X , 나가기 X
+    /** OK */
+    // 로그인 유저가 입장한 채팅방 대상으로, 로그인 유저의 해당 채팅방 입장 시간 기준으로
+    // 메시지 리스트 반환 (채팅방 고유 ID, 로그인 유저 -> NPE 대상 X)
+    // 채팅방 고유 ID -> 채팅방 생성 이후 호출되는 메소드, 로그인 유저 -> Gateway 서버에서 필터링)
+    public List<ChatMessage> getRoomMessages(int roomId, Member loginUser) {
+
+        ChatRoom chatRoom = chatRoomRepository.getOne(roomId);
+
+        // getUsersEntranceDate(Member loginUser)
+        // 판매자인지 구매자인지 찾고 판매자이면 판매자의입장시간, 구매자면 구매자의 입장시간
+        LocalDateTime usersEntranceDate = chatRoom.getUsersEntranceDate(loginUser);
+
+        // getUserleaveDate(Member loginUser)
+        // 로그인 유저가 채팅방 나갈 때 요청 -> 로그인 유저가 구매자인지 판매자인지 체크 후 해당하는 컬럼에 나간 시간
+        LocalDateTime usersRoomDeletedDate = chatRoom.getUserleaveDate(loginUser);
+
+
+        if (usersEntranceDate == null && usersRoomDeletedDate == null) {
+            log.error("[1] 로그인 유저에게 채팅 상대방이 메시지를 보냈지만, 로그인 유저가 한번도 접근하지 않은 방에 입장한 경우");
+            // 로그인 유저에게 채팅 상대방이 메시지를 보냈지만,
+            // 로그인 유저가 한번도 접근하지 않은 방에 입장한 경우
             List<ChatMessage> chatMessageList = chatMessageRepository.findChatMessagesByRoomIdOrderByMsgDate(roomId);
-            chatMessageList.forEach(e -> logger.info("message date : {}", e.getMsgDate()));
-            logger.info("유저 입장 X, 나가기 X, 채팅방 생성일 : {}",chatRoom.getCreated());
             return chatMessageList;
 
-        }else if(usersEntranceDate == null & usersRoomDeletedDate != null){ // 유저 입장 X , 나가기 O
+        } else if (usersEntranceDate == null && usersRoomDeletedDate != null) {
+            log.error("[2] 로그인 유저가 한번도 접근하지 않은 상태에서, 해당 채팅방에 나갔었던 방에 입장한 경우");
+            // 로그인 유저가 한번도 접근하지 않은 상태에서,
+            // 해당 채팅방에 나갔었던 방에 입장한 경우
             List<ChatMessage> chatMessageList = chatMessageRepository.findChatMessagesByRoomIdAndMsgDateIsAfterOrderByMsgDateAsc(roomId, usersRoomDeletedDate);
-            chatMessageList.forEach(e -> logger.info("message date : {}", e.getMsgDate()));
-            logger.info("유저 입장 X, 나가기 O : {}, 채팅방 생성일 : {}",usersRoomDeletedDate, chatRoom.getCreated());
             return chatMessageList;
 
-        }else if(usersEntranceDate != null & usersRoomDeletedDate == null){ // 입장 O, 채팅방 나감 X
-
+        } else if (usersEntranceDate != null && usersRoomDeletedDate == null) {
+            log.error("[3] 로그인 유저가 해당 채팅방에 입장했었고, 해당 채팅방에서 나간 적이 없는 방에 입장한 경우");
+            // 로그인 유저가 해당 채팅방에 입장했었고,
+            // 해당 채팅방에서 나간 적이 없는 방에 입장한 경우
             List<ChatMessage> chatMessageList = chatMessageRepository.findChatMessagesByRoomIdOrderByMsgDate(roomId);
             return chatMessageList;
 
-        }else if(usersEntranceDate != null & usersRoomDeletedDate != null){ // 입장도 했고 채팅방도 나간경우
-
-            if( usersRoomDeletedDate.isAfter(usersEntranceDate)){ // 채팅방 나간날이 사용자 입장날보다 빠른경우
-                List<ChatMessage> chatMessageList = chatMessageRepository.findChatMessagesByRoomIdAndMsgDateIsAfterOrderByMsgDateAsc(roomId, usersRoomDeletedDate);
-                chatMessageList.forEach(e -> logger.info("message date : {}", e.getMsgDate()));
-                logger.info("입장일(나중), 채팅방(최신)");
-                logger.info("유저 입장일 : {}, 유저 채팅방삭제일 : {}", usersEntranceDate, usersRoomDeletedDate);
-                return chatMessageList;
-            }else if( usersEntranceDate.isAfter(usersRoomDeletedDate)){
-                List<ChatMessage> chatMessageList = chatMessageRepository.findChatMessagesByRoomIdAndMsgDateIsAfterOrderByMsgDateAsc(roomId, usersRoomDeletedDate);
-                chatMessageList.forEach(e -> logger.info("message date : {}", e.getMsgDate()));
-                logger.info("입장일(최신), 채팅방(나중)");
-                logger.info("유저 입장일 : {}, 유저 채팅방삭제일 : {}", usersEntranceDate, usersRoomDeletedDate);
-                return chatMessageList;
-            }
+        } else {
+            log.error("[4] 로그인 유저가 해당 채팅방에 입장했었고, 해당 채팅방에서 나간 적이 있는 방에 입장한 경우");
+            // 로그인 유저가 해당 채팅방에 입장했었고,
+            // 해당 채팅방에서 나간 적이 있는 방에 입장한 경우
+            List<ChatMessage> chatMessageList = chatMessageRepository.findChatMessagesByRoomIdAndMsgDateIsAfterOrderByMsgDateAsc(roomId, usersRoomDeletedDate);
+            return chatMessageList;
         }
-        return null;
     }
 
     /**
@@ -323,6 +368,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
      * @param chatRoom
      * @return ArrayList<ChatMessage>, new chatMessages entity before inserted db
      */
+
+    // 호출 : sava() 메소드
     public ArrayList<ChatMessage> createMessagesFromFileListAndChatRoom(
             String fileListStrFromMessage, ChatRoom chatRoom,
             Member sender,
@@ -347,6 +394,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return chatMessageArrayList;
     }
 
+    // 호출 : sava() 메소드
     public ChatMessage createMessageFromSenderTextMessage(SendMessage sendMessage, ChatRoom chatRoom, Member sender, Member receiver, int readStatus, int messageType){
         ChatMessage chatMessage = ChatMessage.builder()
                 .message(sendMessage.getMessage())
@@ -365,6 +413,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
      * @param modelMapper : model mapper
      * @return message dtos
      */
+    // 호출 : sava() 메소드
     public ArrayList<StompReceivedMessage> saveImageMessages2Dto(ArrayList<ChatMessage> chatMessages, ModelMapper modelMapper){
         List<ChatMessage> chatMessageSaved = chatMessageRepository.saveAll(chatMessages); // saveImageMessages
         ArrayList<StompReceivedMessage> stompReceivedMessages = new ArrayList<>();
@@ -389,6 +438,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
      * @param modelMapper
      * @return
      */
+    // 호출 : sava() 메소드
     public StompReceivedMessage saveTextMessage2Dto(ChatMessage chatMessage, ModelMapper modelMapper){
         ChatMessage msg = chatMessageRepository.save(chatMessage);
         StompReceivedMessage responseMessage = new StompReceivedMessage();
@@ -413,6 +463,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
      * @param receiverId receiver id
      * @param responseMessage
      */
+    // 호출 : sava() 메소드
     public void sendMessageToRoomAndUser(int roomId, int receiverId, StompReceivedMessage responseMessage){
         this.template.convertAndSend("/topic/room/" + roomId, responseMessage); // 룸으로 메시지 전달
         this.template.convertAndSend("/topic/chat/" + receiverId, responseMessage); // 상대방에게 메시지 전달
@@ -429,10 +480,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
      * @param roomId
      * @param responseMessage
      */
+    // 호출 : sava() 메소드
     public void sendMessagesToRoom(int roomId, StompReceivedMessage responseMessage){
         this.template.convertAndSend("/topic/room/" + roomId, responseMessage); // 룸으로 메시지 전달
     }
 
+    // 호출 : sava() 메소드
     public void sendRoomInfoMsgToSender(int roomId, String sessionId){
         // 모든 메시지 다 저장한 후에 채팅방 정보를 준다.
         SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
@@ -442,9 +495,15 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         this.template.convertAndSendToUser(sessionId,"/queue/room/event", stompRoomInfo, headerAccessor.getMessageHeaders());
     }
 
-    // 상대방이 탈퇴 또는 유저제재일 경우를 체크함.
-    public boolean isTargerUserDisable(Member targetMember){
-        if(targetMember.getIsWithdrawn() == 1 || targetMember.getIsEnabled() == 1){ // null 체크필요
+    /** OK */
+    // 채팅 상대방이 탈퇴 또는 유저제재일 경우를 체크함.
+    public boolean isTargerUserDisable(Member opponentUser) {
+
+        // 채팅 상대 유저가 탈퇴 후, 실제 데이터베이스에서 삭제되는 경우 true 반환
+        if (opponentUser == null) return true;
+
+        // 채팅 상대 유저가 탈퇴 또는 이용제재 상태인 경우 true 반환
+        if (opponentUser.getIsWithdrawn() == 1 || opponentUser.getIsEnabled() == 1) {
             return true;
         }
         return false;

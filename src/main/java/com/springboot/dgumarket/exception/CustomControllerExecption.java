@@ -6,7 +6,7 @@ import org.springframework.lang.Nullable;
 
 
 @Getter
-public class CustomControllerExecption extends Exception{
+public class CustomControllerExecption extends RuntimeException {
 
     private String message;
     private HttpStatus httpStatus;

@@ -13,6 +13,7 @@ import com.springboot.dgumarket.service.Validation.ValidationService;
 import com.springboot.dgumarket.service.chat.ChatRoomService;
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
 import com.springboot.dgumarket.service.product.ProductReviewService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,46 +29,44 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/chatroom")
 public class ChatRoomController {
     private static Logger logger = LoggerFactory.getLogger(ChatMessageController.class);
 
     @Autowired
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
-    ChatRoomService chatRoomService;
+    private ChatRoomService chatRoomService;
 
     @Autowired
-    RedisChatRoomService redisChatRoomService;
+    private RedisChatRoomService redisChatRoomService;
 
     @Autowired
-    ProductReviewService productReviewService;
+    private ProductReviewService productReviewService;
 
     @Autowired
-    ValidationService validationService;
+    private ValidationService validationService;
 
-    // 채팅방 목록들을 가져옵니다. (  API 문서작성 완료 & 피드백 완료  )
+    // 채팅방 목록 조회
+    // Gateway JWTFilter를 통해 인증절차를 통과한 경우 (= 인증을 전제할 수 있다.)
+    // Dgumarket 서버로 직접 요청을 하는 경우 역시, Interceptor에서 인증 여부를 체크한다. (=안전장치)
     @GetMapping("/lists")
-    public ResponseEntity<List<ChatRoomListDto>> GetRoomList(Authentication authentication){
-        logger.info("룸리스트 요청");
-        if (authentication != null) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            // 채팅방리스트 dto
-            List<ChatRoomListDto> chatRoomListDtos = chatRoomService.findAllRoomsByUserId(userDetails.getId());
+    public ResponseEntity<List<ChatRoomListDto>> GetRoomList(Authentication authentication) {
 
-            // sorting
-            Comparator<ChatRoomListDto> compareByRecentChatRoomDate = (
-                    ChatRoomListDto o1, ChatRoomListDto o2) -> o1.getChatRoomRecentMessageDto().getMessage_date().compareTo( o2.getChatRoomRecentMessageDto().getMessage_date());
-            Collections.sort(chatRoomListDtos, compareByRecentChatRoomDate.reversed());
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-            logger.info("userDetails.getId() : {}", userDetails.getId());
-            System.out.println("chatRoomListDtos = " + chatRoomListDtos);
-            return new ResponseEntity<>(chatRoomListDtos, HttpStatus.OK);
-        }
+        // 채팅방 목록에 렌더링 할 DTO
+        List<ChatRoomListDto> chatRoomListDtos = chatRoomService.findAllRoomsByUserId(userDetails.getId());
 
-        return null;
+        // 최신순으로 조회
+        Comparator<ChatRoomListDto> compareByRecentChatRoomDate = (
+                ChatRoomListDto o1, ChatRoomListDto o2) -> o1.getChatRoomRecentMessageDto().getMessage_date().compareTo( o2.getChatRoomRecentMessageDto().getMessage_date());
+        Collections.sort(chatRoomListDtos, compareByRecentChatRoomDate.reversed());
+
+        return new ResponseEntity<>(chatRoomListDtos, HttpStatus.OK);
     }
 
     // 채팅방 찾기
@@ -93,21 +92,22 @@ public class ChatRoomController {
     @ProductValidationForChatRoom
     public ResponseEntity<?> getChatRoomProductInfo(
             Authentication authentication,
-            @PathVariable("productId") int productId) throws CustomControllerExecption{
+            @PathVariable("productId") int productId) throws CustomControllerExecption {
 
-        if (authentication != null) {
-            logger.info("채팅방 상단 정보 조회");
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            ChatRoomSectionProductDto chatRoomSectionProductDto = chatRoomService.findRoomProductSectionByProduct(productId, userDetails.getId());
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity
-                    .builder()
-                    .status(200)
-                    .message("채팅방 물건 정보")
-                    .data(chatRoomSectionProductDto).build();
 
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
-        return null;
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // NPE 대상
+        ChatRoomSectionProductDto chatRoomSectionProductDto = chatRoomService.findRoomProductSectionByProduct(productId, userDetails.getId());
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity
+                .builder()
+                .status(200)
+                .message("채팅방 물건 정보")
+                .data(chatRoomSectionProductDto).build();
+
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+
+
     }
 
     // 채팅방에서 거래완료 요청 보내기 ( API 문서작성 완료 & 피드백 완료 )
@@ -116,6 +116,7 @@ public class ChatRoomController {
             Authentication authorization,
             @RequestBody ProductStatusChangeRequest statusChangeRequest,
         @PathVariable("roomId") int roomId) throws CustomControllerExecption {
+
         if(authorization != null) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authorization.getPrincipal();
             chatRoomService.changeRoomTransactionStatus(userDetails.getId(), roomId, statusChangeRequest.getTransaction_status_id());
@@ -127,7 +128,7 @@ public class ChatRoomController {
 
     // 채팅방 상태 확인하기
     @GetMapping("/{roomId}/status")
-    public ChatRoomStatusDto checkRoom(@PathVariable("roomId") int roomId, Authentication authentication) throws CustomControllerExecption {
+    public ChatRoomStatusDto checkRoom(@PathVariable("roomId") int roomId, Authentication authentication) {
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             ChatRoomStatusDto chatRoomStatusDto = chatRoomService.getChatRoomStatus(roomId, userDetails.getId());
@@ -142,13 +143,20 @@ public class ChatRoomController {
             @PathVariable("roomId") int roomId,
             @RequestBody ChatRoomLeaveRequest roomLeaveRequest,
             Authentication authentication){
-        if(authentication != null & roomLeaveRequest != null){
+
+        /** @RequestBody NULL 체크를 하는 이유? */
+        if (roomLeaveRequest != null) {
+
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             if(roomLeaveRequest.isRoom_leave()){
-                chatRoomService.leaveChatRoom(roomId, userDetails.getId()); // 실제로 채팅방 삭제가 아닌 delete 0 -> 1
+
+                // 데이터베이스에서 물리 데이터를 삭제하는 것이 아닌,
+                // 상태 값을 0 -> 1로 변경함으로써 삭제 상태임을 표현
+                chatRoomService.leaveChatRoom(roomId, userDetails.getId());
                 return ResponseEntity.ok("room leave success");
             }
         }
+
         return null;
     }
 
@@ -173,10 +181,9 @@ public class ChatRoomController {
             Authentication authentication,
             @RequestBody ValidationRequest validationRequest) throws CustomControllerExecption {
 
-        if(authentication != null){
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            return validationService.checkValidateForChatroom(userDetails.getId(), validationRequest);
-        }
-        return null;
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return validationService.checkValidateForChatroom(userDetails.getId(), validationRequest);
+
     }
 }

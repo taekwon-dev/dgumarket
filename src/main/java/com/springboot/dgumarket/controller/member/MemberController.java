@@ -5,6 +5,8 @@ import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.ResetPwdDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 
+import com.springboot.dgumarket.model.chat.ChatMessage;
+import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
 import com.springboot.dgumarket.payload.request.WebmailRequest;
 
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Iterator;
 
 @RestController
 @RequestMapping("/api/user/")
@@ -136,13 +139,30 @@ public class MemberController {
         // 멤버 삭제 -> 상품 삭제 -> 해당 채팅방에서 문제
         Member member = memberRepository.findByWebMail("taekwon@dongguk.edu");
 
-        // 멤버가 소속된 채팅방 정보 참조 관계 끊기
+         // Caution : CuncurrentModificationException
+        for (ChatRoom consumerChatRoom : member.getConsumerChatRooms()) {
+            member.disconnConsumerToChatRoom(consumerChatRoom);
+        }
+        member.getConsumerChatRooms().removeAll(member.getConsumerChatRooms());
 
-        // 멤버가 판매자인 경우 해당 상품 정보도 참조 관계 끊기 (채팅 방)
+        // Caution : CuncurrentModificationException
+        for (ChatRoom sellerChatRoom : member.getSellerChatRooms()) {
+            member.disconnSellerToChatRoom(sellerChatRoom);
+        }
+        member.getSellerChatRooms().removeAll(member.getSellerChatRooms());
 
-        // 멤버가 소속된 채팅 메시지 정보 참조 관계 끊기
+        // Caution : CuncurrentModificationException
+        for (ChatMessage senderMessage : member.getSenderMessages()) {
+            member.disconnSenderToChatMsg(senderMessage);
+        }
+        member.getSenderMessages().removeAll(member.getSenderMessages());
 
-        // 멤버가 판매자인 경우 해당 상품 정보도 참조 관계 끊기 (채팅 메시지)
+
+        // Caution : CuncurrentModificationException
+        for (ChatMessage receiverMessage : member.getReceiverMessages()) {
+            member.disconnReceiverToChatMsg(receiverMessage);
+        }
+        member.getReceiverMessages().removeAll(member.getReceiverMessages());
 
 
         memberRepository.delete(member);

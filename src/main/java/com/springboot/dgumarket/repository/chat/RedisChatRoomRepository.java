@@ -15,6 +15,11 @@ public interface RedisChatRoomRepository extends CrudRepository<RedisChatRoom, S
     @Override
     Optional<RedisChatRoom> findById(String s);
 
+
+    // 동작하지 않음! (NPE 발생) -> CrudRepository 관련해서 서치 필요해보임.
+    // leave(String roomId, String sesionId) method on RedisChatRoomServiceImpl.class
+    RedisChatRoom findByRoomId(String roomId);
+
     // 채팅방저장하기
     @Override
     <S extends RedisChatRoom> S save(S entity);
