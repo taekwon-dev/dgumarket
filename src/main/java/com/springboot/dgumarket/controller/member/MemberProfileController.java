@@ -10,6 +10,7 @@ import com.springboot.dgumarket.repository.member.redis.RedisJwtTokenRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.member.MemberProfileService;
 import com.springboot.dgumarket.service.sms.SMSService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.UUID;
  * Description :
  */
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user/profile")
 public class MemberProfileController {
@@ -199,19 +201,18 @@ public class MemberProfileController {
 
 
         Cookie[] cookies = request.getCookies();
-
         for (int i = 0; i < cookies.length; i++) {
             if (cookies[i].getName().equals("refreshToken")) {
+                // HTTP 요청에 수반된 쿠키 값 중 'refreshToken' 키에 저장된 값
                 refreshToken = cookies[i].getValue();
             }
         }
 
-        // Service
+        // Service 로직 (탈퇴 처리 -> 회원 상태 값 변경)
         memberService.doWithdraw(userDetails.getId());
 
-        RedisJwtToken redisJwtToken = RedisJwtToken.builder()
-                .id(refreshToken)
-                .build();
+        // NPE 처리 해야 함
+        RedisJwtToken redisJwtToken = redisJwtTokenRepository.findById(refreshToken).get();
 
         // Redis - R 토큰 삭제
         redisJwtTokenRepository.delete(redisJwtToken);

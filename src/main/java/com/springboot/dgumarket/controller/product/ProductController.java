@@ -206,19 +206,18 @@ public class ProductController {
     @GetMapping("/{productId}/chat-history")
     public ResponseEntity<?> doCheckChatroomHistory(
             Authentication authentication,
-            @PathVariable("productId") int productId) throws CustomControllerExecption {
-        if(authentication != null){
-            UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            ChatRoomTradeHistoryDto chatRoomTradeHistoryDto = chatRoomService.checkChatHistory(userDetails.getId(), productId); // 이전과 채팅한 적 있는 지 체크하기
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                    .status(200)
-                    .message("이전에 채팅거래했는지 조회")
-                    .data(chatRoomTradeHistoryDto).build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
+            @PathVariable("productId") int productId) {
 
+        UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
 
-        return null;
+        ChatRoomTradeHistoryDto chatRoomTradeHistoryDto = chatRoomService.checkChatHistory(userDetails.getId(), productId); // 이전과 채팅한 적 있는 지 체크하기
+
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                .status(200)
+                .message("이전에 채팅거래했는지 조회")
+                .data(chatRoomTradeHistoryDto).build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+
     }
 
     // 검색 조회

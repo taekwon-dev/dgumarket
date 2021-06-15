@@ -11,16 +11,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Created by TK YOUN (2020-12-22 오후 10:04)
- * Github : https://github.com/dgumarket/dgumarket.git
- * Description :
- *
- * 02-28 ms
- * 채팅방수, 좋아요 수 -> count 쿼리를 통해 개수를 가져오도록 변경
- * 테스트확인
- *
- */
+
 @Slf4j
 @Entity
 @Table(name = "product")
@@ -54,7 +45,6 @@ public class Product {
      *  - Cascade 옵션 : 당장 적용할 근거를 찾지 못함 (= 필요성 재고)
      *    - 상품 정보 저장 또는 삭제 시 상품 카테고리에 영향 주는 부분이 없음 (이유)
      * */
-    // @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     private ProductCategory productCategory;

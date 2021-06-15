@@ -52,13 +52,13 @@ public class ValidationServiceImpl implements ValidationService {
             int productId = validationRequest.getProduct_id().get();
 
 
-            Optional<Product> product = productRepository.findById(productId);
-            product.orElseThrow(() -> new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND, null));
+            Product product = productRepository.findById(productId);
+            if (product == null) throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND, null);
 
-            if (product.get().getProductStatus() == PRODUCT_REMOVE) { throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND, null); }
-            if (product.get().getProductStatus() == PRODUCT_BLIND) { throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.NOT_FOUND, null); }
+            if (product.getProductStatus() == PRODUCT_REMOVE) { throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND, null); }
+            if (product.getProductStatus() == PRODUCT_BLIND) { throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.NOT_FOUND, null); }
                 // 해당물건의 유저의 유효성체크
-            return isValidateUser(member, product.get().getMember());
+            return isValidateUser(member, product.getMember());
         }
 
         // 유저프로필클릭시

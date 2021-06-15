@@ -26,6 +26,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> {
     @Query("SELECT r FROM ChatRoom r " +
             "WHERE (r.product.id = :productId and r.seller.id = :senderId and r.consumer.id = :receiverId) " +
             "OR (r.product.id = :productId and r.seller.id = :receiverId and r.consumer.id = :senderId)")
+
+
     ChatRoom findChatRoomPSR (
             @Param("productId")int productId,
             @Param("senderId")int senderId,
@@ -41,6 +43,5 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> {
     @Override
     <S extends ChatRoom> S save(S s);
 
-    // 물건의 채팅방 수
-    long countChatRoomsByProduct(Product product);
+    ChatRoom findByRoomId(int roomId);
 }

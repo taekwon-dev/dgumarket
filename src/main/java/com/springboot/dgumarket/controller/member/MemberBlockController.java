@@ -19,10 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class MemberBlockController {
 
-
-    private static final int DEFAULT_PAGE_SIZE = 10;
     @Autowired
-    UserBlockService userBlockService;
+    private UserBlockService userBlockService;
 
     // 유저차단하기
     @PostMapping("/block")
