@@ -382,10 +382,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         // 1. 채팅방과 연결된 상품 정보가 삭제된 경우 (== null) --> 이 경우는 회원탈퇴로 인해 실제 데이터베이스에서 삭제됐을 경우이므로, 이미 Gateway에서 차단 처리 대상
         // 2. 채팅방과 연결된 상품이 업로더에 의해 삭제된 경우 (getProductStatus() == 1)
         if (chatRoom.getProduct().getProductStatus() == 1)
-            throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.NOT_FOUND, null);
+            throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.BAD_REQUEST, null, 100);
 
         if (chatRoom.getProduct().getProductStatus() == 2)
-            throw new CustomControllerExecption("관리자에 의해 비공개 처리되어 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("관리자에 의해 비공개 처리되어 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 101);
 
         // 채팅방의 물건 거래완료로 바꾸려는 데 채팅방에 있는 대화상대가 내가 차단한 경우라면 불가능
         // 채팅방 상대방이 사용자제재, 탈퇴 유저인지 확인하기
@@ -397,14 +397,15 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         // NPE 체크 -> 채팅 상대방 유저 정보를 확인해야 하는 하위 로직에 대한 NPE 발생을 차단
         if (opponentMember == null) {
             log.error("[데이터베이스에서 상대유저가 완전히 삭제된 이후] 탈퇴한 유저와 거래완료를 할 수 없습니다.");
-            throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
         }
 
-        if (opponentMember.getIsEnabled() == 1)
-            throw new CustomControllerExecption("이용제재를 받고 있는 유저와 거래완료를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
-
         if (opponentMember.getIsWithdrawn() == 1)
-            throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("탈퇴한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
+
+
+        if (opponentMember.getIsEnabled() == 1)
+            throw new CustomControllerExecption("이용제재를 받고 있는 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
 
         // 판매자가 '로그인' 유저인 경우 (= 거래상태를 '완료'로 바꾸는 요청은 '판매자만 가능')
         if (chatRoom.getSeller() == member) {
@@ -419,17 +420,17 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
 
             if (member.getBlockUsers().contains(blockUser)) {
-                throw new CustomControllerExecption("차단한 유저와 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN, null);
+                throw new CustomControllerExecption("차단한 유저와 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 104);
             }
 
             // 서로 차단 중이라면
             if (member.getUserBlockedMe().contains(blockedUser)) {
-                throw new CustomControllerExecption("나를 차단한 유저와는 거래완료를 할 수 없습니다.", HttpStatus.FORBIDDEN, null);
+                throw new CustomControllerExecption("나를 차단한 유저와는 거래완료를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 105);
             }
 
             // 이미 거래완료
             if (chatRoom.getProduct().getTransactionStatusId() == 2) {
-                throw new CustomControllerExecption("이미 거래완료 되어 있는 상태입니다.", HttpStatus.BAD_REQUEST, null);
+                throw new CustomControllerExecption("이미 거래완료 되어 있는 상태입니다.", HttpStatus.BAD_REQUEST, null, 106);
             }
 
             if (chatRoom.getProduct().getTransactionStatusId() == 0) {
@@ -446,9 +447,9 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                         .build();
                 productReviewRepository.save(productReview);
             }
-        } else { // 판매자 요청이 아닌 경우 '거래 완료'를 요청할 수 없다.
+        } else { // 판매자 요청이 아닌 경우 '거래 완료'를 요청할 수 없다. ( 에초에 이런 경우가 있을 수 없다. )
             /**[C] 에러 메시지 수정 대상 - 이 메시지 수정 시 다른 영향 가는 부분 확인하고 수정 할 예정 */
-            throw new CustomControllerExecption("잘못된 요청입니다", HttpStatus.BAD_REQUEST, null);
+//            throw new CustomControllerExecption("잘못된 요청입니다", HttpStatus.BAD_REQUEST, null);
         }
     }
 
@@ -486,16 +487,12 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         // NPE (= 채팅 상대방이 삭제된 경우)
         Member opponentUser = chatRoom.getMemberOpponent(member);
 
-        if (opponentUser == null) {
-            throw new CustomControllerExecption("탈퇴한 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
-        }
-
-        if (opponentUser.getIsWithdrawn() == 1) {
-            throw new CustomControllerExecption("탈퇴한 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+        if (opponentUser == null || opponentUser.getIsWithdrawn() == 1) {
+            throw new CustomControllerExecption("탈퇴한 유저와 채팅거래를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
         }
 
         if (opponentUser.getIsEnabled() == 1) {
-            throw new CustomControllerExecption("관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+            throw new CustomControllerExecption("관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
         }
 
         // 로그인 유저 & 채팅 상대 유저 간 차단 여부 조회 (양방향)
@@ -686,7 +683,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         // 상품 정보 NPE 체크
         // 채팅 상대방 (= 상품 판매자)이 해당 상품 게시물을 삭제한 경우 -> 존재하지 않는 물건입니다. 예외처리 (상품 판매자 정보는 있지만, 상품 정보가 NULL)
         // 채팅 상대방 (= 상품 판매자)이 삭제됐으므로, 상품 정보가 NULL -> 존재하지 않는 물건입니다. 예외처리 (상품 판매자 정보가 NULL 인 경우 내포)
-        if (product == null) throw new CustomControllerExecption("존재하지 않은 물건입니다.", HttpStatus.NOT_FOUND, null);
+        if (product == null) throw new CustomControllerExecption("존재하지 않은 물건입니다.", HttpStatus.BAD_REQUEST, null, 100);
 
 
         // 상품 정보, 판매자 정보, 로그인 유저 정보를 기반으로 생성된 채팅방 정보 있는 지 확인
@@ -719,10 +716,10 @@ public class ChatRoomServiceImpl implements ChatRoomService{
         }
 
         // (물건삭제, 물건블라인드), 유저제재, 유저탈퇴, 유저차단
-        if (product.getProductStatus() == 1) throw new CustomControllerExecption("삭제된 중고물품의 경우 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND, null);
-        if (product.getProductStatus() == 2) throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);
-        if (product.getMember().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.NOT_FOUND, null);
-        if (product.getMember().getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+        if (product.getProductStatus() == 1) throw new CustomControllerExecption("삭제된 중고물품의 경우 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null, 100);
+        if (product.getProductStatus() == 2) throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null, 101);
+        if (product.getMember().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
+        if (product.getMember().getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
 
         // 로그인 유저
         Member loginUser = memberRepository.findById(userId);
@@ -750,12 +747,12 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 
         // 1. 로그인 유저가 차단한 유저의 상품인 지 체크
         if (loginUser.getBlockUsers().contains(blockUser)) {
-            throw new CustomControllerExecption("차단한 유저와는 채팅 거래 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("차단한 유저와는 채팅 거래 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 104);
         }
 
         // 2. 상품의 업로더가 로그인 유저를 차단했는 지 체크
         if (loginUser.getUserBlockedMe().contains(blockedUser)) {
-            throw new CustomControllerExecption("나를 차단한 유저와는 채팅 거래 할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("나를 차단한 유저와는 채팅 거래 할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 105);
         }
 
         return ChatRoomTradeHistoryDto.builder()

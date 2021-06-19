@@ -97,7 +97,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(CustomControllerExecption.class)
     public ResponseEntity<?> exceptionHandler(CustomControllerExecption ex, WebRequest request) {
         ErrorMessage message = new ErrorMessage(
-                ex.getHttpStatus().value(),
+                ex.getCustomStatusCode(),
                 new Date(),
                 ex.getMessage(),
                 request.getDescription(false),

@@ -457,11 +457,11 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findById(productId);
 
-        if (product == null) throw new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND, null);
-
-        if (product.getProductStatus() == 1) {
-            throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND, null);
-        }
+//        if (product == null) throw new CustomControllerExecption("존재하지 유저입니다.", HttpStatus.NOT_FOUND, null);
+//
+//        if (product.getProductStatus() == 1) {
+//            throw new CustomControllerExecption("삭제된 물건입니다.",HttpStatus.NOT_FOUND, null);
+//        }
 
         PropertyMap<Product, ProductReadOneDto> propertyMap = new PropertyMap<Product, ProductReadOneDto>() {
             @Override
@@ -493,18 +493,18 @@ public class ProductServiceImpl implements ProductService {
             // 로그인 유저
             Member loginUser = memberRepository.findById(userDetails.getId());
 
-            // 상품 업로더
-            Member productUploader = product.getMember();
-
-            // loginUser.getBlockUsers() : where user_id = loginUser.id
-            BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(loginUser, productUploader);
-
-            // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
-            BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
-
-            if(loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)){
-                throw new CustomControllerExecption("차단한 유저의 상품 또는 나를 차단한 유저의 상품은 조회할 수 없습니다.", HttpStatus.GONE, null);
-            }
+//            // 상품 업로더
+//            Member productUploader = product.getMember();
+//
+//            // loginUser.getBlockUsers() : where user_id = loginUser.id
+//            BlockUser blockUser = blockUserRepository.findByUserAndBlockedUser(loginUser, productUploader);
+//
+//            // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
+//            BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
+//
+//            if(loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)){
+//                throw new CustomControllerExecption("차단한 유저의 상품 또는 나를 차단한 유저의 상품은 조회할 수 없습니다.", HttpStatus.GONE, null);
+//            }
 
             // ProductLike 객체 생성 via member, product
             ProductLike productLike = productLikeRepository.findByMemberAndProduct(loginUser, product);
@@ -533,15 +533,15 @@ public class ProductServiceImpl implements ProductService {
         // 좋아요 대상되는 상품 객체
         Product product = productRepository.findById(likeRequest.getProduct_id());
 
-        if (product == null) throw new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND, null);
+//        if (product == null) throw new CustomControllerExecption("not found result", HttpStatus.NOT_FOUND, null);
 
         // 상품 업로더
         Member productUploader = product.getMember();
 
 
-        if (product.getProductStatus() == 1) { // 삭제 예외
-            throw new CustomControllerExecption("해당 게시물은 존재하지 않습니다.", HttpStatus.NOT_FOUND, null);
-        }
+//        if (product.getProductStatus() == 1) { // 삭제 예외
+//            throw new CustomControllerExecption("해당 게시물은 존재하지 않습니다.", HttpStatus.NOT_FOUND, null);
+//        }
 
 
         // loginUser.getBlockUsers() : where user_id = loginUser.id
@@ -550,9 +550,9 @@ public class ProductServiceImpl implements ProductService {
         // loginUser.getUserBlockedMe() : where blocked_user_id = loginUser.id
         BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
 
-        if (loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)){
-            throw new CustomControllerExecption("차단한 유저의 상품 또는 나를 차단한 유저의 상품은 조회할 수 없습니다.", HttpStatus.GONE, null);
-        }
+//        if (loginUser.getBlockUsers().contains(blockUser) || loginUser.getUserBlockedMe().contains(blockedUser)){
+//            throw new CustomControllerExecption("차단한 유저의 상품 또는 나를 차단한 유저의 상품은 조회할 수 없습니다.", HttpStatus.GONE, null);
+//        }
 
 
 

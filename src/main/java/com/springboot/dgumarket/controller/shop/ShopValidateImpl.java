@@ -44,8 +44,8 @@ public class ShopValidateImpl {
         Member targetMember = memberRepository.findById(userId);
 
 
-        if (targetMember == null || targetMember.getIsWithdrawn() == 1) throw new CustomControllerExecption("존재하지 않거나 탈퇴한 유저 입니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
-        if (targetMember.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재 받고 있는 유저입니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
+        if (targetMember == null || targetMember.getIsWithdrawn() == 1) throw new CustomControllerExecption("존재하지 않거나 탈퇴한 유저 입니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 102);
+        if (targetMember.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 이용제재 받고 있는 유저입니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 103);
 
 
         // 상대방이 나와 차단관계에 있을 경우 -> 에러페이지 반환
@@ -65,10 +65,10 @@ public class ShopValidateImpl {
             BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(targetMember, loginUser);
 
             if (loginUser.getBlockUsers().contains(blockUser))
-                throw new CustomControllerExecption("차단한 유저에 대한 정보를 조회할 수 없습니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
+                throw new CustomControllerExecption("차단한 유저에 대한 정보를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 104);
 
             if (loginUser.getUserBlockedMe().contains(blockedUser))
-                throw new CustomControllerExecption("나를 차단한 유저의 정보를 조회할 수 없습니다.", HttpStatus.NOT_FOUND, "/shop/main/index");
+                throw new CustomControllerExecption("나를 차단한 유저의 정보를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 105);
         }
     }
 

@@ -19,7 +19,7 @@ ex)
 ### 꼭 읽을 것! (5/2 수정사항 추가)
 기존 접근불가능 했던 api에 대해서 예외처리 화면으로 이동한 것을 이제는 /shop/main/index (인덱스페이지)로 이동하기위해 예외 응답 pathToMove 필드 값은 /shop/main/index 로 내려옴
 
-
+### 꼭 읽을 것! (6/18 에러응답코드 수정-커스텀에러응답코드 추가)
 
 
 
@@ -31,7 +31,7 @@ ex)
 물건에 대한 좋아요유무를 `isLiked` 을 통해 알 수 있다.
 
 ---
-### resonse body
+### response body
 
 `message`: 응답메시지(user_product | my_product )
 
@@ -94,11 +94,11 @@ ex)
 아래와 같은 예외 응답을 받을 경우에는 바로 예외페이지으로 이동시킨다.
 굳이 경고문구를 안띄워줘도 된다고 생각함(띄워줘도 상관없음)
 
-**Code** : `404 Not found`
+**Code** : `400 Bad Request`
 
 **Content**
 
-`statusCode`: HTTP 상태코드
+`statusCode`: custom 에러 응답 코드
 `timestamp` : 요청시간
 `message` : 요청에러이유
 `description` : 요청한 URL
@@ -107,22 +107,22 @@ ex)
 // 물건이 삭제되거나 존재하지 않는 물건을 조회할 경우
 ```json
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:33:54.937+00:00",
-    "message": "삭제되거나 존재하지 않은 물건입니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 100,
+  "timestamp": "2021-06-17T16:12:19.871+00:00",
+  "message": "삭제되거나 존재하지 않은 물건입니다.",
+  "requestPath": "uri=/api/product/119/info",
+  "pathToMove": "/shop/main/index"
 }
 ```
 
 // 관리자에 의해 비공개 처리된 물건일 경우
 ```json
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:33:54.937+00:00",
-    "message": "관리자에 의해 비공개 처리된 물건입니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 101,
+  "timestamp": "2021-06-17T16:14:45.140+00:00",
+  "message": "관리자에 의해 비공개 처리된 물건입니다.",
+  "requestPath": "uri=/api/product/119/info",
+  "pathToMove": "/shop/main/index"
 }
 ```
 
@@ -130,8 +130,8 @@ ex)
 ```json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-04-14T02:30:07.400+00:00",
+  "statusCode": 102,
+  "timestamp": "2021-06-17T16:15:27.056+00:00",
   "message": "물건의 판매자가 탈퇴하여 물건을 조회할 수 없습니다.",
   "requestPath": "uri=/api/product/119/info",
   "pathToMove": "/shop/main/index"
@@ -143,15 +143,13 @@ ex)
 
 // 물건판매자가 관리자로 부터 이용제재 조치 받고 있을 경우
 ```json
-
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:32:40.582+00:00",
-    "message": "물건의 판매자가 관리자로 부터 이용제재조치를 받고 있어 물건을 조회할 수 없습니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 103,
+  "timestamp": "2021-06-17T16:15:46.488+00:00",
+  "message": "물건의 판매자가 관리자로 부터 이용제재조치를 받고 있어 물건을 조회할 수 없습니다.",
+  "requestPath": "uri=/api/product/119/info",
+  "pathToMove": "/shop/main/index"
 }
-
 ```
 
 // 차단한 유저의 물건을 조회할 경우
@@ -159,11 +157,11 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:32:40.582+00:00",
-    "message": "차단한 유저의 물건을 조회할 수 없습니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 104,
+  "timestamp": "2021-06-17T16:35:52.759+00:00",
+  "message": "차단한 유저의 물건을 조회할 수 없습니다.",
+  "requestPath": "uri=/api/product/119/info",
+  "pathToMove": "/shop/main/index"
 }
 
 ```
@@ -173,11 +171,11 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:32:40.582+00:00",
-    "message": "차단당한 유저의 물건을 조회할 수 없습니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 105,
+  "timestamp": "2021-06-17T16:36:09.516+00:00",
+  "message": "나를 차단한 유저의 물건을 조회할 수 없습니다.",
+  "requestPath": "uri=/api/product/119/info",
+  "pathToMove": "/shop/main/index"
 }
 
 ```

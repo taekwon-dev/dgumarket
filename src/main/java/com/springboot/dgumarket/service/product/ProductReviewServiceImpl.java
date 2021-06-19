@@ -68,14 +68,10 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         // 해당 상품 업로더
         Member productUploader = product.getMember();
 
-        // 본인이 탈퇴/이용제재 해당될 경우 예외처리
-        if (member == null || member.getIsWithdrawn()==1) throw new CustomControllerExecption("존재하지 않는 유저 입니다.(본인)", HttpStatus.NOT_FOUND, null);
-        if (member.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 제재조치를 받고 있습니다. 서비스 이용불가(본인)", HttpStatus.NOT_FOUND, null );
-
 
         // 상대방이 유저제재/탈퇴/차단관계 일경우 예외처리하기
-        if (productUploader == null || productUploader.getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저에게 거래후기를 남길 수 없습니다.", HttpStatus.NOT_FOUND, null); // 게이트웨이에서 걸러짐
-        if (productUploader.getIsEnabled() == 1) throw new CustomControllerExecption("이용제재를 받고 있는 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+        if (productUploader == null || productUploader.getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저에게 거래후기를 남길 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
+        if (productUploader.getIsEnabled() == 1) throw new CustomControllerExecption("이용제재를 받고 있는 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
 
 
         // 차단 여부 조회 (양방향)
@@ -86,23 +82,23 @@ public class ProductReviewServiceImpl implements ProductReviewService{
         BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, member);
 
         if (member.getBlockUsers().contains(blockUser)) {
-            throw new CustomControllerExecption("차단한 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("차단한 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 104);
         }
 
         if (member.getUserBlockedMe().contains(blockedUser)) {
-            throw new CustomControllerExecption("나를 차단한 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("나를 차단한 유저에게 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 105);
         }
 
         // 상대방 물건이 블라인드 또는 삭제 되었을 경우 예외처리하기
-        if (product == null || product.getProductStatus() == 1) throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.NOT_FOUND, null);
-        if (product.getProductStatus() == 2) throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되어 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+        if (product == null || product.getProductStatus() == 1) throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.BAD_REQUEST, null, 100);
+        if (product.getProductStatus() == 2) throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되어 거래후기를 작성할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 101);
 
 
         Optional<ProductReview> productReview = productReviewRepository.findByProduct(product);
 
         if (productReview.isPresent()) {
             if (productReview.get().getReviewMessage() != null) { // 이미 메시지가 작성되어 있는 상태라면
-                throw new CustomControllerExecption("이미 거래후기를 작성하였습니다.", HttpStatus.BAD_REQUEST, null);
+                throw new CustomControllerExecption("이미 거래후기를 작성하였습니다.", HttpStatus.BAD_REQUEST, null, 107);
             }
 
             if (productReview.get().getConsumer() == member) { // 정말 리뷰어 자격인지 확인
@@ -119,17 +115,14 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
         // 로그인 유저
         Member member = memberRepository.getOne(userId);
-        if (member.getIsEnabled() == 1) throw new CustomControllerExecption("관리자로부터 제재조치를 받고 있습니다. 서비스 이용불가(본인)", HttpStatus.NOT_FOUND, null);
 
         // 상품 객체 조회 (via ProductId)
-        Product product = productRepository.getOne(productId);
-
-
+        Product product = productRepository.findById(productId);
         if (product == null || product.getProductStatus() == 1)
-            throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.NOT_FOUND, null);
+            throw new CustomControllerExecption("해당 중고물품은 삭제처리되었습니다.", HttpStatus.BAD_REQUEST, null, 100);
 
         if (product.getProductStatus() == 2)
-            throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.BAD_REQUEST, null);
+            throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.BAD_REQUEST, null, 101);
 
 
 
@@ -140,8 +133,8 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
                 // 해당 상품에 대해 로그인 유저 = 구매자인 경우
                 if (productReview.get().getConsumer() == member){
-                    if (productReview.get().getSeller() == null || productReview.get().getSeller().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 볼 수 없습니다.", HttpStatus.NOT_FOUND, null);
-                    if (productReview.get().getSeller().getIsEnabled()==1) throw new CustomControllerExecption("이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+                    if (productReview.get().getSeller() == null || productReview.get().getSeller().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 볼 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
+                    if (productReview.get().getSeller().getIsEnabled()==1) throw new CustomControllerExecption("이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
 
                     // 해당 상품의 판매자 (= 업로더)
                     Member productUploader = productReview.get().getSeller();
@@ -154,18 +147,18 @@ public class ProductReviewServiceImpl implements ProductReviewService{
                     BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, member);
 
                     if (member.getBlockUsers().contains(blockUser)) { // 내가 차단한 상대라면
-                        throw new CustomControllerExecption("차단한 유저에게 작성한 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+                        throw new CustomControllerExecption("차단한 유저에게 작성한 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 104);
                     }
 
                     if (member.getUserBlockedMe().contains(blockedUser)) {
-                        throw new CustomControllerExecption("나를 차단한 유저에게 작성한 거래후기를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+                        throw new CustomControllerExecption("나를 차단한 유저에게 작성한 거래후기를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 105);
                     }
 
                 } else {
                     // 해당 상품에 대해 로그인 유저 = 판매자인 경우
 
-                    if (productReview.get().getConsumer() == null || productReview.get().getConsumer().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 볼 수 없습니다.", HttpStatus.NOT_FOUND, null);
-                    if (productReview.get().getConsumer().getIsEnabled() == 1) throw new CustomControllerExecption("이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+                    if (productReview.get().getConsumer() == null || productReview.get().getConsumer().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 볼 수 없습니다.", HttpStatus.NOT_FOUND, null, 102);
+                    if (productReview.get().getConsumer().getIsEnabled() == 1) throw new CustomControllerExecption("이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
 
                     // 해당 상품의 구매자
                     Member productConsumer = productReview.get().getConsumer();
@@ -179,11 +172,11 @@ public class ProductReviewServiceImpl implements ProductReviewService{
 
 
                     if (member.getBlockUsers().contains(blockUser)) {
-                        throw new CustomControllerExecption("차단한 유저에 대한 거래후기를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+                        throw new CustomControllerExecption("차단한 유저에 대한 거래후기를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 104);
                     }
 
                     if (member.getUserBlockedMe().contains(blockedUser)) {
-                        throw new CustomControllerExecption("나를 차단한 유저에 대한 거래후기를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null);
+                        throw new CustomControllerExecption("나를 차단한 유저에 대한 거래후기를 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 105);
                     }
                 }
 
@@ -204,7 +197,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
     public ShopReviewListDto getReviews(Integer loginUserId, Integer userId, Pageable pageable) throws CustomControllerExecption {
 
         Optional<Member> user = memberRepository.findById(userId); // 조회유저아이디
-        user.orElseThrow(() -> new CustomControllerExecption("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND, null));
+//        user.orElseThrow(() -> new CustomControllerExecption("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND, null));
 
         ModelMapper modelMapper = new ModelMapper();
         PropertyMap<ProductReview, ProductReviewDto> dtoPropertyMap = new PropertyMap<ProductReview, ProductReviewDto>() {
@@ -222,7 +215,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
             productReviews = customProductRepository.findAllReviews(null, user.get(), pageable);
         }else{
             Optional<Member> loginMember = memberRepository.findById(loginUserId);
-            loginMember.orElseThrow(() -> new CustomControllerExecption("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND, null));
+//            loginMember.orElseThrow(() -> new CustomControllerExecption("존재하지 않는 유저입니다.", HttpStatus.NOT_FOUND, null));
             productReviews = customProductRepository.findAllReviews(loginMember.get(), user.get(), pageable);
         }
 

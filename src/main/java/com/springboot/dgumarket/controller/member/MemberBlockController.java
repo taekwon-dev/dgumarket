@@ -26,28 +26,21 @@ public class MemberBlockController {
     @PostMapping("/block")
     public String blockUser(Authentication authentication, @RequestBody BlockUserRequest blockUserRequest) throws CustomControllerExecption {
 
-        if(authentication != null){
-            UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            boolean isBlock = userBlockService.blockUser(userDetails.getId(), blockUserRequest.getBlock_user());
-            if(!isBlock){
-                throw new CustomControllerExecption("You can't block it because you have a transaction history with the other person", HttpStatus.ACCEPTED, null);
-            }
-            return "block success"; // 유저차단 성공
-
+        UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
+        boolean isBlock = userBlockService.blockUser(userDetails.getId(), blockUserRequest.getBlock_user());
+        if(!isBlock){
+            throw new CustomControllerExecption("You can't block it because you have a transaction history with the other person", HttpStatus.ACCEPTED, null, 108);
         }
+        return "block success"; // 유저차단 성공
 
-        return null;
     }
 
     // 유저차단 해제하기
     @DeleteMapping("/unblock/{userId}")
     public String unblockUser(Authentication authentication, @PathVariable("userId") int unblockUserId){
-        if(authentication != null) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            userBlockService.unBlockUser(userDetails.getId(), unblockUserId);
-            return "unblock success";
-        }
-        return null;
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        userBlockService.unBlockUser(userDetails.getId(), unblockUserId);
+        return "unblock success";
     }
 
     // 차단유무 확인하기(내가상대방차단 , 상대방이나를 :2 , 그외 경우 :3)

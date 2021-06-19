@@ -30,6 +30,9 @@ except)
 기존 접근불가능 했던 api에 대해서 예외처리 화면으로 이동한 것을 이제는 /shop/main/index (인덱스페이지)로 이동하기위해 예외 응답 pathToMove 필드 값은 /shop/main/index 로 내려옴
 
 
+## 수정사항 추가 6/18
+- 예외발생 시 커스텀에러응답코드 같이 반환하도록 수정
+
 ---
 
 # 유저 간략 프로필 조회하기
@@ -112,66 +115,66 @@ ex)
 ```
 
 
-### 예외응답
+## 예외응답
 아래와 같은 예외 응답을 받을 경우에는 바로 예외페이지으로 이동시킨다.
 굳이 경고문구를 안띄워줘도 된다고 생각함(띄워줘도 상관없음)
 
-**Code** : `404 Not found`
+**Code** : `400 Bad Request`
 
 **Content**
 
-`statusCode`: HTTP 상태코드
+`statusCode`: custom 에러 응답 코드
 `timestamp` : 요청시간
 `message` : 요청에러이유
-`description` : 요청한 URL
+`description` : 요청한 URL/api/category/{categoryId}/products
 `pathToMove` : 리다이렉트 해야하는 페이지 URL
 
 // 존재하지 않거나 탈퇴한 유저의 프로필 정를 조회하려고 하는 경우
 ```json
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:33:54.937+00:00",
-    "message": "존재하지 않거나 탈퇴한 유저 입니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 102,
+  "timestamp": "2021-06-18T10:24:37.569+00:00",
+  "message": "존재하지 않거나 탈퇴한 유저 입니다.",
+  "requestPath": "uri=/api/user/1/shop-profile",
+  "pathToMove": "/shop/main/index"
 }
 ```
 
 // 관리자에 의해 이용제재 받고 있는 유저의 프로필을 조회하려고 하는 경우
 ```json
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:33:54.937+00:00",
-    "message": "관리자로부터 이용제재 받고 있는 유저입니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 103,
+  "timestamp": "2021-06-18T10:26:40.416+00:00",
+  "message": "관리자로부터 이용제재 받고 있는 유저입니다.",
+  "requestPath": "uri=/api/user/1/shop-profile",
+  "pathToMove": "/shop/main/index"
 }
 ```
 
-// 차단한 유저의 프로필정보를 조회할 경우(로그인)
+// 내가 차단한 유저의 프로필정보를 조회할 경우(로그인)
 
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:32:40.582+00:00",
-    "message": "차단한 유저에 대한 정보를 조회할 수 없습니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 104,
+  "timestamp": "2021-06-18T10:27:51.230+00:00",
+  "message": "차단한 유저에 대한 정보를 조회할 수 없습니다.",
+  "requestPath": "uri=/api/user/1/shop-profile",
+  "pathToMove": "/shop/main/index"
 }
 
 ```
 
-// 차단당한 유저의 프로필정보를 조회할 경우(로그인)
+// 나를 차단당한 유저의 프로필정보를 조회할 경우(로그인)
 
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-04-14T02:32:40.582+00:00",
-    "message": "차단당한 유저의 정보를 조회할 수 없습니다.",
-    "requestPath": "uri=/api/product/119/info",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 105,
+  "timestamp": "2021-06-18T10:27:23.682+00:00",
+  "message": "나를 차단한 유저의 정보를 조회할 수 없습니다.",
+  "requestPath": "uri=/api/user/1/shop-profile",
+  "pathToMove": "/shop/main/index"
 }
 
 ```

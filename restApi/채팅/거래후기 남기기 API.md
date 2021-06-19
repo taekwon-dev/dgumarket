@@ -64,6 +64,16 @@ Posted successfully
 
 ### 예외사항 (response)
 
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
+
 거래후기를 남기려고 할 때 구매한 물건이 블라인드 처리되었는 지 삭제되었는지
 또는 상대방이 유저제재/차단/탈퇴 되었는 지 상태에 따라 다른 예외응답값이 내려온다.
 
@@ -86,10 +96,11 @@ Posted successfully
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "탈퇴한 유저에게 거래후기를 남길 수 없습니다.",
-    "description": "uri=/api/product/20/comment"
+   "statusCode": 102,
+   "timestamp": "2021-06-18T17:07:03.858+00:00",
+   "message": "탈퇴한 유저에게 거래후기를 남길 수 없습니다.",
+   "requestPath": "uri=/api/product/34/comment",
+   "pathToMove": null
 }
 
 ```
@@ -102,12 +113,12 @@ Posted successfully
 ```json
 
 {
-    "statusCode": 400,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "이용제재를 받고 있는 유저에게 거래후기를 작성할 수 없습니다.",
-    "description": "uri=/api/product/20/comment"
+   "statusCode": 103,
+   "timestamp": "2021-06-18T17:08:33.293+00:00",
+   "message": "이용제재를 받고 있는 유저에게 거래후기를 작성할 수 없습니다.",
+   "requestPath": "uri=/api/product/34/comment",
+   "pathToMove": null
 }
-
 ```
 
 
@@ -116,10 +127,11 @@ Posted successfully
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "해당 중고물품은 삭제처리되었습니다.",
-    "description": "uri=/api/product/20/comment"
+   "statusCode": 100,
+   "timestamp": "2021-06-18T17:09:30.363+00:00",
+   "message": "해당 중고물품은 삭제처리되었습니다.",
+   "requestPath": "uri=/api/product/34/comment",
+   "pathToMove": null
 }
 
 ```
@@ -130,10 +142,11 @@ Posted successfully
 ```json
 
 {
-    "statusCode": 400,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "해당 중고물품은 관리자에 의해 비공개 처리되어 거래후기를 작성할 수 없습니다.",
-    "description": "uri=/api/product/20/comment"
+   "statusCode": 101,
+   "timestamp": "2021-06-18T17:11:24.253+00:00",
+   "message": "해당 중고물품은 관리자에 의해 비공개 처리되어 거래후기를 작성할 수 없습니다.",
+   "requestPath": "uri=/api/product/34/comment",
+   "pathToMove": null
 }
 
 ```
@@ -144,10 +157,11 @@ Posted successfully
 ```json
 
 {
-    "statusCode": 400,
-    "timestamp": "2021-04-03T14:53:46.969+00:00",
-    "message": "이미 거래후기를 작성하였습니다.",
-    "description": "uri=/api/product/20/comment"
+   "statusCode": 107,
+   "timestamp": "2021-06-18T17:15:23.455+00:00",
+   "message": "이미 거래후기를 작성하였습니다.",
+   "requestPath": "uri=/api/product/34/comment",
+   "pathToMove": null
 }
 
 ```

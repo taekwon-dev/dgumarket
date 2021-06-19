@@ -27,6 +27,9 @@
 이렇게 총 4가지가 있으며 이 4가지에 해당한다면
 각각의 응답값 메시지 형태는 해당 포스트맨의 예시 응답과 같다.
 
+## 수정사항 6/18
+- 예외발생 시 커스텀에러응답코드를 이용하여 예외응답값 반환하도록 수정
+
 **1.2.3.4 가 아닌 경우라면, 즉 정상적인 경우에는
 아래와 같은 응답값을 가지게 된다.**
 
@@ -80,24 +83,6 @@ ___
     }
 }
 ```
-
-**만약 삭제된 경우라면 ? ** 예전에는 `transaction_status_id` : 4 라는 값으로 응답을 줬다면 이제는 그게 아니라
-
-
-````json
-
-{
-  "statusCode": 404,
-  "timestamp": "2021-03-26T11:37:17.968+00:00",
-  "message": "판매자에 의해 삭제처리된 중고물품 입니다.",
-  "requestPath": "uri=/api/chatroom/product/27",
-  "pathToMove": null
-}
-
-````
-
-
-와 같은 응답메시지가 내려온다.
 
 
 
@@ -153,16 +138,25 @@ ex)
 3. 이용제재조치 당한 유저의 물건일 경우
 4. 물건이 삭제되었을 경우
 
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
 
 ### 1.비공개 처리 조치 된 경우
 
 ```json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-03-26T11:35:49.637+00:00",
+  "statusCode": 101,
+  "timestamp": "2021-06-18T03:37:50.390+00:00",
   "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
-  "requestPath": "uri=/api/chatroom/product/27",
+  "requestPath": "uri=/api/chatroom/product/38",
   "pathToMove": null
 }
 
@@ -175,13 +169,12 @@ ex)
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-26T11:36:25.878+00:00",
+  "statusCode": 102,
+  "timestamp": "2021-06-18T03:46:08.556+00:00",
   "message": "탈퇴한 유저의 물건은 조회할 수 없습니다.",
-  "requestPath": "uri=/api/chatroom/product/27",
+  "requestPath": "uri=/api/chatroom/product/38",
   "pathToMove": null
 }
-
 ```
 
 
@@ -192,10 +185,10 @@ ex)
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-26T11:36:43.267+00:00",
+  "statusCode": 103,
+  "timestamp": "2021-06-18T03:46:48.824+00:00",
   "message": "관리자에 의해 이용제재 받고 있는 유저의 물건은 조회할 수 없습니다.",
-  "requestPath": "uri=/api/chatroom/product/27",
+  "requestPath": "uri=/api/chatroom/product/38",
   "pathToMove": null
 }
 
@@ -208,10 +201,10 @@ ex)
 ````json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-03-26T11:37:17.968+00:00",
+  "statusCode": 100,
+  "timestamp": "2021-06-18T03:45:12.618+00:00",
   "message": "판매자에 의해 삭제처리된 중고물품 입니다.",
-  "requestPath": "uri=/api/chatroom/product/27",
+  "requestPath": "uri=/api/chatroom/product/38",
   "pathToMove": null
 }
 

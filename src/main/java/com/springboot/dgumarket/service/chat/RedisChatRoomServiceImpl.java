@@ -48,13 +48,13 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    // 방찾기
+    // 방찾기 ## 이거 내가 왜 추상화 한번더 시킨거지?... 필요가 없는데
     @Override
     public Optional<RedisChatRoom> findByRoomId(int roomId) {
         return redisChatRoomRepository.findById(String.valueOf(roomId));
     }
 
-    // 채팅방 목록 화면 -> 채팅 화면으로 클릭 후 입장하는 시점
+    // 채팅방 목록 화면 -> 채팅 화면으로 클릭 후 입장하는 시점 DD
     @Override
     public void join(int roomId, int senderId, String sessionId) {
 
@@ -88,7 +88,7 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
         redisChatRoom.addUser(redischatUser);
         RedisChatRoom chatRoomAfterJoined = redisChatRoomRepository.save(redisChatRoom);
 
-
+        // ## 채팅방 업데이트된 후 해당 채팅방의 유저 정보 확인(로그)
         chatRoomAfterJoined.getConnectedUsers().stream().forEach(
                 user -> logger.info(roomId + "번(고유 ID) 방에 소속된 유저 정보(로그인 유저 정보 업데이트 이후) : {}", user.toString()));
 

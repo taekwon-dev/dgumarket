@@ -1,5 +1,7 @@
 # [STOMP] 채팅메시지(이미지)
 
+### 수정사항 6/19
+- 예외발생시 커스텀에러코드를 같이 반환하도록 수정 
 
 ### 결론 
 **기존에 사용하는 복수 이미지 업로드 API를 사용합니다. 다만, 채팅이미지 업로드를 올리는 경우에 한해서 요청필드가 하나 더 추가됩니다.**
@@ -186,11 +188,11 @@ A유저가 1번방에서 B(기존에 1번방에서 대화를 나누었던 상대
 ```json
 
 {
-   "statusCode":404,
-   "timestamp":"2021-04-08T14:16:34.054+00:00",
-   "message":"탈퇴한 유저에게 채팅 이미지를 전송할 수 없습니다.",
-   "requestPath":"uri=/api/multi-img/upload",
-   "pathToMove":null
+   "statusCode": 102,
+   "timestamp": "2021-06-18T17:25:36.561+00:00",
+   "message": "존재하지 않는 유저에게 채팅 이미지를 전송할 수 없습니다.",
+   "requestPath": "uri=/api/multi-img/upload",
+   "pathToMove": null
 }
 
 ```
@@ -200,11 +202,11 @@ A유저가 1번방에서 B(기존에 1번방에서 대화를 나누었던 상대
 ```json
 
 {
-   "statusCode":404,
-   "timestamp":"2021-04-08T14:16:34.054+00:00",
-   "message":"관리자로 부터 이용제재 받고 있는 유저에게 채팅 이미지를 전송할 수 없습니다.",
-   "requestPath":"uri=/api/multi-img/upload",
-   "pathToMove":null
+   "statusCode": 103,
+   "timestamp": "2021-06-18T17:26:10.433+00:00",
+   "message": "관리자로부터 이용제재 받고 있는 유저에게 채팅 이미지를 전송할 수 없습니다.",
+   "requestPath": "uri=/api/multi-img/upload",
+   "pathToMove": null
 }
 
 ```

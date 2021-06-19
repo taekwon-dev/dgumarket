@@ -351,9 +351,9 @@ public class AdminReportServiceImpl implements AdminReportService{
 
             switch (product.getProductStatus()){
                 case 0:
-                    throw new CustomControllerExecption("블라인드 상태가 아니기 때문에 블라인드 취소요청을 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+                    throw new CustomControllerExecption("블라인드 상태가 아니기 때문에 블라인드 취소요청을 할 수 없습니다.", HttpStatus.NOT_FOUND, null, 0);
                 case 1:
-                    throw new CustomControllerExecption("해당 물건은 이미 유저가 삭제하였습니다.", HttpStatus.NOT_FOUND, null);
+                    throw new CustomControllerExecption("해당 물건은 이미 유저가 삭제하였습니다.", HttpStatus.NOT_FOUND, null, 0);
                 case 2: // 현재 블라인드 상태라면
                     product.setProductStatus(0); // 블라인드 취소
 
@@ -415,9 +415,9 @@ public class AdminReportServiceImpl implements AdminReportService{
                             .user(reportUserDto)
                             .is_cancel_result(false).build(); // 취소이벤트에 대한 처리가 아니다
                 case 1:
-                    throw new CustomControllerExecption("해당 물건은 이미 유저가 삭제하였습니다.", HttpStatus.NOT_FOUND, null);
+                    throw new CustomControllerExecption("해당 물건은 이미 유저가 삭제하였습니다.", HttpStatus.NOT_FOUND, null, 0);
                 case 2: // 현재 블라인드 상태라면
-                    throw new CustomControllerExecption("이미 블라인드 상태이기 때문에 블라인드 요청을 할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+                    throw new CustomControllerExecption("이미 블라인드 상태이기 때문에 블라인드 요청을 할 수 없습니다.", HttpStatus.NOT_FOUND, null, 0);
             }
         }else {
             throw new IllegalArgumentException("잘못된 데이터 값 입력");

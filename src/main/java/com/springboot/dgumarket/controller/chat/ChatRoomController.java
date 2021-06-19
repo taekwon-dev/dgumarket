@@ -168,7 +168,7 @@ public class ChatRoomController {
         logger.info("[SUB] - destination : room/join/{}/{}, message's header : {}",roomId, userId, message.getHeaders());
         logger.info("[SUB] - sessionId : {}", message.getHeaders().get("simpSessionId"));
         logger.info("[SUB] - userId : {}", message.getHeaders().get("nativeHeaders"));
-        String sessionId = message.getHeaders().get("simpSessionId").toString();
+        String sessionId = message.getHeaders().get("simpSessionId").toString(); // ## 개별 웹소켓 세션 아이디 정보를 redis 채팅방에 가입시 활용합니다.
         redisChatRoomService.join(Integer.valueOf(roomId), Integer.valueOf(userId), sessionId); // 구독오면 redis 채팅방 가입
     }
 

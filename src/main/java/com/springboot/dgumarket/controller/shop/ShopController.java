@@ -43,6 +43,7 @@ public class ShopController {
     public ResponseEntity<?> getUserProfiles(@PathVariable int userId, Authentication authentication) throws CustomControllerExecption{
         MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userId);
         if(authentication != null){ // 로그인 상태
+            log.info("login shopController");
             UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
             if(userDetails.getId() == userId){  // 자신의 프로필
                 ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
@@ -52,17 +53,11 @@ public class ShopController {
 
                 return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
             }else{ // 다른 유저의 프로필
-                BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
-                if ( blockStatusDto.getBlock_status() == 3){ // 아무도 차단하지 않은 상태
-                    ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                            .message("user_profile")
-                            .status(200)
-                            .data(memberInfoDto).build();
-                    return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-
-                }else {
-                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN, null); // 접근불가
-                }
+                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                        .message("user_profile")
+                        .status(200)
+                        .data(memberInfoDto).build();
+                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
             }
         }else{ // 비로그인 상태
             log.info("not login shopController");
@@ -98,17 +93,12 @@ public class ShopController {
                         .data(shopProductListDto).build();
                 return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
             }else{ // 로그인유저 -> 다른사람의 판매물건 조회
-                BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
-                if(blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 상태
-                    ShopProductListDto shopProductListDto = productService.getUserProducts(userDetails, userId, productSet, pageable, except_pid);
-                    ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                            .message("user_products_sort_" + productSet)
-                            .status(200)
-                            .data(shopProductListDto).build();
-                    return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-                }else{
-                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN, null);
-                }
+                ShopProductListDto shopProductListDto = productService.getUserProducts(userDetails, userId, productSet, pageable, except_pid);
+                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                        .message("user_products_sort_" + productSet)
+                        .status(200)
+                        .data(shopProductListDto).build();
+                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
             }
         }else{
             // 비로그인상태
@@ -124,7 +114,7 @@ public class ShopController {
         }
     }
 
-    // 유저에게 남긴 리뷰 조회하기
+    // 유저에게 남긴 리뷰 조회하기 ( 로그인 / 비로그인 )
     @GetMapping("/{userId}/reviews")
     @ShopValidate
     public ResponseEntity<?> getUserReviews(
@@ -132,24 +122,15 @@ public class ShopController {
             Authentication authentication,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault(sort = "ReviewRegistrationDate", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
-        if(authentication != null){
-
+        if(authentication != null){ // 로그인했을 경우
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
             if(userDetails.getId() != userId){ // 로그인한 다른사람이 조회할 경우
-                BlockStatusDto blockStatusDto = userBlockService.checkBlockStatus(userDetails.getId(), userId);
-                if (blockStatusDto.getBlock_status() == 3){ // 차단되지 않은 경우
-                    ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userDetails.getId(), userId ,pageable);
-                    ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                            .message("review_messages")
-                            .status(200)
-                            .data(productReviewDtoList).build();
-                    return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-
-                }else {
-                    throw new CustomControllerExecption("Unable to access blocked user.", HttpStatus.FORBIDDEN, null);
-                } // 차단된 경우
-
+                ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userDetails.getId(), userId ,pageable);
+                ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                        .message("review_messages")
+                        .status(200)
+                        .data(productReviewDtoList).build();
+                return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
             }else { // 나 자신이 조회하는 경우
                 ShopReviewListDto productReviewDtoList = productReviewService.getReviews(userDetails.getId(), userId ,pageable);
                 ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
@@ -175,16 +156,13 @@ public class ShopController {
             @RequestParam(value = "purchase_set", defaultValue = "total", required = false) String purchase_set,
             @PageableDefault(size = DEFAULT_PAGE_SIZE)
             @SortDefault(sort = "createDatetime", direction = Sort.Direction.DESC) Pageable pageable) throws CustomControllerExecption{
-        if (authentication != null){
-            UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-            ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userDetails.getId(), purchase_set, pageable);
-            ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
-                    .message("purchase products")
-                    .status(200)
-                    .data(shopPurchaseListDto).build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
-        throw new CustomControllerExecption("403 Forbidden, Wrong access", HttpStatus.FORBIDDEN, null);
+        UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
+        ShopPurchaseListDto shopPurchaseListDto = productReviewService.getPurchaseProducts(userDetails.getId(), purchase_set, pageable);
+        ApiResponseEntity apiResponseEntity = ApiResponseEntity.builder()
+                .message("purchase products")
+                .status(200)
+                .data(shopPurchaseListDto).build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
     // 유저 관심물건 조회하기

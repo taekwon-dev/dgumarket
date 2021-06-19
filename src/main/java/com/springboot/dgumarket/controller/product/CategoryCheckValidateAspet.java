@@ -23,7 +23,7 @@ public class CategoryCheckValidateAspet {
         Object[] args = joinPoint.getArgs();
         int categoryNum = (int)args[1];
         if(!Arrays.asList(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15).contains(categoryNum)){
-            throw new CustomControllerExecption("잘못된 경로입니다.", HttpStatus.NOT_FOUND, "/exceptions");
+            throw new CustomControllerExecption("잘못된 경로입니다.", HttpStatus.BAD_REQUEST, "/exceptions", 110);
         };
     }
 
