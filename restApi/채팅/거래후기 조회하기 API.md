@@ -39,6 +39,8 @@ myItem 의 구매물품 중 구매후기를 작성한 물건에 한해서 개별
 
 자세한 응답값은 아래에 나와있다.
 
+### 수정사항 6.18
+- 예외발생시 커스텀응답코드로 반환되도록 응답값 수정
 
 
 **URL** : `/api/product/{product-id}/comment`
@@ -83,6 +85,20 @@ ___
 }
 ```
 
+
+## except response
+
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
+
+
 ## 예외사항 (success response) 총5가지가 있다.
 
 1. 상대방이 탈퇴했을 경우
@@ -100,10 +116,11 @@ ___
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "탈퇴한 유저의 거래후기는 조회할 수 없습니다.",
-    "description": "uri=/api/product/20/comment"
+  "statusCode": 102,
+  "timestamp": "2021-06-17T18:10:01.253+00:00",
+  "message": "탈퇴한 유저의 거래후기는 볼 수 없습니다.",
+  "requestPath": "uri=/api/product/38/comment",
+  "pathToMove": null
 }
 
 ```
@@ -114,10 +131,11 @@ ___
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "해당 중고물품은 삭제처리되었습니다.",
-    "description": "uri=/api/product/20/comment"
+  "statusCode": 100,
+  "timestamp": "2021-06-17T18:07:56.095+00:00",
+  "message": "해당 중고물품은 삭제처리되었습니다.",
+  "requestPath": "uri=/api/product/38/comment",
+  "pathToMove": null
 }
 
 ```
@@ -127,10 +145,11 @@ ___
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
-    "description": "uri=/api/product/20/comment"
+  "statusCode": 101,
+  "timestamp": "2021-06-17T18:08:49.692+00:00",
+  "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
+  "requestPath": "uri=/api/product/38/comment",
+  "pathToMove": null
 }
 
 ```
@@ -141,10 +160,11 @@ ___
 ```json
 
 {
-    "statusCode": 400,
-    "timestamp": "2021-03-18T05:42:46.242+00:00",
-    "message": "이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.",
-    "description": "uri=/api/product/20/comment"
+  "statusCode": 103,
+  "timestamp": "2021-06-17T18:11:40.421+00:00",
+  "message": "이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.",
+  "requestPath": "uri=/api/product/38/comment",
+  "pathToMove": null
 }
 
 ```

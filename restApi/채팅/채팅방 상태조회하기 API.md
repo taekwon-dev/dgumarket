@@ -55,8 +55,13 @@ isWarn 이 true 가 되기 위해서는 경고를 3번 받아야 한다. (5번�
 차단조회 API를 요청하는 것이 아닌 채팅방 상태조회 API만 요청하면 차단유무까지 알 수 있도록 하여 채팅방 상태조회 API만 요청해도 차단유무를 알 수 있도록 한다는 뜻
 
 
-*수정 사항 3/27*
+## 수정 사항 3/27
 응답필드 중 productStatus(채팅방상태) 의 값이 추가되었습니다. 4번(채팅방의 물건이 관리자에 의해 비공개 처리 되었을 경우)
+
+
+## 수정 사항 6/18
+- 예외발생시 커스텀에러코드와 함께 응답하도록 변경
+
 
 ---
 
@@ -277,7 +282,17 @@ isWarn 이 true 가 되기 위해서는 경고를 3번 받아야 한다. (5번�
 
 
 
-## 예외 응답 response
+## except response
+
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
 
 
 ### 1. 상대방이 탈퇴했을 경우
@@ -285,11 +300,11 @@ isWarn 이 true 가 되기 위해서는 경고를 3번 받아야 한다. (5번�
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-26T01:33:39.510+00:00",
-    "message": "탈퇴한 유저와 채팅거래를 할 수 없습니다.",
-    "requestPath": "uri=/api/chatroom/444/status",
-    "pathToMove": null
+  "statusCode": 102,
+  "timestamp": "2021-06-18T10:18:51.584+00:00",
+  "message": "탈퇴한 유저와 채팅거래를 할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/2/status",
+  "pathToMove": null
 }
 
 ```
@@ -300,11 +315,11 @@ isWarn 이 true 가 되기 위해서는 경고를 3번 받아야 한다. (5번�
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-26T01:34:49.390+00:00",
-    "message": "관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.",
-    "requestPath": "uri=/api/chatroom/444/status",
-    "pathToMove": null
+  "statusCode": 103,
+  "timestamp": "2021-06-18T03:50:47.384+00:00",
+  "message": "관리자로부터 이용제재를 받고 있는 유저와 채팅거래를 할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/2/status",
+  "pathToMove": null
 }
 
 ```

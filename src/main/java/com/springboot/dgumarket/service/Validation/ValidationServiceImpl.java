@@ -51,12 +51,12 @@ public class ValidationServiceImpl implements ValidationService {
         if (validationRequest.getProduct_id().isPresent()) {
             int productId = validationRequest.getProduct_id().get();
 
-
             Product product = productRepository.findById(productId);
-            if (product == null) throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND, null);
+            if( product == null || product.getProductStatus() == PRODUCT_REMOVE){
+                throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.BAD_REQUEST, null, 100);
+            }
 
-            if (product.getProductStatus() == PRODUCT_REMOVE) { throw new CustomControllerExecption("해당 중고물품은 판매자에 의해 삭제되었습니다.", HttpStatus.NOT_FOUND, null); }
-            if (product.getProductStatus() == PRODUCT_BLIND) { throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.NOT_FOUND, null); }
+            if (product.getProductStatus() == PRODUCT_BLIND) { throw new CustomControllerExecption("해당 중고물품은 관리자에 의해 비공개 처리되었습니다.", HttpStatus.BAD_REQUEST, null, 101); }
                 // 해당물건의 유저의 유효성체크
             return isValidateUser(member, product.getMember());
         }
@@ -66,7 +66,7 @@ public class ValidationServiceImpl implements ValidationService {
 
             Member targetUser = memberRepository.findById(validationRequest.getUser_id().get().intValue());
             if(targetUser == null || targetUser.getIsWithdrawn()==1){
-                throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+                throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
             }
             return isValidateUser(member, targetUser);
         }
@@ -84,11 +84,11 @@ public class ValidationServiceImpl implements ValidationService {
 
         // 유저제재확인, 유저탈퇴확인, 차단까지 확인
         if (targetUser == null || targetUser.getIsWithdrawn() == 1) {
-            throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+            throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null, 102);
         }
 
         if (targetUser.getIsEnabled() == 1) {
-            throw new CustomControllerExecption("관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null);
+            throw new CustomControllerExecption("관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null, 103);
         }
 
         // 탈퇴 유저 && 서비스 이용 제재 받은 유저가 아닌 경우
@@ -104,10 +104,10 @@ public class ValidationServiceImpl implements ValidationService {
 
 
             if (loginUser.getBlockUsers().contains(blockUser)) {
-                throw new CustomControllerExecption("차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN, null);
+                throw new CustomControllerExecption("차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN, null, 104);
             }
             if (loginUser.getUserBlockedMe().contains(blockedUser)) {
-                throw new CustomControllerExecption("나를 차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN, null);
+                throw new CustomControllerExecption("나를 차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN, null, 105);
             }
         }
 

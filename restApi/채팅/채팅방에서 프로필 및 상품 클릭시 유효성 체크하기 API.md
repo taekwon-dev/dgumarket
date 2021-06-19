@@ -17,25 +17,9 @@
 
 만약 접근가능(응답 : "ok") 의 응답 값을 받을 경우 이후의 view를 요청한다(이전처럼 늘 했듯이)
 
-**수정 5 / 12**
 
-아래의 에러 메시지 문구 변경 "차단한 유저의 정보에 접근할 수 없습니다. " => "나를 차단한 유저의 정보에 접근할 수 없습니다."
-
-### 2.내가 상대방을 차단했을 경우(상품/프로필) - 확인
-
-```json
-
-{
-  "statusCode": 403,
-  "timestamp": "2021-03-26T00:44:55.532+00:00",
-  "message": "나를 차단한 유저의 정보에 접근할 수 없습니다.",
-  "requestPath": "uri=/api/chatroom/check-validate",
-  "pathToMove": null
-}
-
-
-```
-반드시 참고바랍니다.
+### 수정사항 6.18
+- 예외발생시 커스텀에러응답코드와 함께 응답하도록 변경
 
 
 
@@ -113,6 +97,16 @@ ex)
 
 ## 예외 상항 response
 
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
+
 (상품/프로필) 이렇게 쓰여져 있는 것은 상품 또는 프로필 이라는 의미입니다.
 즉, 상품을 클릭한 결과 프로필을 클릭했을 때 나오는 응답값이 똑같다는 의미입니다.
 
@@ -124,11 +118,11 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-10T13:05:47.217+00:00",
-    "message": "탈퇴한 유저의 정보에 접근할 수 없습니다.",
-    "description": "uri=/api/chatroom/check-validate",
-    "pathToMove": null
+  "statusCode": 102,
+  "timestamp": "2021-06-18T03:09:35.258+00:00",
+  "message": "탈퇴한 유저의 정보에 접근할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
 }
 
 ```
@@ -139,9 +133,9 @@ ex)
 ```json
 
 {
-  "statusCode": 403,
-  "timestamp": "2021-03-26T00:44:55.532+00:00",
-  "message": "나를 차단한 유저의 정보에 접근할 수 없습니다.",
+  "statusCode": 104,
+  "timestamp": "2021-06-18T03:11:43.133+00:00",
+  "message": "차단한 유저의 정보에 접근할 수 없습니다.",
   "requestPath": "uri=/api/chatroom/check-validate",
   "pathToMove": null
 }
@@ -155,9 +149,9 @@ ex)
 ```json
 
 {
-  "statusCode": 403,
-  "timestamp": "2021-03-26T00:44:31.269+00:00",
-  "message": "차단당한 유저의 정보에 접근할 수 없습니다.",
+  "statusCode": 105,
+  "timestamp": "2021-06-18T03:12:19.097+00:00",
+  "message": "나를 차단한 유저의 정보에 접근할 수 없습니다.",
   "requestPath": "uri=/api/chatroom/check-validate",
   "pathToMove": null
 }
@@ -170,11 +164,11 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-10T13:05:47.217+00:00",
-    "message": "관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.",
-    "description": "uri=/api/chatroom/check-validate",
-    "pathToMove": null
+  "statusCode": 103,
+  "timestamp": "2021-06-18T01:50:38.800+00:00",
+  "message": "관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
 }
 
 ```
@@ -185,11 +179,11 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-10T12:46:52.623+00:00",
-    "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
-    "description": "uri=/api/chatroom/check-validate",
-    "pathToMove": null
+  "statusCode": 101,
+  "timestamp": "2021-06-18T03:15:15.013+00:00",
+  "message": "해당 중고물품은 관리자에 의해 비공개 처리되었습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
 }
 
 
@@ -202,11 +196,11 @@ ex)
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-03-10T12:47:57.513+00:00",
-    "message": "해당 중고물품은 판매자에 의해 삭제되었습니다.",
-    "description": "uri=/api/chatroom/check-validate",
-    "pathToMove": null
+  "statusCode": 100,
+  "timestamp": "2021-06-18T03:13:43.828+00:00",
+  "message": "해당 중고물품은 판매자에 의해 삭제되었습니다.",
+  "requestPath": "uri=/api/chatroom/check-validate",
+  "pathToMove": null
 }
 
 ```

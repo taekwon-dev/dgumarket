@@ -18,6 +18,9 @@
 3. "탈퇴한 유저의 물건에 대해서 좋아요(좋아요취소)를 요청했을 경우" 의 응답메시지 문구 변경
 4. "차단한 관계에 있는 유저의 물건에 좋아요 및 좋아요취소하기 요청시" 의 응답 메시지 문구 변경
 
+## 수정내용 6.18
+예외발생시 커스텀에러응답코드를 반환하도록 함
+- 관련한 에러 응답 메시지 수정
 
 
 ### request body(json)
@@ -58,30 +61,18 @@ example response body
 }
 ```
 
-
-추가적으로 예외처리(404, 400 .. )에 대해서 어떻게 클라이언트가
-대처해야하는 지에 대한 내용은 추후에 알려주도록 하겠습니다. 종합적인 설계가 필요해서 혼동되지 않게 알려드리겠습니다.
-
 ### except response (예외응답)
 
+**Code** : `400 Bad Request`
 
-### 차단한 관계에 있는 유저의 물건에 좋아요 및 좋아요취소하기 요청시
+**Content**
 
-* 에초에 차단관계에 있는 물건은 조회조차 불가능하다. 이 경우는 먼저 물건페이지에 들어간 상태에서 상대방이 나를
-  또는 내가(다른 브라우저에서)상대방을 차단 한 경우를 뜻한다. 이때 만약 좋아요를 누르게 되면 서버에서는 차단관계에 있는 관계
-  를
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
 
-```json
-
-{
-  "statusCode": 404, # 410 에서 404 로 변경되었습니다 (5/4, 확인하고 이거대로 수정바랍니다!) 
-  "timestamp": "2021-02-19T17:15:13.721+00:00",
-  "message": "차단한 유저 혹은 차단된 유저의 물건에 대해 좋아요/좋아요취소 요청을 할 수 없습니다.",
-  "description": "uri=/api/product/like",
-  "pathToMove": "/shop/main/index"
-}
-
-```
 
 ### 존재하지 물건에 대해서 요청을 할 때(삭제되거나 존재하지 않은 경우)
 
@@ -92,14 +83,31 @@ example response body
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-02-19T17:14:07.623+00:00",
-    "message": "삭제되거나 존재하지 않은 물건입니다.",
-    "description": "uri=/api/product/like",
-    "pathToMove": "/shop/main/index"
+  "statusCode": 100,
+  "timestamp": "2021-06-17T16:38:45.314+00:00",
+  "message": "삭제되거나 존재하지 않은 물건입니다.",
+  "requestPath": "uri=/api/product/like",
+  "pathToMove": "/shop/main/index"
 }
 
 ```
+
+### 관리자에 의해 비공개 처리된 물건에 대해서 좋아요/좋아요취소 를 요청하였을 경우
+
+* 위의 사례와 같다
+
+
+```json
+
+{
+  "statusCode": 101,
+  "timestamp": "2021-06-17T16:41:36.406+00:00",
+  "message": "관리자에 의해 비공개 처리된 물건입니다.",
+  "requestPath": "uri=/api/product/like",
+  "pathToMove": "/shop/main/index"
+}
+
+``` 
 
 
 ### 탈퇴한 유저의 물건에 대해서 좋아요(좋아요취소)를 요청했을 경우
@@ -112,31 +120,14 @@ example response body
 ```json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-05-04T09:12:18.877+00:00",
+  "statusCode": 102,
+  "timestamp": "2021-06-17T16:42:31.099+00:00",
   "message": "물건의 판매자가 탈퇴하여 좋아요/좋아요취소 요청을 할 수 없습니다.",
   "requestPath": "uri=/api/product/like",
   "pathToMove": "/shop/main/index"
 }
 ```
 
-
-### 관리자에 의해 비공개 처리된 물건에 대해서 좋아요/좋아요취소 를 요청하였을 경우
-
-* 위의 사례와 같다
-
-
-```json
-
-{
-    "statusCode": 404,
-    "timestamp": "2021-05-04T09:12:18.877+00:00",
-    "message": "관리자에 의해 비공개 처리된 물건입니다.",
-    "requestPath": "uri=/api/product/like",
-    "pathToMove": "/shop/main/index"
-}
-
-``` 
 
 ### 좋아요/좋아요취소 하려고 하는 물건의 판매자가 관리자로 부터 이용제재조치를 받고 있는 경우
 
@@ -145,11 +136,48 @@ example response body
 ```json
 
 {
-    "statusCode": 404,
-    "timestamp": "2021-05-04T09:12:18.877+00:00",
-    "message": "물건의 판매자가 관리자로부터 이용제재조치를 받고 있어 좋아요/좋아요취소 요청을 할 수 없습니다.",
+  "statusCode": 103,
+  "timestamp": "2021-06-17T16:42:57.018+00:00",
+  "message": "물건의 판매자가 관리자로부터 이용제재조치를 받고 있어 좋아요/좋아요취소 요청을 할 수 없습니다.",
+  "requestPath": "uri=/api/product/like",
+  "pathToMove": "/shop/main/index"
+}
+
+``` 
+
+### 차단한 관계에 있는 유저의 물건에 좋아요 및 좋아요취소하기 요청시
+
+* 에초에 차단관계에 있는 물건은 조회조차 불가능하다. 이 경우는 먼저 물건페이지에 들어간 상태에서 상대방이 나를
+  또는 내가(다른 브라우저에서)상대방을 차단 한 경우를 뜻한다. 이때 만약 좋아요를 누르게 되면 서버에서는 차단관계에 있는 관계
+  를
+  
+- 내가 차단한 물건에 대해서 좋아요/좋아요 취소 요청 하는 경우
+
+```json
+
+{
+  "statusCode": 104,
+  "timestamp": "2021-06-17T16:44:39.914+00:00",
+  "message": "내가 차단한 유저의 물건에 대해 좋아요(취소) 요청을 할 수 없습니다.",
+  "requestPath": "uri=/api/product/like",
+  "pathToMove": "/shop/main/index"
+}
+
+```
+
+
+
+
+- 나를 차단한 유저의 물건에 대해서 좋아요/좋아요 취소 요청을 하는 경우
+
+```json
+
+{
+    "statusCode": 105,
+    "timestamp": "2021-06-17T16:46:06.660+00:00",
+    "message": "나를 차단한 유저의 물건에 대해 좋아요(취소) 요청을 할 수 없습니다.",
     "requestPath": "uri=/api/product/like",
     "pathToMove": "/shop/main/index"
 }
 
-``` 
+```

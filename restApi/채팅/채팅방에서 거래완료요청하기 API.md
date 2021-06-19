@@ -65,15 +65,27 @@ product status updated(string)
 
 ### 예외사항(response)
 
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
+
+
 1. 거래완료를 하려고하는 상대방(구매자)이 탈퇴한경우
 
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-18T05:42:46.242+00:00",
-  "message": "탈퇴한 유저와 거래완료를 할 수 없습니다.",
-  "description": "uri=/api/chatroom/1/trade-done"
+   "statusCode": 102,
+   "timestamp": "2021-06-18T14:25:02.162+00:00",
+   "message": "탈퇴한 유저와 거래완료를 할 수 없습니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 
 ```
@@ -85,10 +97,11 @@ product status updated(string)
 ```json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-03-18T05:42:46.242+00:00",
-  "message": "이용제재를 받고 있는 유저와 거래완료를 할 수 없습니다.",
-  "description": "uri=/api/chatroom/1/trade-done"
+   "statusCode": 103,
+   "timestamp": "2021-06-18T14:24:15.911+00:00",
+   "message": "이용제재를 받고 있는 유저와 거래완료를 할 수 없습니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 
 ```
@@ -101,10 +114,11 @@ product status updated(string)
 
 ```json
 {
-  "statusCode": 404,
-  "timestamp": "2021-03-18T05:42:46.242+00:00",
-  "message": "해당 중고물품은 삭제처리되었습니다.",
-  "description": "uri=/api/chatroom/1/trade-done"
+   "statusCode": 100,
+   "timestamp": "2021-06-18T14:27:37.988+00:00",
+   "message": "해당 중고물품은 삭제처리되었습니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 
 ```
@@ -117,10 +131,11 @@ product status updated(string)
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-18T05:42:46.242+00:00",
-  "message": "관리자에 의해 비공개 처리되어 거래완료를 할 수 없습니다.",
-  "description": "uri=/api/chatroom/1/trade-done"
+   "statusCode": 101,
+   "timestamp": "2021-06-18T16:19:44.709+00:00",
+   "message": "관리자에 의해 비공개 처리되어 거래완료를 할 수 없습니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 
 ```
@@ -140,10 +155,11 @@ product status updated(string)
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-04T07:04:14.410+00:00",
-  "message": "이미 거래완료 되어 있는 상태입니다.",
-  "description": "uri=/api/chatroom/422/trade-done"
+   "statusCode": 106,
+   "timestamp": "2021-06-18T17:02:40.671+00:00",
+   "message": "이미 거래완료 되어 있는 상태입니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 ```
 
@@ -156,10 +172,11 @@ product status updated(string)
 ```json
 
 {
-  "statusCode": 403,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
-  "message": "차단한 유저와 거래완료를 할 수 없습니다.",
-  "description": "uri=/api/chatroom/422/trade-done"
+   "statusCode": 104,
+   "timestamp": "2021-06-18T14:22:02.853+00:00",
+   "message": "차단한 유저와 거래완료를 할 수 없습니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 
 ```
@@ -171,10 +188,11 @@ product status updated(string)
 ```json
 
 {
-  "statusCode": 403,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
-  "message": "차단된 유저와는 거래완료를 할 수 없습니다.",
-  "description": "uri=/api/chatroom/422/trade-done"
+   "statusCode": 105,
+   "timestamp": "2021-06-18T14:23:29.101+00:00",
+   "message": "나를 차단한 유저와는 거래완료를 할 수 없습니다.",
+   "requestPath": "uri=/api/chatroom/2/trade-done",
+   "pathToMove": null
 }
 
 ```

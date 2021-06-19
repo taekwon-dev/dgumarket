@@ -8,6 +8,8 @@
 
 혹은 거래한 이력이 없다면 이전처럼 채팅방 UI가 나오고 채팅을 할 수 있는 상황이 된다.
 
+## 수정 사항 6.18 
+- 예외발생시 커스텀에러코드 반환하도록 바꿈
 
 
 **URL** : `/api/product/{productId}/chat-history`
@@ -118,16 +120,28 @@
 5. 새롭게 채팅하려고 하는 유저가 자신이 **차단한 유저**의 물건에 대해서 요청하려고 할 때(서로 차단했을 때도 5번에 해당)
 6. 새롭게 채팅하려고 하는 유저가 자신이 **차단당한 유저**의 물건에 대해서 요청하려고 할 때
 
+## except response
+
+**Code** : `400 Bad Request`
+
+**Content**
+
+`statusCode`: custom 에러 응답 코드
+`timestamp` : 요청시간
+`message` : 요청에러이유
+`description` : 요청한 URL
+`pathToMove` : 리다이렉트 해야하는 페이지 URL
 
 ### 1. 새롭게 채팅하려고 하는 유저가 **삭제, 존재하지 않은** 물건에 대해서 요청하려고 할 때
 
 ```json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
+  "statusCode": 100,
+  "timestamp": "2021-06-17T17:27:43.484+00:00",
   "message": "삭제된 중고물품의 경우 채팅거래를 하실 수 없습니다.",
-  "description": "/api/product/4/chat-history"
+  "requestPath": "uri=/api/product/119/chat-history",
+  "pathToMove": null
 }
 
 ```
@@ -141,10 +155,11 @@
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
+  "statusCode": 101,
+  "timestamp": "2021-06-17T17:28:15.003+00:00",
   "message": "관리자에 의해 비공개 처리된 물건입니다. 채팅거래를 하실 수 없습니다.",
-  "description": "/api/product/4/chat-history"
+  "requestPath": "uri=/api/product/119/chat-history",
+  "pathToMove": null
 }
 
 ```
@@ -157,10 +172,11 @@
 ```json
 
 {
-  "statusCode": 404,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
+  "statusCode": 102,
+  "timestamp": "2021-06-17T17:30:10.043+00:00",
   "message": "탈퇴한 유저입니다. 채팅거래를 하실 수 없습니다.",
-  "description": "/api/product/4/chat-history"
+  "requestPath": "uri=/api/product/119/chat-history",
+  "pathToMove": null
 }
 
 ```
@@ -173,40 +189,43 @@
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
+  "statusCode": 103,
+  "timestamp": "2021-06-17T17:30:24.870+00:00",
   "message": "관리자로부터 이용제재당한 유저와 채팅거래를 하실 수 없습니다.",
-  "description": "/api/product/4/chat-history"
+  "requestPath": "uri=/api/product/119/chat-history",
+  "pathToMove": null
 }
 
 ```
 
 
-### 5. 새롭게 채팅하려고 하는 유저가 자신이 차단한 유저의 물건에 대해서 요청하려고 할 때
+### 5. 새롭게 채팅하려고 하는 유저를 내가 차단했을 경우
 
 
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
-  "message": "차단한 유저와는 채팅거래를 할 수 없습니다.",
-  "description": "/api/product/4/chat-history"
+  "statusCode": 104,
+  "timestamp": "2021-06-17T17:30:49.419+00:00",
+  "message": "차단한 유저와는 채팅 거래 할 수 없습니다.",
+  "requestPath": "uri=/api/product/119/chat-history",
+  "pathToMove": null
 }
 
 ```
 
 
-### 6. 새롭게 채팅하려고 하는 유저가 차단 당한 유저의 물건에 대해서 요청하려고 할 때
+### 6. 새롭게 채팅하려고 하는 유저가 나를 차단했을 경우
 
 
 ```json
 
 {
-  "statusCode": 400,
-  "timestamp": "2021-03-04T07:01:45.485+00:00",
-  "message": "차단 당한 유저와는 채팅거래를 할 수 없습니다",
-  "description": "/api/product/4/chat-history"
+  "statusCode": 105,
+  "timestamp": "2021-06-17T17:31:37.341+00:00",
+  "message": "나를 차단한 유저와는 채팅 거래 할 수 없습니다.",
+  "requestPath": "uri=/api/product/119/chat-history",
+  "pathToMove": null
 }
 
 ```
