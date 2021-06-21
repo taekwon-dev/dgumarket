@@ -9,6 +9,7 @@ import com.springboot.dgumarket.repository.chat.ChatMessageRepository;
 import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.repository.chat.RedisChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,35 +25,18 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class RedisChatRoomServiceImpl implements RedisChatRoomService{
     private static Logger logger = LoggerFactory.getLogger(RedisChatRoomServiceImpl.class);
 
-    @Autowired
-    private ChatRoomRepository chatRoomRepository;
 
-    @Autowired
-    private RedisChatRoomRepository redisChatRoomRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private ChatMessageRepository chatMessageRepository;
-
-    @Autowired
-    private ChatMessageService chatMessageService;
-
-    @Autowired
-    private SimpMessagingTemplate template;
-
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    // 방찾기 ## 이거 내가 왜 추상화 한번더 시킨거지?... 필요가 없는데
-    @Override
-    public Optional<RedisChatRoom> findByRoomId(int roomId) {
-        return redisChatRoomRepository.findById(String.valueOf(roomId));
-    }
+    final private ChatRoomRepository chatRoomRepository;
+    final private RedisChatRoomRepository redisChatRoomRepository;
+    final private MemberRepository memberRepository;
+    final private ChatMessageRepository chatMessageRepository;
+    final private ChatMessageService chatMessageService;
+    final private SimpMessagingTemplate template;
+    final private StringRedisTemplate redisTemplate;
 
     // 채팅방 목록 화면 -> 채팅 화면으로 클릭 후 입장하는 시점 DD
     @Override
