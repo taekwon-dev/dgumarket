@@ -14,8 +14,10 @@ import com.springboot.dgumarket.payload.response.stomp.StompReceivedMessage;
 import com.springboot.dgumarket.payload.response.stomp.StompRoomInfo;
 import com.springboot.dgumarket.repository.chat.ChatMessageRepository;
 import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
+import com.springboot.dgumarket.repository.chat.RedisChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.repository.product.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -35,33 +37,20 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ChatMessageServiceImpl implements ChatMessageService {
 
     private static Logger logger = LoggerFactory.getLogger(ChatMessageServiceImpl.class);
     private static final int UNREAD = 0;
     private static final int READ = 1;
 
-    @Autowired
-    private SimpMessagingTemplate template;
-
-    @Autowired
-    private ChatRoomRepository chatRoomRepository;
-
-    @Autowired
-    private ChatMessageRepository chatMessageRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-
-    @Autowired
-    private RedisChatRoomService redisChatRoomService;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ChatRoomService chatRoomService;
+    final private SimpMessagingTemplate template;
+    final private ChatRoomRepository chatRoomRepository;
+    final private ChatMessageRepository chatMessageRepository;
+    final private MemberRepository memberRepository;
+    final private RedisChatRoomRepository redisChatRoomRepository;
+    final private ProductRepository productRepository;
+    final private ChatRoomService chatRoomService;
 
     /** OK */
     // 로그인 유저의 모든 채팅방 대상, 읽지 않은 메시지 개수 조회
@@ -230,7 +219,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         if (chatRoom != null) {
 
             // Redis 서버를 통해, 수신자가 채팅방에 위치하고 있는 지(채팅방에 위치하면, 바로 읽음 상태)
-            Optional<RedisChatRoom> redisChatRoom = redisChatRoomService.findByRoomId(chatRoom.getRoomId());
+            Optional<RedisChatRoom> redisChatRoom = redisChatRoomRepository.findById(String.valueOf(chatRoom.getRoomId()));
             if (redisChatRoom.isPresent()) {
                 // 상대방이 채팅방에 들어와있는 경우
                 if(redisChatRoom.get().isSomeoneInChatRoom(String.valueOf(sendMessage.getReceiverId()))){

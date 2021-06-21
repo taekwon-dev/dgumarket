@@ -17,6 +17,7 @@ import com.springboot.dgumarket.repository.product.ProductRepository;
 import com.springboot.dgumarket.repository.product.ProductReviewRepository;
 import com.springboot.dgumarket.service.Validation.ValidationService;
 import com.springboot.dgumarket.service.block.UserBlockService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ChatRoomServiceImpl implements ChatRoomService{
 
     private static final int PRODUCT_STATUS_ETC = 0;
@@ -49,29 +51,14 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     private static final int NO = 0;
 
 
-    @Autowired
-    private ChatRoomRepository chatRoomRepository;
-
-    @Autowired
-    private ChatMessageRepository chatMessageRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private BlockUserRepository blockUserRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ProductReviewRepository productReviewRepository;
-
-    @Autowired
-    private UserBlockService userBlockService;
-
-    @Autowired
-    private ValidationService validationService;
+    final private ChatRoomRepository chatRoomRepository;
+    final private ChatMessageRepository chatMessageRepository;
+    final private MemberRepository memberRepository;
+    final private BlockUserRepository blockUserRepository;
+    final private ProductRepository productRepository;
+    final private ProductReviewRepository productReviewRepository;
+    final private UserBlockService userBlockService;
+    final private ValidationService validationService;
 
 
     // 전체 채팅방 목록들 가져오기

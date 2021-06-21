@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -27,9 +28,12 @@ import org.springframework.web.socket.config.annotation.*;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
+    private final RedisChatRoomService redisChatRoomService;
 
-    @Autowired
-    RedisChatRoomService redisChatRoomService;
+    public WebSocketConfig(@Lazy RedisChatRoomService redisChatRoomService){
+        this.redisChatRoomService=redisChatRoomService;
+    }
+
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
