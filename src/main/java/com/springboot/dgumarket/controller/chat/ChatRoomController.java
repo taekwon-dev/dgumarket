@@ -128,11 +128,16 @@ public class ChatRoomController {
 
     // 채팅방 상태 확인하기
     @GetMapping("/{roomId}/status")
-    public ChatRoomStatusDto checkRoom(@PathVariable("roomId") int roomId, Authentication authentication) {
+    public ResponseEntity<?> checkRoom(@PathVariable("roomId") int roomId, Authentication authentication) {
         if (authentication != null){
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             ChatRoomStatusDto chatRoomStatusDto = chatRoomService.getChatRoomStatus(roomId, userDetails.getId());
-            return chatRoomStatusDto;
+            ApiResponseEntity apiResponseEntity = ApiResponseEntity
+                    .builder()
+                    .status(200)
+                    .message("채팅방 정보")
+                    .data(chatRoomStatusDto).build();
+            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
         }
         return null;
     }
