@@ -283,6 +283,7 @@ isWarn 이 true 가 되기 위해서는 경고를 3번 받아야 한다. (5번�
 
 
 ## except response
+- 아래의 예외응답은 위의 내용과 전혀 다릅니다. 완전한 새로운 내용의 응답값이 내려옴. statusCode 는 커스텀 에러 응답값임
 
 **Code** : `400 Bad Request`
 
