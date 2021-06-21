@@ -84,11 +84,11 @@ public class ValidationServiceImpl implements ValidationService {
 
         // 유저제재확인, 유저탈퇴확인, 차단까지 확인
         if (targetUser == null || targetUser.getIsWithdrawn() == 1) {
-            throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null, 102);
+            throw new CustomControllerExecption("탈퇴한 유저의 정보에 접근할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
         }
 
         if (targetUser.getIsEnabled() == 1) {
-            throw new CustomControllerExecption("관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.", HttpStatus.NOT_FOUND, null, 103);
+            throw new CustomControllerExecption("관리자에 의해 이용제재를 받고 있는 유저의 정보에 접근할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
         }
 
         // 탈퇴 유저 && 서비스 이용 제재 받은 유저가 아닌 경우
@@ -104,10 +104,10 @@ public class ValidationServiceImpl implements ValidationService {
 
 
             if (loginUser.getBlockUsers().contains(blockUser)) {
-                throw new CustomControllerExecption("차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN, null, 104);
+                throw new CustomControllerExecption("차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 104);
             }
             if (loginUser.getUserBlockedMe().contains(blockedUser)) {
-                throw new CustomControllerExecption("나를 차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.FORBIDDEN, null, 105);
+                throw new CustomControllerExecption("나를 차단한 유저의 정보에 접근할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 105);
             }
         }
 
