@@ -81,7 +81,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 // 모든 URL 패턴에 대해서
                 .addMapping("/**")
                 // localhost:8081 Origin 허용한다.
-                .allowedOrigins("http://localhost:8081");
+                .allowedOrigins("http://localhost:8081", "http://localhost:8082");
     }
 
 
