@@ -76,15 +76,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry
-                // 모든 URL 패턴에 대해서
-                .addMapping("/**")
-                // localhost:8081 Origin 허용한다.
-                .allowedOrigins("http://localhost:8081", "http://localhost:8082");
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtInterceptor)
+                .addPathPatterns(patterns)
+                // URL 패턴 설계 오류 (중복문제)
+                // 인증이 필요 없는 아래 패턴들은 interceptor 제외한다.
+                .excludePathPatterns("/api/user/signup", "/api/user/check-webmail", "/api/user/send-webmail", "/api/user/find-pwd/verify-phone", "/api/user/find-pwd", "/api/user/delete-member");
     }
-
-
 
     // https://trello.com/c/iNlacAg7/148-dgumarket-restapi-http-exception-handling
     @Override
