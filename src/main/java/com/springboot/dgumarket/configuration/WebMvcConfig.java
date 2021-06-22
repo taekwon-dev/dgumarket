@@ -5,6 +5,7 @@ import com.springboot.dgumarket.interceptor.JwtInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -74,6 +75,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
         this.customExceptionResolver = customExceptionResolver;
     }
 
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry
+                // 모든 URL 패턴에 대해서
+                .addMapping("/**")
+                // localhost:8081 Origin 허용한다.
+                .allowedOrigins("http://localhost:8081");
+    }
 
 
     @Override
