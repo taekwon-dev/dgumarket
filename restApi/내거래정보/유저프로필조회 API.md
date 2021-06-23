@@ -45,9 +45,13 @@ except)
 
 인증 X -> 프로필 조회시 응답 필드 중 `message` : user_profile 이 된다.
 
+**URL** : `/api/user/{user-id}/shop-profile`
+
+**Method** : `GET`
+
+**Authentication required** : `no`
 
 ### response body
-
 
 `message` : 응답메시지
 인증하고 본인의 프로필 조회시 : "my_profile"
@@ -126,7 +130,7 @@ ex)
 `statusCode`: custom 에러 응답 코드
 `timestamp` : 요청시간
 `message` : 요청에러이유
-`description` : 요청한 URL/api/category/{categoryId}/products
+`description` : 요청한 URL
 `pathToMove` : 리다이렉트 해야하는 페이지 URL
 
 // 존재하지 않거나 탈퇴한 유저의 프로필 정를 조회하려고 하는 경우
