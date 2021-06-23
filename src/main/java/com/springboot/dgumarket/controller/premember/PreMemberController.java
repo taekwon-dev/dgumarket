@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/pre-member/")
 public class PreMemberController {
 
-    private static final String BASE_URL = "/shop/account/userInfo_input?user_id=";
+    private static final String BASE_URL = "/shop/account/sign_up3?user_id=";
 
     @Autowired
     private PreMemberService preMemberService;

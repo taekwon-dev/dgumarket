@@ -38,7 +38,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String webMail) throws UsernameNotFoundException {
 
-        Member member = memberRepository.findByWebMailAndIsWithdrawn(webMail, 0)
+        Member member = memberRepository.findByWebMailAndIsWithdrawnAndIsEnabled(webMail, 0, 0)
                 // UsernameNotFoundException extends AuhenticationException -> AuthEntryPointJwt.class
                 .orElseThrow(()-> new UsernameNotFoundException(errorResponse("API 요청한 유저의 고유 ID로 회원을 식별할 수 없는 경우 ", 303, "(UserDetailsService)특정할 수 없습니다.")));
 

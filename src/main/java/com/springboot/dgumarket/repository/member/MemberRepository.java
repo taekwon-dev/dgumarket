@@ -20,7 +20,7 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Integer> {
 
     // 웹메일 중복체크 (회원가입 1단계)
-    Optional<Member> findByWebMailAndIsWithdrawn(String webMail, int isWithdrawn);
+    Optional<Member> findByWebMailAndIsWithdrawnAndIsEnabled(String webMail, int isWithdrawn, int isEnabled);
 
     // 핸드폰 번호 중복체크 (회원가입 2단계)
     // 회원으로 등록된 핸드폰 번호 중 중복되는 것이 있는 지 체크

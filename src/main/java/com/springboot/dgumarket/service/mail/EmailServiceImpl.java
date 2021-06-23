@@ -3,12 +3,27 @@ package com.springboot.dgumarket.service.mail;
 import com.springboot.dgumarket.model.member.PreMember;
 import com.springboot.dgumarket.repository.member.PreMemberRepository;
 import com.springboot.dgumarket.utils.JwtUtils;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by TK YOUN (2020-11-09 오전 8:52)
@@ -33,6 +48,9 @@ public class EmailServiceImpl implements EmailService {
     private JavaMailSender emailSender;
 
     @Autowired
+    private Configuration configuration;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired
@@ -42,7 +60,7 @@ public class EmailServiceImpl implements EmailService {
     // MailException (extending RuntimeException) - Rollback 대상
     @Transactional
     @Override
-    public void send(String receiverWebMail) {
+    public void send(String receiverWebMail) throws MessagingException, MailException, IOException, TemplateException {
 
         // 요청한 웹메일에 대응되는 고유값 생성 (고유값 유효기간 7일)
         String webMailJwt = jwtUtils.genTokenForRegister2nd(receiverWebMail);
@@ -73,22 +91,28 @@ public class EmailServiceImpl implements EmailService {
 
         }
 
-        // HTML 태크를 활용하여 전송 메일의 본문을 구성 (진행 예정)
-        // '여기'를 클릭하여 회원가입을 계속 진행해주세요. (웹메일 인증이 완료됐습니다)
-        SimpleMailMessage message = new SimpleMailMessage();
 
-        // 발신자 메일 :
-        message.setFrom("donggukmk@gmail.com");
+        MimeMessage message  = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-        // 수신자 메일 주소 :
-        message.setTo(receiverWebMail);
+        Template template = configuration.getTemplate("signup-email-template.ftl");
 
-        // 발신 메일 제목 :
-        message.setSubject("제목");
+        Map<String, Object> model = new HashMap<>();
+        model.put("Jwt", webMailJwt);
 
-        // 발신 메일 본문 :
-//        message.setText("https://dgumarket.co.kr/shop/account/smartPhone_certification?user_id="+webMailJwt);
-        message.setText("http://localhost:8081/shop/account/smartPhone_certification?user_id="+webMailJwt);
+        String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+
+        // From :
+        helper.setFrom("donggukmk@gmail.com");
+
+        // To
+        helper.setTo(preMember.getWebMail());
+
+        // Text
+        helper.setText(html, true);
+
+        helper.setSubject("[동대방네] 회원가입 이메일 인증 메일");
+
 
         // 웹메일 전송
         emailSender.send(message);

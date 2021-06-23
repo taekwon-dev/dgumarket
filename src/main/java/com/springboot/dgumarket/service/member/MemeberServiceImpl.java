@@ -154,7 +154,7 @@ public class MemeberServiceImpl implements MemberProfileService {
         // 웹메일 인증 요청 시
         // 회원 정보 테이블(members)에서 회원 상태인 웹메일 대상으로 (회원 상태 : isWithdrawn 0 인 경우)
         // 웹메일 중복 체크를 진행한다.
-        Optional<Member> member = memberRepository.findByWebMailAndIsWithdrawn(webMail, 0);
+        Optional<Member> member = memberRepository.findByWebMailAndIsWithdrawnAndIsEnabled(webMail, 0, 0);
 
         logger.debug("member : " + member);
 
@@ -633,7 +633,7 @@ public class MemeberServiceImpl implements MemberProfileService {
         Set<ProductCategory> productCategorySet = productCategoryRepository.findByIdIn(signUpDto.getProductCategories());
 
 
-        Optional<Member> member = memberRepository.findByWebMailAndIsWithdrawn(signUpDto.getWebMail(), 0);
+        Optional<Member> member = memberRepository.findByWebMailAndIsWithdrawnAndIsEnabled(signUpDto.getWebMail(), 0, 0);
 
 
         // [Exception]
