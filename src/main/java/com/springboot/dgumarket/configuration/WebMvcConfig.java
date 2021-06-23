@@ -80,8 +80,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry
                 // 모든 URL 패턴에 대해서
                 .addMapping("/**")
-                // www.dgumarket.co.kr Origin 허용한다.
-                .allowedOrigins("https://www.dgumarket.co.kr");
+                // 모든 Origin 허용한다.
+                .allowedOrigins("*");
     }
 
     @Override
