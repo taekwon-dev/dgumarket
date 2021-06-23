@@ -29,14 +29,6 @@ import java.util.Date;
  * Description :
  */
 
-/**
- *  1. Access to Authorization-Header o
- *  2. Authenticate
- *   2-1. Exceptions (redirect to the login page)
- *   2-2. Has a difference login with authentication
- *     2-2-1 api/product, api/shop
- */
-
 @Slf4j
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
@@ -61,28 +53,21 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        log.info("New Jwt Interceptor");
 
         // init
         String getRequestURI = request.getRequestURI();
         String accessToken = null;
         String username = null;
 
-
-
-        // 비로그인 상태 ->| A 토큰 null OR A 토큰 "null" |
+        // 로그인 상태
         if (request.getHeader("Authorization") != null) {
 
-            // API_PRODUCT_INDEX
-            // API_SHOP
-            // API_PRODUCT_CATEGORY
-            // API_PRODUCT_INFO
-            // API_PRODUCT_TOTAL
-            // API_PRODUCT_SEARCH
-
             // 위 경로에 해당하는 경우에 "null" Auth 헤더가 오는 경우 -> 유효하지 않은 A 토큰으로 요청한 경우
-            // 비로그인 상태로 해당 요청을 처리한다.
-            // 인터셉터 통과
+            // 유효하지 않은 A 토큰으로 요청했다는 것은 -> 로그인 상태를 전제로 한다.
+            // 따라서, 로그인 페이지로 리다이렉트 처리한다.
+
+            // 로그인 상태이지만, Access Token이 유효하지 않은 상태에서 요청하는 경우, 로그인 페이지로 리다이렉트 처리
+            // 추후, 정적 자원(페이지 등)이 Dgumarket 서버에서 인증 처리되는 경우로 보완
             if (request.getHeader("Authorization").equals("null")) return true;
 
             // 위 경로 포함해서 인증이 필요한 API 요청에 한해서 A 토큰의 값이 있는 경우는
@@ -92,8 +77,8 @@ public class JwtInterceptor implements HandlerInterceptor {
             accessToken = accessToken.split(" ")[1];
 
         } else {
-            // 인증되지 않은 상태에서 요청 (API_PRODUCT_INDEX, API_SHOP, API_PRODUCT_CATEGORY, API_PRODUCT_INFO, API_PRODUCT_TOTAL)
-            // 인터셉터 통과
+            // 비로그인 상태에서 요청하는 경우
+            // 아래, 비인증 API의 경우, 인터셉터 통과시킨다. (비로그인 상태로 해당 API 응답 반환)
             if (getRequestURI.equals(API_PRODUCT_INDEX)) return true;
             if (getRequestURI.matches(API_SHOP)) return true;
             if (getRequestURI.matches(API_PRODUCT_CATEGORY)) return true;
@@ -101,9 +86,11 @@ public class JwtInterceptor implements HandlerInterceptor {
             if (getRequestURI.equals(API_PRODUCT_TOTAL)) return true;
             if (getRequestURI.equals(API_PRODUCT_SEARCH)) return true;
 
+            // 인증 대상 API의 경우, 리프레시 토큰을 삭제 시키고, 아래 예외를 발생시킨다.
             // cookie (리프레시 토큰) 삭제
             removeRefreshCookie(response);
             // 위 경로 제외하고는 인증이 요구되는 API에서 인증 헤더가 누락된 경우 예외를 발생.
+            // 현재 구조에서는 Gateway 서버에서 1차 필터 역할을 함으로, 이 부분이 발생할 가능성은 없다.
             throw new JwtException(errorResponse("인증 검사를 위한 Authorization Header가 누락된 경우",304,"특정할 수 없습니다."));
         }
 
@@ -113,6 +100,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
             // cookie (리프레시 토큰) 삭제
             removeRefreshCookie(response);
+            // 현재 구조에서는 Gateway 서버에서 1차 필터 역할을 함으로, 이 부분이 발생할 가능성은 없다.
             throw new JwtException(errorResponse("Dgumarket 서버 - A 토큰이 유효하지 않은 경우", 304, "특정할 수 없습니다."));
         }
 
@@ -136,7 +124,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             // 1) 쿠키에 저장되어 있는 리프레시 토큰 삭제
             // 2) throw new UsernameNotFoundException()
             removeRefreshCookie(response);
-            throw new UsernameNotFoundException(errorResponse("API 요청한 유저의 고유 ID로 회원을 식별할 수 없는 경우 ", 303, "(UserDetailsService)특정할 수 없습니다."));
+            throw new UsernameNotFoundException(errorResponse("Dgumarket 서버, (탈퇴 또는 이용제재)로그인 상태 + 비인증 페이지 요청하는 경우 로그인 페이지로 리다이렉트", 355,  "/shop/account/login"));
 
         }
         return true;

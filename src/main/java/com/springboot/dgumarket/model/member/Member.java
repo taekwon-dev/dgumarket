@@ -42,20 +42,16 @@ public class Member {
     private int id;
 
     // 유저 웹 메일
-    @NotBlank
     private String webMail;
 
     // 유저 핸드폰 번호
-    @NotBlank
     private String phoneNumber;
 
     // 유저 닉네임
-    @NotBlank
     @Size(max = 20)
     private String nickName;
 
     // 비밀번호
-    @NotBlank
     @Size(max = 60)
     private String password;
 

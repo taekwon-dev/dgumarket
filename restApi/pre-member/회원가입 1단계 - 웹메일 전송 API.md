@@ -53,10 +53,15 @@ ___
     "responseData": null
 }
 
-// 메일 전송 실패 했을 경우에 예외 처리는 추후 보완하겠습니다. 
-// MailException (extenting RuntimeException)
 
-어떤 경우에 MailException이 발생하는 지 정확히 파악하지 못한 상황입니다. 
-해당 부분에 대한 파악이 되는대로 문서 업데이트하겠습니다. 
+// 2021/06/22 추가 
+// 인증 메일 발송 과정에서 예외 발생 시, Alert로 아래 "message" 필드 값 띄어주시면 됩니다.
+[HTTP/1.1 200 OK]
+{
+    "statusCode": 2,
+    "message": "인증메일 발송 실패했습니다. 잠시 후 다시 시도해주세요.",
+    "responseData": null
+}
+
 
 ```

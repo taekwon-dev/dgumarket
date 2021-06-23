@@ -1,10 +1,14 @@
 package com.springboot.dgumarket.controller.member;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.dto.member.FindPwdDto;
 import com.springboot.dgumarket.dto.member.ResetPwdDto;
 import com.springboot.dgumarket.dto.member.SignUpDto;
 
+import com.springboot.dgumarket.exception.ErrorMessage;
+import com.springboot.dgumarket.exception.notFoundException.PreMemberNotFoundException;
 import com.springboot.dgumarket.model.chat.ChatMessage;
 import com.springboot.dgumarket.model.chat.ChatRoom;
 import com.springboot.dgumarket.model.member.Member;
@@ -16,18 +20,23 @@ import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.mail.EmailService;
 
 import com.springboot.dgumarket.service.member.MemberProfileService;
+import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.mail.MessagingException;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 
 @RestController
@@ -53,6 +62,11 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<ApiResultEntity> doSignUp(@RequestBody SignUpDto signUpDto) {
 
+
+        // 3단계 페이지 접근 시, 이메일 인증 링크를 누른 브라우저 외 다른 브라우저에서 접근 시 핸드폰 번호 값을 활용할 수 없으므로, 잘못된 접근으로 처리
+        if (signUpDto.getPhoneNumber() == null) throw new PreMemberNotFoundException(errorResponse("회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우", 301, "/api/user/signup"));
+
+
         // 회원가입 API 서비스 로직 실행
         memberService.doSignUp(signUpDto);
 
@@ -71,15 +85,23 @@ public class MemberController {
     @PostMapping("/send-webmail")
     public ResponseEntity<ApiResultEntity> doSendEMail(@Valid @RequestBody WebmailRequest webmailRequest) {
 
-        // param : 받는 사람의 이메일 (동국대학교 웹메일)
-        emailService.send(webmailRequest.getWebMail());
+        ApiResultEntity apiResponseEntity = null;
+        try {
+            emailService.send(webmailRequest.getWebMail());
 
+            apiResponseEntity = ApiResultEntity.builder()
+                    .statusCode(1)
+                    .message("인증메일을 발송했습니다.")
+                    .responseData(null)
+                    .build();
 
-        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                .statusCode(1)
-                .message("인증메일을 발송했습니다.")
-                .responseData(null)
-                .build();
+        } catch (MailException | IOException | MessagingException | TemplateException e)  {
+            apiResponseEntity = ApiResultEntity.builder()
+                    .statusCode(2)
+                    .message("인증메일 발송 실패했습니다. 잠시 후 다시 시도해주세요.")
+                    .responseData(null)
+                    .build();
+        }
 
         return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
@@ -169,6 +191,60 @@ public class MemberController {
         return new ResponseEntity<>("회원 삭제", HttpStatus.OK);
     }
 
+    public String errorResponse(String errMsg, int resultCode, String requestPath) {
+
+        // [ErrorMessage]
+        // {
+        //     int statusCode;
+        //     Date timestamp;
+        //     String message;
+        //     String requestPath;
+        //     String pathToMove;
+        // }
+
+        // errorCode에 따라서 예외 결과 클라이언트가 특정 페이지로 요청해야 하는 경우가 있다.
+        // 그 경우 pathToMove 항목을 채운다.
+
+        // init
+        ErrorMessage errorMessage = null;
+
+        // 최종 클라이언트에 반환 될 예외 메시지 (JsonObject as String)
+        String errorResponse = null;
+
+        // 예외 처리 결과 클라이언트가 이동시킬 페이지 참조 값을 반환해야 하는 경우 에러 코드 범위
+        // (300 - 349)
+        // 300 : 이미 회원가입한 유저가 회원가입 API 요청한 경우
+        // 301 : 회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우
+        // 302 : 회원가입 2단계, 3단계 페이지 요청 시, 토큰 유효하지 않거나 토큰 없이 접근한 경우
+
+        // 예외처리 결과 클라이언트가 __페이지를 요청해야 하는 경우
+        // 해당 페이지 정보 포함해서 에러 메시지 반환
+        if (resultCode >= 300 && resultCode < 350) {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .pathToMove("/shop/main/index") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
+                    .build();
+        } else {
+            errorMessage = ErrorMessage
+                    .builder()
+                    .statusCode(resultCode)
+                    .timestamp(new Date())
+                    .message(errMsg)
+                    .requestPath(requestPath)
+                    .build();
+
+        }
+
+        Gson gson = new GsonBuilder().create();
+
+        errorResponse = gson.toJson(errorMessage);
+
+        return errorResponse;
+    }
 
 
 }
