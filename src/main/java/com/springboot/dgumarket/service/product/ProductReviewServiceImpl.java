@@ -157,7 +157,7 @@ public class ProductReviewServiceImpl implements ProductReviewService{
                 } else {
                     // 해당 상품에 대해 로그인 유저 = 판매자인 경우
 
-                    if (productReview.get().getConsumer() == null || productReview.get().getConsumer().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 볼 수 없습니다.", HttpStatus.NOT_FOUND, null, 102);
+                    if (productReview.get().getConsumer() == null || productReview.get().getConsumer().getIsWithdrawn() == 1) throw new CustomControllerExecption("탈퇴한 유저의 거래후기는 볼 수 없습니다.", HttpStatus.BAD_REQUEST, null, 102);
                     if (productReview.get().getConsumer().getIsEnabled() == 1) throw new CustomControllerExecption("이용제재를 받고 있는 유저의 거래후기는 조회할 수 없습니다.", HttpStatus.BAD_REQUEST, null, 103);
 
                     // 해당 상품의 구매자
