@@ -76,6 +76,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry
+                // 모든 URL 패턴에 대해서
+                .addMapping("/**")
+                // www.dgumarket.co.kr Origin 허용한다.
+                .allowedOrigins("https://www.dgumarket.co.kr");
+    }
+
+    @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns(patterns)
