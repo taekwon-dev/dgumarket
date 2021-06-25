@@ -57,8 +57,6 @@ public class ChatRoomServiceImpl implements ChatRoomService{
     final private BlockUserRepository blockUserRepository;
     final private ProductRepository productRepository;
     final private ProductReviewRepository productReviewRepository;
-    final private UserBlockService userBlockService;
-    final private ValidationService validationService;
 
 
     // 전체 채팅방 목록들 가져오기
@@ -163,6 +161,8 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             // NPE 대상 (= 채팅방 상대 유저가 삭제된 경우, NULL 값)
             Member opponentUser = chatRoom.getMemberOpponent(loginUser);
 
+            System.out.println("상대방 유저 아이디 : " + opponentUser.getId());
+
             // 해당 채팅의 상품 정보
             // NPE 대상 (= 채팅방 상대 유저가 판매자 + 삭제된 경우, NULL 값)
             Product chatProduct = chatRoom.getProduct();
@@ -173,8 +173,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
             // 3. 채팅 상대방 유저가 ~NULL (채팅 상대방이 삭제되지 않은 경우)
             // (참고 - 채팅 상대방 유저가 ~NULL인 상황에서 상품 정보가 NULL 되는 경우는 없다.)
 
-
-            if (opponentUser == null && chatProduct == null) {
+            if ((opponentUser == null && chatProduct == null) || (opponentUser.getIsWithdrawn()==1 && chatRoom.whatPosition(opponentUser).equals("seller"))) {
                 // 1. 채팅 상대방 유저가 NULL && 채팅과 연결된 상품 정보가 NULL (= 채팅 상대방이 판매자인 경우)
 
                 /**
@@ -204,7 +203,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
                 chatRoomListDto.setUnreadMessageCount(unreadMessageCount);
 
 
-            } else if (opponentUser == null && chatProduct != null) {
+            } else if ((opponentUser == null && chatProduct != null) || (opponentUser.getIsWithdrawn()==1 && chatRoom.whatPosition(opponentUser).equals("consumer"))) {
                 // 2. 채팅 상대방 유저가 NULL && 채팅과 연결된 상품 정보가 ~NULL (= 채팅 상대방이 구매자인 경우)
 
                 /**
