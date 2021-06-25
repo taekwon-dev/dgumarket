@@ -117,7 +117,7 @@ public class ChatRoom {
         if ((this.seller != null) && (this.seller == loginUser)) {
             // 로그인 유저가 판매자인 경우 -> 채팅 상대방 = 구매자
             return this.consumer;
-        } else if ((this.consumer != null) && (this.consumer == loginUser)) {
+        } else if ((this.consumer != null) || (this.consumer == loginUser)) {
             // 로그인 유저가 구매자인 경우 -> 채팅 상대방 = 판매자
             return this.seller;
         } else {
@@ -205,6 +205,15 @@ public class ChatRoom {
             this.setSellerDeleted(0);
         } else {
             /** ? */
+        }
+    }
+
+    // 여기에 들어오는 oppentMember 상대방은 null 아닌 경우를 가정한다. ( 그렇게 들어오도록 되어있음 / 이미 앞단계에서 걸러짐 )
+    public String whatPosition(Member oppentMember){
+        if(this.seller == oppentMember){
+            return "seller";
+        }else{
+            return "consumer";
         }
     }
 
