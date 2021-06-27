@@ -28,7 +28,6 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocketMessageBroker
 @Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
     private final RedisChatRoomService redisChatRoomService;
 
@@ -78,10 +77,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompCommand command = sha.getCommand();
 
                 if (StompCommand.CONNECT.equals(command)) {
-                    logger.info("{}, message.getPayload {}", command, message.getPayload());
-                    logger.info("{}, message.getHeader {}", command, message.getHeaders());
-                    logger.info("{}, accessor.toString {}", command, sha.toString());
-                    logger.info("{}, accessor.getDestination()", sha.getDestination());
+                    log.info("{}, message.getPayload {}", command, message.getPayload());
+                    log.info("{}, message.getHeader {}", command, message.getHeaders());
+                    log.info("{}, accessor.toString {}", command, sha.toString());
                 } else if(StompCommand.UNSUBSCRIBE.equals(command) && message.getHeaders().get("simpSubscriptionId").toString().startsWith("room-user-")) {
                     String sessionId = message.getHeaders().get("simpSessionId").toString(); // 유저 고유의 SessionId
                     redisChatRoomService.leave(sessionId); // 레디스 채팅방 나가기

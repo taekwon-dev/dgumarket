@@ -21,8 +21,7 @@ import com.springboot.dgumarket.service.mail.EmailService;
 
 import com.springboot.dgumarket.service.member.MemberProfileService;
 import freemarker.template.TemplateException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +36,9 @@ import javax.mail.MessagingException;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 
+
+@Slf4j
 @RestController
 @RequestMapping("/api/user/")
 public class MemberController {
@@ -92,6 +92,7 @@ public class MemberController {
                     .build();
 
         } catch (MailException | IOException | MessagingException | TemplateException e)  {
+            log.error("E : " + e.getMessage());
             apiResponseEntity = ApiResultEntity.builder()
                     .statusCode(2)
                     .message("인증메일 발송 실패했습니다. 잠시 후 다시 시도해주세요.")
