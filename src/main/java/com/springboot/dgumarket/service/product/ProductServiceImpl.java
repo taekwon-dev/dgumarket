@@ -682,7 +682,7 @@ public class ProductServiceImpl implements ProductService {
                     .timestamp(new Date())
                     .message(errMsg)
                     .requestPath(requestPath)
-                    .pathToMove("/shop/main/index") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
+                    .pathToMove("/") // 추후 index 페이지 경로 바뀌면 해당 경로 값으로 수정 할 것.
                     .build();
         } else {
             errorMessage = ErrorMessage
