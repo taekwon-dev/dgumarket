@@ -5,10 +5,7 @@ import com.springboot.dgumarket.interceptor.JwtInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 
 import java.util.List;
@@ -93,4 +90,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
         WebMvcConfigurer.super.extendHandlerExceptionResolvers(resolvers);
     }
 
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry
+//                // '/' 로 시작하는 모든 요청을 다룬다.
+//                .addResourceHandler("/**")
+//                .addResourceLocations("classpath:/templates/", "classpath:/static/");
+//    }
 }
