@@ -11,6 +11,7 @@ import com.springboot.dgumarket.repository.member.MemberRepository;
 import com.springboot.dgumarket.service.UserDetailsImpl;
 import com.springboot.dgumarket.service.block.UserBlockService;
 import com.springboot.dgumarket.service.chat.ChatMessageService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/chat")
+@Slf4j
 public class ChatMessageController {
     private static final Logger logger = LoggerFactory.getLogger(ChatMessageController.class);
 
@@ -51,7 +53,6 @@ public class ChatMessageController {
         // 메시지 전송 시점에는 이미 인증된 유저임을 전제로 하고 있기 때문에 @MessageMapping에 요청이 할당되는 시점에는
         // 회원 정보가 유효함.
         Member loginUser = memberRepository.findById(sendMessage.getSenderId());
-
 
         if (loginUser == null || loginUser.getIsWithdrawn() == 1) {
             throw StompErrorException.builder().ERR_CODE(3).ERR_MESSAGE("탈퇴하거나, 존재하지 않는 유저는 메시지기능을 이용하실 수 없습니다.").build();
@@ -86,6 +87,7 @@ public class ChatMessageController {
             case 2:
                 throw StompErrorException.builder().ERR_CODE(2).ERR_MESSAGE("나를 차단한 유저에게 채팅 메시지를 전송할 수 없습니다.").build();
             case 3:
+                log.info("[메시지전송] 유저 고유 아이디 : {}, 메시지전송, sessionId : {}", sendMessage.getSenderId(), accessor.getSessionId());
                 String sessionId = accessor.getSessionId();
                 chatMessageService.save(sendMessage, sessionId);
         }

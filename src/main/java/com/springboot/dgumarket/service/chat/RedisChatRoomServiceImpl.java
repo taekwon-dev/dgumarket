@@ -10,6 +10,7 @@ import com.springboot.dgumarket.repository.chat.ChatRoomRepository;
 import com.springboot.dgumarket.repository.chat.RedisChatRoomRepository;
 import com.springboot.dgumarket.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class RedisChatRoomServiceImpl implements RedisChatRoomService{
     private static Logger logger = LoggerFactory.getLogger(RedisChatRoomServiceImpl.class);
 
@@ -41,6 +43,7 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
     // 채팅방 목록 화면 -> 채팅 화면으로 클릭 후 입장하는 시점 DD
     @Override
     public void join(int roomId, int senderId, String sessionId) {
+        log.info("[채팅][채팅방입장] 채팅방에 들어옵니다 - 시작");
 
         // 로그인 유저
         Member loginUser = memberRepository.findById(senderId);
@@ -53,7 +56,7 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
             // Redis Server에 요청한 채팅방 고유 ID에 대한 채팅방 정보가 존재하는 경우
             redisChatRoom = optionalRedisChatRoom.get();
             redisChatRoom.getConnectedUsers().forEach
-                    (users -> logger.info(roomId + "번(고유 ID) 방에 소속된 유저 정보(유저 정보 업데이트 전) : {}", users.toString()));
+                    (users -> log.info(roomId + "번(고유 ID) 방에 소속된 유저 정보(유저 정보 업데이트 전) : {}", users.toString()));
         } else {
             // Redis Server에 요청한 채팅방 고유 ID에 대한 채팅방 정보가 존재하지 않은 경우
             redisChatRoom = RedisChatRoom.builder()
@@ -74,14 +77,14 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
 
         // ## 채팅방 업데이트된 후 해당 채팅방의 유저 정보 확인(로그)
         chatRoomAfterJoined.getConnectedUsers().stream().forEach(
-                user -> logger.info(roomId + "번(고유 ID) 방에 소속된 유저 정보(로그인 유저 정보 업데이트 이후) : {}", user.toString()));
+                user -> log.info(roomId + "번(고유 ID) 방에 소속된 유저 정보(로그인 유저 정보 업데이트 이후) : {}", user.toString()));
 
         // Redis Server에 로그인 유저의 세션 정보 설정
         redisTemplate.opsForValue().set(sessionId, String.valueOf(roomId));
 
         // 읽지 않은 메시지 읽음 상태로 바꾸기 (사용자 입장날짜 기준)
         int num = chatMessageRepository.updateReadstatus(roomId, senderId);
-        logger.info("로그인 유저가 입장한 시간 기준으로, 안 읽음 -> 읽음 상태로 바뀐 메시지 객체 수 : {}", num);
+        log.info("로그인 유저가 입장한 시간 기준으로, 안 읽음 -> 읽음 상태로 바뀐 메시지 객체 수 : {}", num);
 
 
         // 로그인 유저가 입장한 채팅방에 채팅 상대방 유저가 입장한 상태인 경우 (-> 로그인 유저의 입장 사실을 전송한다)
@@ -91,7 +94,7 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
             int opponentId = redisChatRoom.getConnectedUsers().stream().filter(e -> e.getUserId() != Integer.valueOf(senderId)).findFirst().get().getUserId();
             // 채팅 상대방에게 로그인 유저가 채팅방 입장 상태임을 전송
             this.template.convertAndSend("/topic/room/" + roomId + "/" + opponentId, "{\"who\" : \""+senderId+"\", \"event\" : \"join\" }");
-            logger.info("[SEND Frame][JOIN] 채팅 상대방에게 로그인 유저의 채팅방 입장 상태임을 전송 -->  /topic/room/{}/{}, messages : {}", roomId, opponentId,"{\"who\" : \""+senderId+"\", \"event\" : \"join\" }");
+            log.info("[SEND Frame][JOIN] 채팅 상대방에게 로그인 유저의 채팅방 입장 상태임을 전송 -->  /topic/room/{}/{}, messages : {}", roomId, opponentId,"{\"who\" : \""+senderId+"\", \"event\" : \"join\" }");
         }
 
 
@@ -112,21 +115,23 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
         headerAccessor.setLeaveMutable(true);
         // 해당 채팅방에 포함된 모든 메시지 정보를 로그인 유저에게 전송
         template.convertAndSendToUser(sessionId,"/queue/room/event", chatMessageDtos, headerAccessor.getMessageHeaders());
-        logger.info("[SEND Frame][JOIN] 채팅방에 포함된 모든 메시지 정보 로그인 유저에게 전송 --> /queue/room/event, sessionId : {}, messages : {}", sessionId, chatMessageDtos);
+        log.info("[SEND Frame][JOIN] 채팅방에 포함된 모든 메시지 정보 로그인 유저에게 전송 --> /queue/room/event, sessionId : {}, messages : {}", sessionId, chatMessageDtos);
+        log.info("[채팅][채팅방입장] 채팅방에 들어옵니다 - 끝");
     }
 
     // 채팅방에서 < (뒤로가기 버튼), X 버튼, 크롬 브라우저 종료 시점
     // 다른 ___ 상황에서도 leave() 메소드 호출되면, 윗 줄에 추가해서 기록할 것.
     @Override
-    public void leave(String roomId, String sesionId) {
+    public void leave(String roomId, String sessionId) {
+        log.info("[채팅][채팅방나가기] 채팅방에 들어옵니다 - 시작");
         // [TRY] RedisChatRoomRepository에서 findByRoomId() 를 통해 Optional 안 쓰고 진행 했는데,
         // NPE 발생
         Optional<RedisChatRoom> optionalChatRoom = redisChatRoomRepository.findById(roomId);
 
         // 로그인 유저의 세션 ID를 통해 채팅방 객체에서 로그인 유저 정보를 삭제
         RedisChatRoom chatRoom = optionalChatRoom.get();
-        chatRoom.removeUser(sesionId);
-        logger.info("로그인 유저의 채팅화면에서 벗어난 이후, Redis 서버에 저장된 채팅방 객체 상태 : {}", chatRoom);
+        chatRoom.removeUser(sessionId);
+        log.info("로그인 유저의 채팅화면에서 벗어난 이후, Redis 서버에 저장된 채팅방 객체 상태 : {}, sessionId : {}", chatRoom, sessionId);
 
         // Redis 서버에 저장된 채팅방 객체에 참조된 유저 수가 0인 경우 (= 해당 채팅방에 입장한 유저가 없는 경우)
         if (chatRoom.getNumberOfConnectedUsers() == 0) {
@@ -135,15 +140,16 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
         } else {
             // 로그인 유저 외 채팅 상대 유저가 채팅화면에 남아 있는 경우, 최신화된 채팅방 객체 상태를 Redis 서버에 저장
             RedisChatRoom redisChatRoom = redisChatRoomRepository.save(chatRoom);
-            logger.info("채팅방에 모든 유저가 입장한 상태에서, 로그인 유저가 방에서 벗어난 이후 Redis 서버에 저장된 채팅방 객체 상태 : {}", redisChatRoom);
+            log.info("채팅방에 모든 유저가 입장한 상태에서, 로그인 유저가 방에서 벗어난 이후 Redis 서버에 저장된 채팅방 객체 상태 : {}", redisChatRoom);
         }
-
+        log.info("[채팅][채팅방나가기] 채팅방에 들어옵니다 - 끝");
     }
 
     // configureClientInboundChannel() on WebSocketConfig.class
     @Override
     @Transactional
     public void leave(String sessionId) {
+        log.info("[채팅][(갑작스런)채팅방나가기] 채팅방에 들어옵니다 - 시작");
         /**
          * TODO: 채팅방 나갈 때에 대한 예외처리!
          * configureClientInboundChannel() on WebSocketConfig.class
@@ -156,10 +162,12 @@ public class RedisChatRoomServiceImpl implements RedisChatRoomService{
 
             // 해당 채팅 화면에서 벗어난 상태로 처리
             this.leave(roomId, sessionId);
+            log.info("[채팅][웹소켓네트워크] 채팅방에서 나갑니다. roomId : {}, sessionId : {}", roomId, sessionId);
 
             // 세션 ID 삭제
             redisTemplate.delete(sessionId);
         }
+        log.info("[채팅][(갑작스런)채팅방나가기] 채팅방에 들어옵니다 - 끝");
     }
 
 }
