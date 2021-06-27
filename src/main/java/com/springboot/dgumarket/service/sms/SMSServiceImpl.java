@@ -432,7 +432,7 @@ public class SMSServiceImpl implements SMSService {
                     .timestamp(new Date())
                     .message(errMsg)
                     .requestPath(requestPath)
-                    .pathToMove("/shop/main/index")
+                    .pathToMove("/")
                     .build();
 
         }
