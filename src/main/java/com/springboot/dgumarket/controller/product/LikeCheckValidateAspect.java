@@ -46,15 +46,15 @@ public class LikeCheckValidateAspect {
 
         Product product = productRepository.findById(likeRequest.getProduct_id());
 
-        if (product == null) throw new CustomControllerExecption("삭제되거나 존재하지 않은 물건입니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 100);
+        if (product == null) throw new CustomControllerExecption("삭제되거나 존재하지 않은 물건입니다.", HttpStatus.BAD_REQUEST, "/", 100);
 
         // 물건 삭제 / 비공개처리 되었을 경우 => 에러페이지 반환
-        if (product.getProductStatus() == 1) throw new CustomControllerExecption("삭제되거나 존재하지 않은 물건입니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 100);
-        if (product.getProductStatus() == 2) throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 101);
+        if (product.getProductStatus() == 1) throw new CustomControllerExecption("삭제되거나 존재하지 않은 물건입니다.", HttpStatus.BAD_REQUEST, "/", 100);
+        if (product.getProductStatus() == 2) throw new CustomControllerExecption("관리자에 의해 비공개 처리된 물건입니다.", HttpStatus.BAD_REQUEST, "/", 101);
 
         // 물건 판매자가 탈퇴/유저제재 되었을 경우 => 에러페이지 반환
-        if (product.getMember().getIsWithdrawn() == 1) throw new CustomControllerExecption("물건의 판매자가 탈퇴하여 좋아요/좋아요취소 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 102);
-        if (product.getMember().getIsEnabled() == 1) throw new CustomControllerExecption("물건의 판매자가 관리자로부터 이용제재조치를 받고 있어 좋아요/좋아요취소 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 103);
+        if (product.getMember().getIsWithdrawn() == 1) throw new CustomControllerExecption("물건의 판매자가 탈퇴하여 좋아요/좋아요취소 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/", 102);
+        if (product.getMember().getIsEnabled() == 1) throw new CustomControllerExecption("물건의 판매자가 관리자로부터 이용제재조치를 받고 있어 좋아요/좋아요취소 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/", 103);
 
 
         // 물건 판매자가 나와 차단관계일 경우 => 에러페이지 반환
@@ -78,10 +78,10 @@ public class LikeCheckValidateAspect {
             BlockUser blockedUser = blockUserRepository.findByUserAndBlockedUser(productUploader, loginUser);
 
             if(loginUser.getBlockUsers().contains(blockUser)){
-                throw new CustomControllerExecption("내가 차단한 유저의 물건에 대해 좋아요(취소) 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 104);
+                throw new CustomControllerExecption("내가 차단한 유저의 물건에 대해 좋아요(취소) 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/", 104);
             }
             if(loginUser.getUserBlockedMe().contains(blockedUser)){
-                throw new CustomControllerExecption("나를 차단한 유저의 물건에 대해 좋아요(취소) 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/shop/main/index", 105);
+                throw new CustomControllerExecption("나를 차단한 유저의 물건에 대해 좋아요(취소) 요청을 할 수 없습니다.", HttpStatus.BAD_REQUEST, "/", 105);
             }
         }
 
