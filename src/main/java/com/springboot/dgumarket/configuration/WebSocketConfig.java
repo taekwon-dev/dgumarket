@@ -2,6 +2,7 @@ package com.springboot.dgumarket.configuration;
 
 
 import com.springboot.dgumarket.service.chat.RedisChatRoomService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.web.socket.config.annotation.*;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
@@ -80,13 +82,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     logger.info("{}, message.getHeader {}", command, message.getHeaders());
                     logger.info("{}, accessor.toString {}", command, sha.toString());
                     logger.info("{}, accessor.getDestination()", sha.getDestination());
-
                 } else if(StompCommand.UNSUBSCRIBE.equals(command) && message.getHeaders().get("simpSubscriptionId").toString().startsWith("room-user-")) {
                     String sessionId = message.getHeaders().get("simpSessionId").toString(); // 유저 고유의 SessionId
                     redisChatRoomService.leave(sessionId); // 레디스 채팅방 나가기
                 } else if(StompCommand.DISCONNECT.equals(command)) { // 갑작스러운 종료에도 채팅창을 잘 나가게 해야한다.
                     String sessionId = message.getHeaders().get("simpSessionId").toString();
-
+                    log.info("[채팅][웹소켓네트워크] 사용자의 갑작스러운 종료감지! sessionId : {}", sessionId);
                     redisChatRoomService.leave(sessionId); // TODO : 갑작스러운 종료에도 sessionId로 채팅방 나갈 수 있도록 하기
                 }
                 return message;
