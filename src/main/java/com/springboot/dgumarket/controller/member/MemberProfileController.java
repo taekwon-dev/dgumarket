@@ -47,39 +47,31 @@ public class MemberProfileController {
     // [회원정보 불러오기 : 프로필 사진, 닉네임, 관심 카테고리]
     @GetMapping("/read")
     public ResponseEntity<ApiResultEntity> getMemberInfo(Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userDetails.getId());
 
-        if (authentication != null) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            MemberInfoDto memberInfoDto = memberService.fetchMemberInfo(userDetails.getId());
-
-            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .message("회원 정보 조회")
-                    .responseData(memberInfoDto)
-                    .statusCode(200)
-                    .build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
-        return null;
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                .message("회원 정보 조회")
+                .responseData(memberInfoDto)
+                .statusCode(200)
+                .build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
     // 회원 정보 (프로필 사진, 닉네임, 관심카테고리) 수정
     @PostMapping("/update")
     public ResponseEntity<ApiResultEntity> updateInfo(@Valid @RequestBody MemberUpdateDto memberUpdateInfoDto, Authentication authentication) {
 
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        memberService.updateMemberInfo(userDetails.getId(), memberUpdateInfoDto);
 
-        if (authentication != null) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            memberService.updateMemberInfo(userDetails.getId(), memberUpdateInfoDto);
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                .message("회원 정보 수정")
+                .responseData(null)
+                .statusCode(200)
+                .build();
 
-            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .message("회원 정보 수정")
-                    .responseData(null)
-                    .statusCode(200)
-                    .build();
-
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
-        return null;
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
 
@@ -87,14 +79,9 @@ public class MemberProfileController {
     // 회원 비밀번호 변경
     @PostMapping("/change-pwd")
     public ResponseEntity<ApiResultEntity> updatePwd(@RequestBody ChangePwdDto changePwdDto, Authentication authentication) {
-
-
-        if (authentication != null) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            ApiResultEntity apiResponseEntity = memberService.updatePassword(userDetails.getId(), changePwdDto);
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-        }
-        return null;
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        ApiResultEntity apiResponseEntity = memberService.updatePassword(userDetails.getId(), changePwdDto);
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
     // 회원 핸드폰번호 변경
@@ -131,38 +118,35 @@ public class MemberProfileController {
         String fileName = null;
         String fileType = null;
 
-        if (authentication != null) {
-            // 업로드 성공 시 반환되는 파일명 (이 값을 가지고 최종 회원 정보 업데이트)
-            fileName = prevFileName;  // example.jpg or example.png ...
-            fileType = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
+        // 업로드 성공 시 반환되는 파일명 (이 값을 가지고 최종 회원 정보 업데이트)
+        fileName = prevFileName;  // example.jpg or example.png ...
+        fileType = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
 
-            // 프로필 이미지 업로드 상황에서
-            // S3에 등록된 파일명을 그대로 받아와서 업로드하는 경우
-            // 예를 들어, A -> B로 프로필 사진을 변경하는 경우는
-            // A 프로필 사진의 파일명을 (S3에 저장된) 그대로 받아서 다시 뒤집어 씌운다.
+        // 프로필 이미지 업로드 상황에서
+        // S3에 등록된 파일명을 그대로 받아와서 업로드하는 경우
+        // 예를 들어, A -> B로 프로필 사진을 변경하는 경우는
+        // A 프로필 사진의 파일명을 (S3에 저장된) 그대로 받아서 다시 뒤집어 씌운다.
 
-            // 반대로,
-            // NULL -> A로, 기본 프로필 사진에서 A로 변경하는 경우는
-            // 이미 기존 프로필 사진에 대한 파일명을 가지고 있지 않은 경우 (클라이언트 측)
-            // 따라서, 새로운 고유한 파일명을 생성한다.
+        // 반대로,
+        // NULL -> A로, 기본 프로필 사진에서 A로 변경하는 경우는
+        // 이미 기존 프로필 사진에 대한 파일명을 가지고 있지 않은 경우 (클라이언트 측)
+        // 따라서, 새로운 고유한 파일명을 생성한다.
 
-            // 추가 작업 (2021-03-06)
-            // 새로 업로드한 이미지 파일의 타입이 달라진 경우에 기존 파일명에 포함된 파일형식을 바꿔줘야 한다.
-            if (fileName.equals("")) {
-                fileName = UUID.randomUUID().toString().replace("-", "")+"."+fileType;
-            }
-
-            memberService.uploadProfileImgtoS3(multipartFile, fileName);
-
-            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .message("유저 프로필 사진 업로드 성공")
-                    .responseData(fileName) // AWS S3 업로드된 파일명 반환
-                    .statusCode(200)
-                    .build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+        // 추가 작업 (2021-03-06)
+        // 새로 업로드한 이미지 파일의 타입이 달라진 경우에 기존 파일명에 포함된 파일형식을 바꿔줘야 한다.
+        if (fileName.equals("")) {
+            fileName = UUID.randomUUID().toString().replace("-", "")+"."+fileType;
         }
-        // if Authentication object is NULL (It isn't our case)
-        return null;
+
+        memberService.uploadProfileImgtoS3(multipartFile, fileName);
+
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                .message("유저 프로필 사진 업로드 성공")
+                .responseData(fileName) // AWS S3 업로드된 파일명 반환
+                .statusCode(200)
+                .build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
+
     }
 
     // @NotBlank not to accept {null, "", " "}
@@ -172,22 +156,15 @@ public class MemberProfileController {
     // 없는 경우 예외 처리는 어떻게? (클라이언트 측 / 서버 측)
     @PostMapping("/image-delete")
     public ResponseEntity<ApiResultEntity> deleteProfileImg(Authentication authentication, @RequestParam("deleteFileName") String deleteFileName) {
+        // S3에 저장되어 있는 프로필 사진 삭제 로직 수행 서비스 호출
+        memberService.deleteProfileImgInS3(deleteFileName);
 
-
-        if (authentication != null) {
-
-            // S3에 저장되어 있는 프로필 사진 삭제 로직 수행 서비스 호출
-            memberService.deleteProfileImgInS3(deleteFileName);
-
-            ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
-                    .message("유저 프로필 사진 삭제 성공")
-                    .responseData(null) // AWS S3 업로드된 파일명 반환
-                    .statusCode(200)
-                    .build();
-            return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
-
-        }
-        return null;
+        ApiResultEntity apiResponseEntity = ApiResultEntity.builder()
+                .message("유저 프로필 사진 삭제 성공")
+                .responseData(null) // AWS S3 업로드된 파일명 반환
+                .statusCode(200)
+                .build();
+        return new ResponseEntity<>(apiResponseEntity, HttpStatus.OK);
     }
 
     @PostMapping("/withdraw")

@@ -55,13 +55,9 @@ public class MemberController {
     @Autowired
     private BlockUserRepository blockUserRepository;
 
-
-    private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
-
     /* 회원가입 3단계 -> 회원 가입 완료 버튼 End Point */
     @PostMapping("/signup")
     public ResponseEntity<ApiResultEntity> doSignUp(@RequestBody SignUpDto signUpDto) {
-
 
         // 3단계 페이지 접근 시, 이메일 인증 링크를 누른 브라우저 외 다른 브라우저에서 접근 시 핸드폰 번호 값을 활용할 수 없으므로, 잘못된 접근으로 처리
         if (signUpDto.getPhoneNumber() == null) throw new PreMemberNotFoundException(errorResponse("회원 절차에 있는 예비 회원정보를 찾을 수 없는 경우", 301, "/api/user/signup"));
