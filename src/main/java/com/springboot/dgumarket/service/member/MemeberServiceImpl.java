@@ -61,7 +61,7 @@ public class MemeberServiceImpl implements MemberProfileService {
 
     private static final String S3_SAVED_DIR = "origin/user-profile/";
 
-    private static final String PWD_RESET_PAGE_URL = "/shop/account/find_pwd_newPwd?token=";
+    private static final String PWD_RESET_PAGE_URL = "/shop/account/reset_pwd2?token=";
 
     @Autowired
     private ModelMapper modelMapper;
@@ -209,14 +209,17 @@ public class MemeberServiceImpl implements MemberProfileService {
             // 회원 식별 체크는 이미 Interceptor에서 진행하고 이 곳으로 넘어온 상황
 
             if (memberUpdateInfoDto.getProfileImageDir().isPresent()) {
+                log.info("프로필 사진 업데이트");
                 member.updateProfileImgDir(memberUpdateInfoDto.getProfileImageDir().get());
             }
 
             if (memberUpdateInfoDto.getNickName().isPresent()) {
+                log.info("닉네임 업데이트");
                 member.updateNickName(memberUpdateInfoDto.getNickName().get());
             }
 
             if (memberUpdateInfoDto.getProductCategories().isPresent()) {
+                log.info("관심 카테고리 업데이트");
                 // Dto to Entity
                 org.modelmapper.PropertyMap<ProductCategoryDto, ProductCategory> map_category = new PropertyMap<ProductCategoryDto, ProductCategory>() {
                     @Override
