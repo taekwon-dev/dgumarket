@@ -102,6 +102,7 @@ public class Product {
 
     // 수정 시간
     @UpdateTimestamp
+    @Column(insertable = false)
     private LocalDateTime updateDatetime;
 
     // 상품 삭제 요청 시 상품 상태를 1로 변경 (1 : 상품 삭제)
