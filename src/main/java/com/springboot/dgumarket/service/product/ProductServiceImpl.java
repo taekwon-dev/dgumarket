@@ -165,7 +165,7 @@ public class ProductServiceImpl implements ProductService {
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 // 메인 페이지 물건리스트 업로드 시간 (업로드 시간 기준으로 정렬)
                 // 2021-02-21
-                map().setUploadDatetime(source.getUpdateDatetime());
+                map().setUploadDatetime(source.getCreateDatetime());
                 map().setThumbnailImg(source.getImgDirectory());
                 map().setCategory_id(source.getProductCategory().getId());
             }
@@ -236,7 +236,7 @@ public class ProductServiceImpl implements ProductService {
                 map().setLastUpdatedDatetime(source.getUpdateDatetime());
                 // 메인 페이지 물건리스트 업로드 시간 (업로드 시간 기준으로 정렬)
                 // 2021-02-21
-                map().setUploadDatetime(source.getUpdateDatetime());
+                map().setUploadDatetime(source.getCreateDatetime());
                 map().setThumbnailImg(source.getImgDirectory());
                 map().setCategory_id(source.getProductCategory().getId());
             }
