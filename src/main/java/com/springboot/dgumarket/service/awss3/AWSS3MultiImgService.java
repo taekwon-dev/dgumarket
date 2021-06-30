@@ -1,8 +1,7 @@
 package com.springboot.dgumarket.service.awss3;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -12,13 +11,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.springboot.dgumarket.exception.ErrorMessage;
 import com.springboot.dgumarket.exception.aws.AWSImageException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,13 +26,13 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AWSS3MultiImgService {
 
     @Value("${application.bucket.name}")
     private String bucketName;
 
-    @Autowired
-    private AmazonS3 s3Client;
+    private final AmazonS3Client s3Client;
 
     // 새로 상품을 업로드 하는 경우 (이미지 첨부)
     // 신고하는 경우 (이미지 첨부)
