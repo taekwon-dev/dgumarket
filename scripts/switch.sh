@@ -14,7 +14,8 @@ function switch_proxy(){
     echo 5574 | sudo -S nginx -s reload
 
 
-    # sample stop.sh
+    # stop.sh
+    echo "기존에 실행되고 있던 앱들을 모두 멈춥니다."
     if [ $1 == "8081" ];then # 8181로 물려있던 것들, prod2 로 실행한 앱 모두 지우기
         echo "kill process"
         echo $( ps -eo pid,command | grep prod2 | awk 'NR<4{ print $1 }')
