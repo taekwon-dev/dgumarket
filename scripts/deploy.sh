@@ -35,5 +35,5 @@ echo "> $JAR_NAME 실행"
 
 # 추가된 주석 fix
 nohup java -jar \
-	-Dspring.config.location=/home/ubuntu/app/step3/main/configs/application.properties,/home/ubuntu/app/step3/main/configs/application.yml \
+	-Dspring.config.location=/home/ubuntu/app/step3/main/configs/application.yml \
 	$JAR_NAME > $REPOSITORY/nohup.out 2>&1 &
