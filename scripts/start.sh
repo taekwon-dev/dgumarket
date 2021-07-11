@@ -55,7 +55,7 @@ echo ">main 앱을 profile=$IDLE_PROFILE 로 실행합니다."
 ## nohup_main_날짜.out
 #DATE=$(date | awk '{print $1 $2 $3 $4 $5 $6 $7}')
 echo "[start.sh] main 앱 실행 ---------- [ 1 / 3 ]"
-nohup java -jar -Dspring.config.location=/home/ubuntu/app/step3/main/configs/application.yml -Dspring.profiles.active=$IDLE_PROFILE $REPOSITORY/main-${IDLE_PROFILE}/*.jar > $MAIN_FOLDER/main-${IDLE_PROFILE}/nohup_${IDLE_PROFILE}.out 2>&1 &
+nohup java -jar -Dspring.config.location=/home/ubuntu/app/step3/main/configs/application.yml -Dspring.profiles.active=$IDLE_PROFILE $REPOSITORY/main-${IDLE_PROFILE}/*.jar > $MAIN_FOLDER/main-${IDLE_PROFILE}/nohup_main_${IDLE_PROFILE}.out 2>&1 &
 
 function start_another_app(){
 	echo "현재위치 $(pwd)"
